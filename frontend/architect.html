@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architect Studio — House Architect</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/architect.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="architect-app">
+
+    <nav class="architect-nav">
+        <div class="nav-left">
+            <a href="dashboard.html" class="back-btn" title="Back"><i class="fas fa-arrow-left"></i></a>
+            <div class="project-title-wrap">
+                <input type="text" id="projectTitle" value="Untitled Project" onchange="updateProjectTitle()" spellcheck="false">
+                <span class="save-badge" id="saveStatus">Saved</span>
+            </div>
+        </div>
+        <div class="nav-center">
+            <div class="tool-group">
+                <button class="tool-btn active" data-tool="select" onclick="setTool('select')" title="Select (V)"><i class="fas fa-mouse-pointer"></i><span>Select</span></button>
+                <button class="tool-btn" data-tool="room" onclick="setTool('room')" title="Add Room (R)"><i class="fas fa-vector-square"></i><span>Room</span></button>
+                <button class="tool-btn" data-tool="door" onclick="setTool('door')" title="Door (D)"><i class="fas fa-door-open"></i><span>Door</span></button>
+                <button class="tool-btn" data-tool="window" onclick="setTool('window')" title="Window"><i class="fas fa-window-maximize"></i><span>Window</span></button>
+                <button class="tool-btn" data-tool="measure" onclick="setTool('measure')" title="Measure (M)"><i class="fas fa-ruler-combined"></i><span>Measure</span></button>
+            </div>
+        </div>
+        <div class="nav-right">
+            <button class="nav-btn outline" onclick="window._tmpl && window._tmpl.open()" title="House Templates"><i class="fas fa-layer-group"></i> Templates</button>
+            <button class="nav-btn outline" onclick="exportProject()"><i class="fas fa-file-export"></i> Export</button>
+            <button class="nav-btn primary" onclick="saveProject()"><i class="fas fa-save"></i> Save</button>
+        </div>
+    </nav>
+
+    <div class="architect-main">
+        <aside class="sidebar-left">
+
+            <div class="sbar-section">
+                <div class="sbar-header"><i class="fas fa-sliders-h"></i> Project Settings</div>
+                <div class="form-row2">
+                    <div class="form-group">
+                        <label>Width (m)</label>
+                        <input type="number" id="totalWidth" value="20" min="5" max="100" onchange="updateProjectSettings()">
+                    </div>
+                    <div class="form-group">
+                        <label>Depth (m)</label>
+                        <input type="number" id="totalDepth" value="15" min="5" max="100" onchange="updateProjectSettings()">
+                    </div>
+                </div>
+                <div class="form-row2">
+                    <div class="form-group">
+                        <label>Floors</label>
+                        <input type="number" id="numFloors" value="1" min="1" max="5" onchange="updateProjectSettings()">
+                    </div>
+                    <div class="form-group">
+                        <label>Fl. Height (m)</label>
+                        <input type="number" id="floorHeight" value="2.7" min="2" max="6" step="0.1" onchange="updateProjectSettings()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Roof Type</label>
+                    <select id="roofType" onchange="updateProjectSettings()">
+                        <option value="pitched">Pitched Gable</option>
+                        <option value="hip">Hip Roof</option>
+                        <option value="flat">Flat Roof</option>
+                        <option value="gambrel">Gambrel / Barn</option>
+                        <option value="shed">Shed / Mono-pitch</option>
+                        <option value="mansard">Mansard</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="sbar-section">
+                <div class="sbar-header"><i class="fas fa-palette"></i> Visual Style</div>
+                <div class="style-grid">
+                    <button class="style-card active" data-style="modern" onclick="setStyle('modern')">
+                        <div class="style-swatch modern-swatch"></div>
+                        <span>Modern</span>
+                    </button>
+                    <button class="style-card" data-style="minimalist" onclick="setStyle('minimalist')">
+                        <div class="style-swatch minimalist-swatch"></div>
+                        <span>Minimalist</span>
+                    </button>
+                    <button class="style-card" data-style="traditional" onclick="setStyle('traditional')">
+                        <div class="style-swatch traditional-swatch"></div>
+                        <span>Traditional</span>
+                    </button>
+                    <button class="style-card" data-style="luxury" onclick="setStyle('luxury')">
+                        <div class="style-swatch luxury-swatch"></div>
+                        <span>Luxury</span>
+                    </button>
+                </div>
+                <p class="style-desc" id="styleDesc">Sleek concrete & glass with bold geometry</p>
+            </div>
+
+            <div class="sbar-section">
+                <div class="sbar-header">
+                    <span><i class="fas fa-th-large"></i> Rooms</span>
+                    <button class="icon-btn" onclick="addRoom()" title="Add Room"><i class="fas fa-plus"></i></button>
+                </div>
+                <div class="floor-tabs" id="floorTabs"></div>
+                <div id="roomsList" class="rooms-list"></div>
+                <div class="room-template-strip">
+                    <button class="tmpl-btn" onclick="addRoomOfType('living')" title="Living Room"><i class="fas fa-couch"></i></button>
+                    <button class="tmpl-btn" onclick="addRoomOfType('bedroom')" title="Bedroom"><i class="fas fa-bed"></i></button>
+                    <button class="tmpl-btn" onclick="addRoomOfType('kitchen')" title="Kitchen"><i class="fas fa-utensils"></i></button>
+                    <button class="tmpl-btn" onclick="addRoomOfType('bathroom')" title="Bathroom"><i class="fas fa-bath"></i></button>
+                    <button class="tmpl-btn" onclick="addRoomOfType('dining')" title="Dining"><i class="fas fa-chair"></i></button>
+                    <button class="tmpl-btn" onclick="addRoomOfType('office')" title="Office"><i class="fas fa-briefcase"></i></button>
+                    <button class="tmpl-btn" onclick="addRoomOfType('garage')" title="Garage"><i class="fas fa-car"></i></button>
+                </div>
+            </div>
+
+            <div class="sbar-section">
+                <div class="sbar-header"><i class="fas fa-edit"></i> Room Properties</div>
+                <div id="roomProperties"><p class="empty-msg">Select a room to edit</p></div>
+            </div>
+
+            <div class="sbar-section" id="interiorControls" style="display:none;">
+                <div class="sbar-header"><i class="fas fa-video"></i> Camera & Layers</div>
+                <div class="cam-presets">
+                    <button class="cam-btn" onclick="setInteriorCam('free')"><i class="fas fa-compass"></i> Free</button>
+                    <button class="cam-btn" onclick="setInteriorCam('top')"><i class="fas fa-arrow-up"></i> Top</button>
+                    <button class="cam-btn" onclick="setInteriorCam('front')"><i class="fas fa-home"></i> Front</button>
+                    <button class="cam-btn" onclick="setInteriorCam('side')"><i class="fas fa-arrow-right"></i> Side</button>
+                </div>
+                <div class="layer-list">
+                    <label class="layer-toggle"><input type="checkbox" id="layerFurniture" checked onchange="toggleInteriorLayer('furniture',this.checked)"><span class="layer-dot" style="background:#7c6fe0"></span> Furniture</label>
+                    <label class="layer-toggle"><input type="checkbox" id="layerRoof" onchange="toggleInteriorLayer('roof',this.checked)"><span class="layer-dot" style="background:#e06f6f"></span> Roof</label>
+                    <label class="layer-toggle"><input type="checkbox" id="layerWalls" checked onchange="toggleInteriorLayer('walls',this.checked)"><span class="layer-dot" style="background:#74b9ff"></span> Walls</label>
+                    <label class="layer-toggle"><input type="checkbox" id="layerLabels" checked onchange="toggleInteriorLayer('labels',this.checked)"><span class="layer-dot" style="background:#38ef7d"></span> Labels</label>
+                </div>
+            </div>
+
+        </aside>
+
+        <main class="canvas-area">
+            <div class="canvas-toolbar">
+                <div class="view-tabs">
+                    <button class="view-tab active" id="btn2d" onclick="setView('2d')"><i class="fas fa-vector-square"></i> 2D Plan</button>
+                    <button class="view-tab" id="btn3d" onclick="setView('3d')"><i class="fas fa-cube"></i> 3D Model</button>
+                    <button class="view-tab interior-tab" id="btnInterior" onclick="setView('interior')"><i class="fas fa-home"></i> Interior</button>
+                </div>
+                <div class="toolbar-mid">
+                    <div class="zoom-group" id="zoomControls">
+                        <button class="zoom-btn" onclick="zoomOut()"><i class="fas fa-minus"></i></button>
+                        <span id="zoomLevel">100%</span>
+                        <button class="zoom-btn" onclick="zoomIn()"><i class="fas fa-plus"></i></button>
+                        <button class="zoom-btn" onclick="resetZoom()" title="Fit"><i class="fas fa-compress-arrows-alt"></i></button>
+                    </div>
+                    <label class="snap-toggle" id="snapControls"><input type="checkbox" id="snapEnabled" checked> Grid snap</label>
+                    <select id="snapSize" onchange="updateSnapSize()" title="Snap size">
+                        <option value="0.5">0.5m</option>
+                        <option value="1" selected>1m</option>
+                        <option value="2">2m</option>
+                    </select>
+                </div>
+                <div class="toolbar-right">
+                    <div class="view-sub-tabs" id="interiorSubTabs" style="display:none">
+                        <button class="sub-tab active" id="subInterior" onclick="setInteriorSubView('interior')">Interior</button>
+                        <button class="sub-tab" id="subDollhouse" onclick="setInteriorSubView('dollhouse')">Dollhouse</button>
+                        <button class="sub-tab" id="subExterior" onclick="setInteriorSubView('exterior')">Exterior</button>
+                    </div>
+                    <label class="snap-toggle" id="openTopToggle" style="display:none;"><input type="checkbox" id="openTopMode" checked onchange="refresh3D()"> Open Top</label>
+                </div>
+            </div>
+
+            <div class="canvas-container" id="canvasContainer">
+                <canvas id="floorplanCanvas"></canvas>
+                <div id="threejsContainer" style="display:none;width:100%;height:100%;position:absolute;top:0;left:0;"></div>
+                <div id="interiorContainer" style="display:none;width:100%;height:100%;position:absolute;top:0;left:0;background:#0a0a0f;">
+                    <div class="interior-room-info" id="interiorRoomInfo">
+                        <div class="iri-name" id="iriName">—</div>
+                        <div class="iri-sub" id="iriSub">SELECT A ROOM</div>
+                        <div class="iri-stats" id="iriStats"></div>
+                    </div>
+                    <div class="interior-hint">Drag to orbit · Scroll to zoom · Click room to focus</div>
+                    <canvas id="interiorCanvas" style="width:100%;height:100%;display:block;"></canvas>
+                </div>
+                <div class="canvas-hint" id="canvasHint">
+                    <i class="fas fa-hand-pointer"></i> Click to select · Drag to move · Corner handles to resize
+                </div>
+            </div>
+        </main>
+
+        <aside class="sidebar-right">
+            <div class="sbar-section">
+                <div class="sbar-header"><i class="fas fa-chart-bar"></i> Project Stats</div>
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-value" id="totalArea">0</div><div class="stat-label">Total m²</div></div>
+                    <div class="stat-card"><div class="stat-value" id="roomCount">0</div><div class="stat-label">Rooms</div></div>
+                    <div class="stat-card"><div class="stat-value" id="floorCount">1</div><div class="stat-label">Floors</div></div>
+                    <div class="stat-card"><div class="stat-value" id="estimatedCost">$0</div><div class="stat-label">Est. Cost</div></div>
+                </div>
+            </div>
+            <div class="sbar-section">
+                <div class="sbar-header"><i class="fas fa-receipt"></i> Cost Breakdown</div>
+                <div id="costBreakdown"><p class="empty-msg">Add rooms to see estimate</p></div>
+            </div>
+            <div class="sbar-section">
+                <div class="sbar-header"><i class="fas fa-bolt"></i> Quick Actions</div>
+                <div class="actions-list">
+                    <button class="action-btn tmpl-btn" onclick="window._tmpl && window._tmpl.open()">
+                        <i class="fas fa-layer-group"></i>
+                        <div><strong>Templates</strong><small>Start from a smart layout</small></div>
+                    </button>
+                    <button class="action-btn render-btn" onclick="generate3DModel()">
+                        <i class="fas fa-cube"></i>
+                        <div><strong>Render 3D</strong><small>Generate full 3D model</small></div>
+                    </button>
+                    <button class="action-btn interior-btn" onclick="generateInterior()">
+                        <i class="fas fa-home"></i>
+                        <div><strong>Interior View</strong><small>Furnished walkthrough</small></div>
+                    </button>
+                    <button class="action-btn" onclick="autoLayout()">
+                        <i class="fas fa-magic"></i>
+                        <div><strong>Auto Layout</strong><small>Smart room arrangement</small></div>
+                    </button>
+                    <button class="action-btn" onclick="generateFloorPlan()">
+                        <i class="fas fa-drafting-compass"></i>
+                        <div><strong>Redraw Plan</strong><small>Refresh 2D view</small></div>
+                    </button>
+                    <button class="action-btn danger-btn" onclick="clearAll()">
+                        <i class="fas fa-trash"></i>
+                        <div><strong>Clear All</strong><small>Remove all rooms</small></div>
+                    </button>
+                </div>
+            </div>
+            <!-- Ollama AI Chat -->
+            <div class="sbar-section ollama-chat-section">
+                <div class="sbar-header ollama-header">
+                    <span><i class="fas fa-robot"></i> AI Architect Chat</span>
+                    <span class="ollama-badge">Ollama</span>
+                </div>
+                <div id="ollamaChatMessages" class="chat-messages">
+                    <div class="chat-msg ai"><div class="chat-bubble">Hi! I'm your AI architect. Ask me anything about room design, layouts, materials, or cost estimates. I know your current project!</div></div>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" id="ollamaChatInput" class="chat-input" placeholder="Ask AI about your design..." autocomplete="off">
+                    <button id="ollamaChatSend" class="chat-send-btn"><i class="fas fa-paper-plane"></i></button>
+                </div>
+                <div class="chat-hint">Requires Ollama running on port 11434 and AI backend on port 3001</div>
+            </div>
+
+            <!-- AI Architecture Generate -->
+            <div class="sbar-section">
+                <div class="sbar-header"><i class="fas fa-brain"></i> AI Generate Layout</div>
+                <div class="form-group">
+                    <label>Requirements</label>
+                    <textarea id="aiArchReq" rows="3" placeholder="e.g. 3 bedroom family home, open plan kitchen/living, double garage..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid #2d3651;color:#e2e8f0;padding:0.4rem;border-radius:6px;font-size:0.8rem;resize:vertical;"></textarea>
+                </div>
+                <button class="action-btn render-btn" style="width:100%;" onclick="generateAIArchitecture()">
+                    <i class="fas fa-magic"></i><div><strong>Generate Architecture</strong><small>AI-powered design</small></div>
+                </button>
+                <div id="aiArchOutput" style="max-height:120px;overflow-y:auto;margin-top:0.4rem;font-size:0.7rem;"></div>
+            </div>
+
+            <div class="sbar-section">
+                <div class="sbar-header"><i class="fas fa-lightbulb"></i> Tips</div>
+                <ul class="tips-list">
+                    <li><strong>D</strong> = Door tool, <strong>W</strong> = Window tool</li>
+                    <li>Click near a <strong>room wall</strong> to place doors/windows</li>
+                    <li><strong>Drag</strong> placed doors/windows to reposition</li>
+                    <li><kbd>V</kbd> Select &nbsp; <kbd>R</kbd> Add room</li>
+                    <li>Drag orange handles to resize rooms</li>
+                    <li>Pick a <strong>style</strong> before rendering 3D</li>
+                    <li>Set <strong>Floors</strong> for multi-storey houses</li>
+                    <li><kbd>Ctrl+S</kbd> to save quickly</li>
+                    <li><kbd>Del</kbd> removes selected room</li>
+                </ul>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/architect.js"></script>
+<script src="js/interior.js"></script>
+<script src="js/templates.js"></script>
+</body>
+</html>

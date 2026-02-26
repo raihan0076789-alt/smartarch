@@ -1,0 +1,14 @@
+{
+  "name": "house-architect-pro",
+  "version": "3.0.0",
+  "description": "House Architect Pro - Full Stack with AI",
+  "scripts": {
+    "install:main": "cd backend-main && npm install",
+    "install:ai": "cd backend-ai && npm install",
+    "install:all": "npm run install:main && npm run install:ai",
+    "start:main": "cd backend-main && npm start",
+    "start:ai": "cd backend-ai && npm start",
+    "dev:main": "cd backend-main && npm run dev",
+    "dev:ai": "cd backend-ai && npm run dev"
+  }
+}
