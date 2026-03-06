@@ -1,216 +1,130 @@
+/**
+ * architectureController.js
+ * API layer — Building Layout endpoints + preserved AI chat proxy.
+ */
+
 import { architectureService } from '../services/architectureService.js';
 import logger from '../utils/logger.js';
 import { v4 as uuidv4 } from 'uuid';
 
-export const generateArchitecture = async (req, res, next) => {
+// ─────────────────────────────────────────────
+//  POST /api/architecture/floorplan/generate
+//  Body: { buildingType, floors, totalArea, rooms }
+// ─────────────────────────────────────────────
+export const generateFloorplan = async (req, res, next) => {
   const requestId = uuidv4();
   try {
-    logger.info(`[${requestId}] Architecture generation request received`, {
-      requirements: req.body.requirements?.substring(0, 100)
-    });
+    logger.info(`[${requestId}] generateFloorplan request`);
 
-    const { requirements, preferences, constraints } = req.body;
+    const { buildingType, floors, totalArea, rooms } = req.body;
 
-    if (!requirements || requirements.trim().length === 0) {
+    // Validate minimum required fields
+    if (floors !== undefined && (isNaN(floors) || floors < 1 || floors > 6)) {
       return res.status(400).json({
-        error: 'Bad Request',
-        message: 'Requirements field is required and cannot be empty',
-        requestId
+        error:     'Bad Request',
+        message:   'floors must be between 1 and 6',
+        requestId,
       });
     }
 
-    const result = await architectureService.generateArchitecture(
-      requirements,
-      preferences,
-      constraints,
-      requestId
-    );
+    if (totalArea !== undefined && (isNaN(totalArea) || totalArea < 20)) {
+      return res.status(400).json({
+        error:     'Bad Request',
+        message:   'totalArea must be at least 20 m²',
+        requestId,
+      });
+    }
 
-    logger.info(`[${requestId}] Architecture generated successfully`);
+    const params = {
+      buildingType: buildingType || 'residential',
+      floors:       parseInt(floors || 1, 10),
+      totalArea:    parseFloat(totalArea || 100),
+      rooms:        Array.isArray(rooms) ? rooms : [],
+    };
 
-    res.status(200).json({
-      success: true,
+    const floorplan = architectureService.generateFloorplan(params, requestId);
+
+    logger.info(`[${requestId}] Floorplan generated — ${floorplan.floors.length} floor(s)`);
+
+    return res.status(200).json({
+      success:   true,
       requestId,
-      data: result,
-      timestamp: new Date().toISOString()
+      floorplan,
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error(`[${requestId}] Error generating architecture:`, error);
+    logger.error(`[${requestId}] Error in generateFloorplan:`, error);
     next(error);
   }
 };
 
-export const analyzeArchitecture = async (req, res, next) => {
+// ─────────────────────────────────────────────
+//  POST /api/architecture/floorplan/upload-image
+//  Multipart: file = image, body.scaleFactor (optional)
+//  Requires multer middleware on the route.
+// ─────────────────────────────────────────────
+export const uploadFloorplanImage = async (req, res, next) => {
   const requestId = uuidv4();
   try {
-    logger.info(`[${requestId}] Architecture analysis request received`);
+    logger.info(`[${requestId}] uploadFloorplanImage request`);
 
-    const { architecture, analysisType } = req.body;
-
-    if (!architecture) {
+    if (!req.file || !req.file.buffer) {
       return res.status(400).json({
-        error: 'Bad Request',
-        message: 'Architecture field is required',
-        requestId
+        error:     'Bad Request',
+        message:   'An image file is required (field name: file)',
+        requestId,
       });
     }
 
-    const result = await architectureService.analyzeArchitecture(
-      architecture,
-      analysisType || 'comprehensive',
-      requestId
+    const scaleFactor = parseFloat(req.body.scaleFactor) || 20;
+
+    const floorplan = await architectureService.parseFloorplanImage(
+      req.file.buffer,
+      scaleFactor,
+      requestId,
     );
 
-    logger.info(`[${requestId}] Architecture analyzed successfully`);
+    logger.info(`[${requestId}] Image floorplan extracted — ${floorplan.floors[0]?.rooms?.length} room(s)`);
 
-    res.status(200).json({
-      success: true,
+    return res.status(200).json({
+      success:   true,
       requestId,
-      data: result,
-      timestamp: new Date().toISOString()
+      floorplan,
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error(`[${requestId}] Error analyzing architecture:`, error);
+    logger.error(`[${requestId}] Error in uploadFloorplanImage:`, error);
     next(error);
   }
 };
 
-export const optimizeArchitecture = async (req, res, next) => {
+// ─────────────────────────────────────────────
+//  POST /api/architecture/chat
+//  Body: { message }  — AI assistant proxy (unchanged behaviour)
+// ─────────────────────────────────────────────
+export const chatWithArchitect = async (req, res, next) => {
   const requestId = uuidv4();
   try {
-    logger.info(`[${requestId}] Architecture optimization request received`);
+    const { message } = req.body;
 
-    const { architecture, optimizationGoals } = req.body;
-
-    if (!architecture) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'Architecture field is required',
-        requestId
-      });
+    if (!message || !message.trim()) {
+      return res.status(400).json({ error: 'Message is required', requestId });
     }
 
-    const result = await architectureService.optimizeArchitecture(
-      architecture,
-      optimizationGoals || ['performance', 'scalability', 'cost'],
-      requestId
-    );
+    const systemPrompt = `You are an expert house architect and interior designer assistant.
+Help users design rooms, plan floor layouts, choose materials, estimate costs, and solve architectural problems.
+Be concise, practical and friendly. When suggesting room sizes, use metric (metres).
+If the user gives context about their current project (dimensions, rooms, style), use that to give relevant advice.`;
 
-    logger.info(`[${requestId}] Architecture optimized successfully`);
+    const reply = await architectureService.callLlamaAPI(systemPrompt, message, requestId);
 
-    res.status(200).json({
-      success: true,
+    return res.status(200).json({
+      success:   true,
       requestId,
-      data: result,
-      timestamp: new Date().toISOString()
+      data:      { reply },
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error(`[${requestId}] Error optimizing architecture:`, error);
-    next(error);
-  }
-};
-
-export const compareArchitectures = async (req, res, next) => {
-  const requestId = uuidv4();
-  try {
-    logger.info(`[${requestId}] Architecture comparison request received`);
-
-    const { architectures, comparisonCriteria } = req.body;
-
-    if (!architectures || !Array.isArray(architectures) || architectures.length < 2) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'At least two architectures are required for comparison',
-        requestId
-      });
-    }
-
-    const result = await architectureService.compareArchitectures(
-      architectures,
-      comparisonCriteria || ['performance', 'scalability', 'cost', 'complexity'],
-      requestId
-    );
-
-    logger.info(`[${requestId}] Architectures compared successfully`);
-
-    res.status(200).json({
-      success: true,
-      requestId,
-      data: result,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    logger.error(`[${requestId}] Error comparing architectures:`, error);
-    next(error);
-  }
-};
-
-export const generateDocumentation = async (req, res, next) => {
-  const requestId = uuidv4();
-  try {
-    logger.info(`[${requestId}] Documentation generation request received`);
-
-    const { architecture, documentationType } = req.body;
-
-    if (!architecture) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'Architecture field is required',
-        requestId
-      });
-    }
-
-    const result = await architectureService.generateDocumentation(
-      architecture,
-      documentationType || 'comprehensive',
-      requestId
-    );
-
-    logger.info(`[${requestId}] Documentation generated successfully`);
-
-    res.status(200).json({
-      success: true,
-      requestId,
-      data: result,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    logger.error(`[${requestId}] Error generating documentation:`, error);
-    next(error);
-  }
-};
-
-export const getArchitectureSuggestions = async (req, res, next) => {
-  const requestId = uuidv4();
-  try {
-    logger.info(`[${requestId}] Architecture suggestions request received`);
-
-    const { currentArchitecture, problemAreas } = req.body;
-
-    if (!currentArchitecture) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'Current architecture field is required',
-        requestId
-      });
-    }
-
-    const result = await architectureService.getArchitectureSuggestions(
-      currentArchitecture,
-      problemAreas || [],
-      requestId
-    );
-
-    logger.info(`[${requestId}] Architecture suggestions generated successfully`);
-
-    res.status(200).json({
-      success: true,
-      requestId,
-      data: result,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    logger.error(`[${requestId}] Error getting architecture suggestions:`, error);
     next(error);
   }
 };

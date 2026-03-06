@@ -7,10 +7,51 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/architect.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+    /* ── Undo/Redo buttons ── */
+    .undo-redo-group{display:flex;gap:4px;align-items:center;}
+    .undo-redo-group button{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#c0c8de;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.8rem;transition:all .18s;}
+    .undo-redo-group button:hover:not(:disabled){background:rgba(91,124,250,0.25);color:#5b7cfa;}
+    .undo-redo-group button:disabled{opacity:0.3;cursor:not-allowed;}
+
+    /* ── Floor isolation buttons (3D per-floor view) ── */
+    .floor-iso-bar{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-top:6px;}
+    .floor-iso-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#8899bb;border-radius:5px;padding:3px 9px;font-size:0.7rem;cursor:pointer;transition:all .18s;white-space:nowrap;}
+    .floor-iso-btn:hover{background:rgba(91,124,250,0.2);color:#7aa0ff;}
+    .floor-iso-btn.active{background:rgba(91,124,250,0.35);border-color:#5b7cfa;color:#fff;font-weight:600;}
+
+    /* ── Sub-view toolbar enhancements ── */
+    .view-sub-controls{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+
+    /* ── Cam preset buttons ── */
+    .cam-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px;}
+    .cam-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#8899bb;border-radius:6px;padding:5px 4px;font-size:0.68rem;cursor:pointer;transition:all .18s;text-align:center;}
+    .cam-btn:hover{background:rgba(91,124,250,0.2);color:#7aa0ff;}
+
+    /* ── Toolbar toggle buttons ── */
+    .toolbar-toggle-btn{display:inline-flex;align-items:center;gap:5px;padding:0 0.65rem;height:28px;font-size:0.72rem;font-weight:600;white-space:nowrap;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#c0c8de;border-radius:6px;cursor:pointer;transition:all .2s;}
+    .toolbar-toggle-btn:hover{background:rgba(91,124,250,0.25);color:#5b7cfa;}
+    .toolbar-toggle-btn.active{background:rgba(91,124,250,0.35);border-color:#5b7cfa;color:#5b7cfa;}
+
+    /* ── 3D-only section label ── */
+    .section-badge{display:inline-block;font-size:0.63rem;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:20px;background:rgba(91,124,250,0.18);color:#5b7cfa;margin-left:6px;vertical-align:middle;}
+
+    /* ── Layer list ── */
+    .layer-list{display:flex;flex-direction:column;gap:5px;margin-top:2px;}
+    .layer-toggle{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.78rem;color:#c0c8de;padding:3px 0;}
+    .layer-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+
+    /* Enhance existing zoom-btn to match toggle style */
+    #wireframeToggleBtn.active,#fpCameraBtn.active{background:rgba(91,124,250,0.35)!important;border-color:#5b7cfa!important;color:#5b7cfa!important;}
+
+    /* ── Floor view label in 3D toolbar ── */
+    .floor-view-label{font-size:0.7rem;color:#6678a0;font-weight:600;letter-spacing:.04em;margin-right:2px;}
+    </style>
 </head>
 <body>
 <div class="architect-app">
 
+    <!-- ══════════════════════ TOP NAV ══════════════════════ -->
     <nav class="architect-nav">
         <div class="nav-left">
             <a href="dashboard.html" class="back-btn" title="Back"><i class="fas fa-arrow-left"></i></a>
@@ -20,24 +61,34 @@
             </div>
         </div>
         <div class="nav-center">
+            <!-- Drawing Tools -->
             <div class="tool-group">
                 <button class="tool-btn active" data-tool="select" onclick="setTool('select')" title="Select (V)"><i class="fas fa-mouse-pointer"></i><span>Select</span></button>
-                <button class="tool-btn" data-tool="room" onclick="setTool('room')" title="Add Room (R)"><i class="fas fa-vector-square"></i><span>Room</span></button>
-                <button class="tool-btn" data-tool="door" onclick="setTool('door')" title="Door (D)"><i class="fas fa-door-open"></i><span>Door</span></button>
-                <button class="tool-btn" data-tool="window" onclick="setTool('window')" title="Window"><i class="fas fa-window-maximize"></i><span>Window</span></button>
-                <button class="tool-btn" data-tool="measure" onclick="setTool('measure')" title="Measure (M)"><i class="fas fa-ruler-combined"></i><span>Measure</span></button>
+                <button class="tool-btn" data-tool="room"     onclick="setTool('room')"     title="Add Room (R)"><i class="fas fa-vector-square"></i><span>Room</span></button>
+                <button class="tool-btn" data-tool="door"     onclick="setTool('door')"     title="Door (D)"><i class="fas fa-door-open"></i><span>Door</span></button>
+                <button class="tool-btn" data-tool="window"   onclick="setTool('window')"   title="Window (W)"><i class="fas fa-window-maximize"></i><span>Window</span></button>
+                <button class="tool-btn" data-tool="staircase" onclick="setTool('staircase')" title="Staircase (S)"><i class="fas fa-level-up-alt"></i><span>Stairs</span></button>
+                <button class="tool-btn" data-tool="measure"  onclick="setTool('measure')"  title="Measure (M)"><i class="fas fa-ruler-combined"></i><span>Measure</span></button>
+            </div>
+            <!-- Undo / Redo -->
+            <div class="undo-redo-group" style="margin-left:6px;">
+                <button id="undoBtn" onclick="undo()" title="Undo (Ctrl+Z)" disabled><i class="fas fa-undo"></i></button>
+                <button id="redoBtn" onclick="redo()" title="Redo (Ctrl+Y)" disabled><i class="fas fa-redo"></i></button>
             </div>
         </div>
         <div class="nav-right">
             <button class="nav-btn outline" onclick="window._tmpl && window._tmpl.open()" title="House Templates"><i class="fas fa-layer-group"></i> Templates</button>
             <button class="nav-btn outline" onclick="exportProject()"><i class="fas fa-file-export"></i> Export</button>
-            <button class="nav-btn primary" onclick="saveProject()"><i class="fas fa-save"></i> Save</button>
+            <button class="nav-btn primary"  onclick="saveProject()"><i class="fas fa-save"></i> Save</button>
         </div>
     </nav>
 
     <div class="architect-main">
+
+        <!-- ════════════════ LEFT SIDEBAR ════════════════ -->
         <aside class="sidebar-left">
 
+            <!-- Project Settings -->
             <div class="sbar-section">
                 <div class="sbar-header"><i class="fas fa-sliders-h"></i> Project Settings</div>
                 <div class="form-row2">
@@ -73,29 +124,19 @@
                 </div>
             </div>
 
+            <!-- Visual Style -->
             <div class="sbar-section">
                 <div class="sbar-header"><i class="fas fa-palette"></i> Visual Style</div>
                 <div class="style-grid">
-                    <button class="style-card active" data-style="modern" onclick="setStyle('modern')">
-                        <div class="style-swatch modern-swatch"></div>
-                        <span>Modern</span>
-                    </button>
-                    <button class="style-card" data-style="minimalist" onclick="setStyle('minimalist')">
-                        <div class="style-swatch minimalist-swatch"></div>
-                        <span>Minimalist</span>
-                    </button>
-                    <button class="style-card" data-style="traditional" onclick="setStyle('traditional')">
-                        <div class="style-swatch traditional-swatch"></div>
-                        <span>Traditional</span>
-                    </button>
-                    <button class="style-card" data-style="luxury" onclick="setStyle('luxury')">
-                        <div class="style-swatch luxury-swatch"></div>
-                        <span>Luxury</span>
-                    </button>
+                    <button class="style-card active" data-style="modern"      onclick="setStyle('modern')"><div class="style-swatch modern-swatch"></div><span>Modern</span></button>
+                    <button class="style-card"         data-style="minimalist" onclick="setStyle('minimalist')"><div class="style-swatch minimalist-swatch"></div><span>Minimalist</span></button>
+                    <button class="style-card"         data-style="traditional" onclick="setStyle('traditional')"><div class="style-swatch traditional-swatch"></div><span>Traditional</span></button>
+                    <button class="style-card"         data-style="luxury"     onclick="setStyle('luxury')"><div class="style-swatch luxury-swatch"></div><span>Luxury</span></button>
                 </div>
-                <p class="style-desc" id="styleDesc">Sleek concrete & glass with bold geometry</p>
+                <p class="style-desc" id="styleDesc">Sleek concrete &amp; glass with bold geometry</p>
             </div>
 
+            <!-- Rooms -->
             <div class="sbar-section">
                 <div class="sbar-header">
                     <span><i class="fas fa-th-large"></i> Rooms</span>
@@ -104,89 +145,172 @@
                 <div class="floor-tabs" id="floorTabs"></div>
                 <div id="roomsList" class="rooms-list"></div>
                 <div class="room-template-strip">
-                    <button class="tmpl-btn" onclick="addRoomOfType('living')" title="Living Room"><i class="fas fa-couch"></i></button>
-                    <button class="tmpl-btn" onclick="addRoomOfType('bedroom')" title="Bedroom"><i class="fas fa-bed"></i></button>
-                    <button class="tmpl-btn" onclick="addRoomOfType('kitchen')" title="Kitchen"><i class="fas fa-utensils"></i></button>
-                    <button class="tmpl-btn" onclick="addRoomOfType('bathroom')" title="Bathroom"><i class="fas fa-bath"></i></button>
-                    <button class="tmpl-btn" onclick="addRoomOfType('dining')" title="Dining"><i class="fas fa-chair"></i></button>
-                    <button class="tmpl-btn" onclick="addRoomOfType('office')" title="Office"><i class="fas fa-briefcase"></i></button>
-                    <button class="tmpl-btn" onclick="addRoomOfType('garage')" title="Garage"><i class="fas fa-car"></i></button>
+                    <button class="room-tmpl-btn" onclick="addRoomOfType('living')"    title="Living Room"><i class="fas fa-couch"></i></button>
+                    <button class="room-tmpl-btn" onclick="addRoomOfType('bedroom')"   title="Bedroom"><i class="fas fa-bed"></i></button>
+                    <button class="room-tmpl-btn" onclick="addRoomOfType('kitchen')"   title="Kitchen"><i class="fas fa-utensils"></i></button>
+                    <button class="room-tmpl-btn" onclick="addRoomOfType('bathroom')"  title="Bathroom"><i class="fas fa-bath"></i></button>
+                    <button class="room-tmpl-btn" onclick="addRoomOfType('dining')"    title="Dining"><i class="fas fa-chair"></i></button>
+                    <button class="room-tmpl-btn" onclick="addRoomOfType('office')"    title="Office"><i class="fas fa-briefcase"></i></button>
+                    <button class="room-tmpl-btn" onclick="addRoomOfType('garage')"    title="Garage"><i class="fas fa-car"></i></button>
+                    <button class="room-tmpl-btn" onclick="setTool('staircase')" title="Place Staircase (S)" style="border-color:rgba(255,150,50,0.5);color:#ff9632;"><i class="fas fa-level-up-alt"></i></button>
                 </div>
             </div>
 
+            <!-- Room Properties -->
             <div class="sbar-section">
                 <div class="sbar-header"><i class="fas fa-edit"></i> Room Properties</div>
                 <div id="roomProperties"><p class="empty-msg">Select a room to edit</p></div>
             </div>
 
+            <!-- Camera & Layers (3D only) -->
             <div class="sbar-section" id="interiorControls" style="display:none;">
-                <div class="sbar-header"><i class="fas fa-video"></i> Camera & Layers</div>
-                <div class="cam-presets">
-                    <button class="cam-btn" onclick="setInteriorCam('free')"><i class="fas fa-compass"></i> Free</button>
-                    <button class="cam-btn" onclick="setInteriorCam('top')"><i class="fas fa-arrow-up"></i> Top</button>
-                    <button class="cam-btn" onclick="setInteriorCam('front')"><i class="fas fa-home"></i> Front</button>
-                    <button class="cam-btn" onclick="setInteriorCam('side')"><i class="fas fa-arrow-right"></i> Side</button>
+                <div class="sbar-header"><i class="fas fa-video"></i> Camera &amp; Layers <span class="section-badge">3D</span></div>
+
+                <!-- Sub-view buttons -->
+                <div style="margin-bottom:8px;">
+                    <div style="font-size:0.68rem;color:#6678a0;font-weight:700;letter-spacing:.05em;margin-bottom:5px;">VIEW MODE</div>
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;">
+                        <button class="cam-btn active" id="sb_interior"  onclick="setInteriorSubView('interior')"  title="Interior walkthrough view"><i class="fas fa-home"></i><br>Interior</button>
+                        <button class="cam-btn"        id="sb_dollhouse" onclick="setInteriorSubView('dollhouse')" title="Dollhouse top-down view"><i class="fas fa-border-all"></i><br>Dolls</button>
+                        <button class="cam-btn"        id="sb_exterior"  onclick="setInteriorSubView('exterior')"  title="Exterior view"><i class="fas fa-tree"></i><br>Exterior</button>
+                        <button class="cam-btn"        id="sb_3dmodel"   onclick="setInteriorSubView('3dmodel')"   title="Full 3D model view"><i class="fas fa-cube"></i><br>3D Model</button>
+                    </div>
                 </div>
+
+                <!-- Camera angle presets -->
+                <div style="font-size:0.68rem;color:#6678a0;font-weight:700;letter-spacing:.05em;margin-bottom:5px;">CAMERA ANGLE</div>
+                <div class="cam-presets">
+                    <button class="cam-btn" onclick="setInteriorCam('free')"  title="Free orbit"><i class="fas fa-compass"></i> Free</button>
+                    <button class="cam-btn" onclick="setInteriorCam('top')"   title="Top-down view"><i class="fas fa-arrow-up"></i> Top</button>
+                    <button class="cam-btn" onclick="setInteriorCam('front')" title="Front view"><i class="fas fa-home"></i> Front</button>
+                    <button class="cam-btn" onclick="setInteriorCam('side')"  title="Side view"><i class="fas fa-arrow-right"></i> Side</button>
+                </div>
+
+                <!-- Per-floor 3D isolation -->
+                <div style="font-size:0.68rem;color:#6678a0;font-weight:700;letter-spacing:.05em;margin-bottom:5px;">FLOOR VIEW <span style="font-weight:400;color:#5b7cfa;">(3D)</span></div>
+                <div class="floor-iso-bar" id="floorIsoButtons">
+                    <button class="floor-iso-btn active" data-fi="-1" onclick="viewFloor(-1)"><i class="fas fa-layer-group"></i> All</button>
+                </div>
+
+                <!-- 3D Toggle Buttons -->
+                <div style="font-size:0.68rem;color:#6678a0;font-weight:700;letter-spacing:.05em;margin:8px 0 5px;">3D OPTIONS</div>
+                <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                    <button id="wireframeBtn2" class="toolbar-toggle-btn" onclick="toggleWireframe()" title="Toggle Wireframe Mode"><i class="fas fa-border-all"></i> Wireframe</button>
+                    <button id="fpBtn2"        class="toolbar-toggle-btn" onclick="toggleFirstPerson()" title="First-person walk mode (WASD)"><i class="fas fa-walking"></i> Walk</button>
+                    <button                    class="toolbar-toggle-btn" onclick="refresh3D()" title="Refresh 3D scene"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <label class="layer-toggle" style="margin-top:6px;">
+                    <input type="checkbox" id="openTopMode" checked onchange="refresh3D()">
+                    <span class="layer-dot" style="background:#ffc107"></span> Open Top (roof off)
+                </label>
+
+                <!-- Layer toggles -->
+                <div style="font-size:0.68rem;color:#6678a0;font-weight:700;letter-spacing:.05em;margin:8px 0 5px;">LAYER VISIBILITY</div>
                 <div class="layer-list">
                     <label class="layer-toggle"><input type="checkbox" id="layerFurniture" checked onchange="toggleInteriorLayer('furniture',this.checked)"><span class="layer-dot" style="background:#7c6fe0"></span> Furniture</label>
-                    <label class="layer-toggle"><input type="checkbox" id="layerRoof" onchange="toggleInteriorLayer('roof',this.checked)"><span class="layer-dot" style="background:#e06f6f"></span> Roof</label>
-                    <label class="layer-toggle"><input type="checkbox" id="layerWalls" checked onchange="toggleInteriorLayer('walls',this.checked)"><span class="layer-dot" style="background:#74b9ff"></span> Walls</label>
-                    <label class="layer-toggle"><input type="checkbox" id="layerLabels" checked onchange="toggleInteriorLayer('labels',this.checked)"><span class="layer-dot" style="background:#38ef7d"></span> Labels</label>
+                    <label class="layer-toggle"><input type="checkbox" id="layerRoof"             onchange="toggleInteriorLayer('roof',this.checked)"><span class="layer-dot" style="background:#e06f6f"></span> Roof</label>
+                    <label class="layer-toggle"><input type="checkbox" id="layerWalls"      checked onchange="toggleInteriorLayer('walls',this.checked)"><span class="layer-dot" style="background:#74b9ff"></span> Walls</label>
+                    <label class="layer-toggle"><input type="checkbox" id="layerLabels"     checked onchange="toggleInteriorLayer('labels',this.checked)"><span class="layer-dot" style="background:#38ef7d"></span> Labels</label>
                 </div>
             </div>
 
         </aside>
 
+        <!-- ════════════════ CANVAS AREA ════════════════ -->
         <main class="canvas-area">
             <div class="canvas-toolbar">
+
+                <!-- View tabs: 2D / 3D -->
                 <div class="view-tabs">
-                    <button class="view-tab active" id="btn2d" onclick="setView('2d')"><i class="fas fa-vector-square"></i> 2D Plan</button>
-                    <button class="view-tab" id="btn3d" onclick="setView('3d')"><i class="fas fa-cube"></i> 3D Model</button>
-                    <button class="view-tab interior-tab" id="btnInterior" onclick="setView('interior')"><i class="fas fa-home"></i> Interior</button>
+                    <button class="view-tab active" id="btn2d"       onclick="setView('2d')"><i class="fas fa-vector-square"></i> 2D Plan</button>
+                    <button class="view-tab interior-tab" id="btnInterior" onclick="setView('interior')"><i class="fas fa-cube"></i> 3D View</button>
                 </div>
+
+                <!-- Mid: zoom + snap (2D only) -->
                 <div class="toolbar-mid">
                     <div class="zoom-group" id="zoomControls">
-                        <button class="zoom-btn" onclick="zoomOut()"><i class="fas fa-minus"></i></button>
+                        <button class="zoom-btn" onclick="zoomOut()" title="Zoom out"><i class="fas fa-minus"></i></button>
                         <span id="zoomLevel">100%</span>
-                        <button class="zoom-btn" onclick="zoomIn()"><i class="fas fa-plus"></i></button>
-                        <button class="zoom-btn" onclick="resetZoom()" title="Fit"><i class="fas fa-compress-arrows-alt"></i></button>
+                        <button class="zoom-btn" onclick="zoomIn()"   title="Zoom in"><i class="fas fa-plus"></i></button>
+                        <button class="zoom-btn" onclick="resetZoom()" title="Fit to screen"><i class="fas fa-compress-arrows-alt"></i></button>
                     </div>
                     <label class="snap-toggle" id="snapControls"><input type="checkbox" id="snapEnabled" checked> Grid snap</label>
-                    <select id="snapSize" onchange="updateSnapSize()" title="Snap size">
+                    <select id="snapSize" onchange="updateSnapSize()" title="Snap grid size">
                         <option value="0.5">0.5m</option>
                         <option value="1" selected>1m</option>
                         <option value="2">2m</option>
                     </select>
                 </div>
+
+                <!-- Right: 3D sub-tabs + toggle buttons -->
                 <div class="toolbar-right">
+
+                    <!-- Sub-view tabs (3D only, shown inline for quick access) -->
                     <div class="view-sub-tabs" id="interiorSubTabs" style="display:none">
-                        <button class="sub-tab active" id="subInterior" onclick="setInteriorSubView('interior')">Interior</button>
-                        <button class="sub-tab" id="subDollhouse" onclick="setInteriorSubView('dollhouse')">Dollhouse</button>
-                        <button class="sub-tab" id="subExterior" onclick="setInteriorSubView('exterior')">Exterior</button>
+                        <button class="sub-tab active" id="subInterior"  onclick="setInteriorSubView('interior')"><i class="fas fa-home"></i> Interior</button>
+                        <button class="sub-tab"        id="subDollhouse" onclick="setInteriorSubView('dollhouse')"><i class="fas fa-border-all"></i> Dollhouse</button>
+                        <button class="sub-tab"        id="subExterior"  onclick="setInteriorSubView('exterior')"><i class="fas fa-tree"></i> Exterior</button>
+                        <button class="sub-tab"        id="sub3dmodel"   onclick="setInteriorSubView('3dmodel')"><i class="fas fa-cube"></i> 3D Model</button>
                     </div>
-                    <label class="snap-toggle" id="openTopToggle" style="display:none;"><input type="checkbox" id="openTopMode" checked onchange="refresh3D()"> Open Top</label>
+
+                    <!-- Open Top toggle (3D only) -->
+                    <label class="snap-toggle" id="openTopToggle" style="display:none;">
+                        <input type="checkbox" id="openTopMode2" checked onchange="document.getElementById('openTopMode').checked=this.checked;refresh3D();"> Open Top
+                    </label>
+
+                    <!-- Wireframe toggle button (3D only) -->
+                    <button id="wireframeToggleBtn"
+                            class="zoom-btn"
+                            style="display:none;padding:0 0.65rem;height:28px;font-size:0.72rem;font-weight:600;white-space:nowrap;gap:0.3rem;"
+                            onclick="toggleWireframe()"
+                            title="Toggle Wireframe">
+                        <i class="fas fa-border-all"></i> Wireframe
+                    </button>
+
+                    <!-- First-person walk button (3D only) -->
+                    <button id="fpCameraBtn"
+                            class="zoom-btn"
+                            style="display:none;padding:0 0.65rem;height:28px;font-size:0.72rem;font-weight:600;white-space:nowrap;gap:0.3rem;"
+                            onclick="toggleFirstPerson()"
+                            title="First-Person Walk Mode — WASD to move, drag to look, Esc to exit">
+                        <i class="fas fa-walking"></i> Walk
+                    </button>
                 </div>
             </div>
 
+            <!-- Canvas / 3D container -->
             <div class="canvas-container" id="canvasContainer">
+
+                <!-- 2D floor-plan canvas -->
                 <canvas id="floorplanCanvas"></canvas>
-                <div id="threejsContainer" style="display:none;width:100%;height:100%;position:absolute;top:0;left:0;"></div>
+
+                <!-- 3D interior/dollhouse/exterior scene -->
                 <div id="interiorContainer" style="display:none;width:100%;height:100%;position:absolute;top:0;left:0;background:#0a0a0f;">
+                    <!-- Room info overlay -->
                     <div class="interior-room-info" id="interiorRoomInfo">
                         <div class="iri-name" id="iriName">—</div>
-                        <div class="iri-sub" id="iriSub">SELECT A ROOM</div>
+                        <div class="iri-sub"  id="iriSub">SELECT A ROOM</div>
                         <div class="iri-stats" id="iriStats"></div>
                     </div>
-                    <div class="interior-hint">Drag to orbit · Scroll to zoom · Click room to focus</div>
+                    <!-- 3D scene canvas (interior.js renders here) -->
                     <canvas id="interiorCanvas" style="width:100%;height:100%;display:block;"></canvas>
+                    <!-- 3D Three.js container (architect.js _build3DScene renders here) -->
+                    <div id="threejsContainer" style="width:100%;height:100%;position:absolute;top:0;left:0;display:none;"></div>
+                    <!-- Hint overlay -->
+                    <div class="interior-hint">Drag to orbit &middot; Scroll to zoom &middot; Click room to focus &middot; <kbd>WASD</kbd> in Walk mode</div>
                 </div>
+
+                <!-- 2D hint -->
                 <div class="canvas-hint" id="canvasHint">
-                    <i class="fas fa-hand-pointer"></i> Click to select · Drag to move · Corner handles to resize
+                    <i class="fas fa-hand-pointer"></i> Click to select &middot; Drag to move &middot; Corner handles to resize
                 </div>
             </div>
         </main>
 
+        <!-- ════════════════ RIGHT SIDEBAR ════════════════ -->
         <aside class="sidebar-right">
+
+            <!-- Project Stats -->
             <div class="sbar-section">
                 <div class="sbar-header"><i class="fas fa-chart-bar"></i> Project Stats</div>
                 <div class="stats-grid">
@@ -196,39 +320,70 @@
                     <div class="stat-card"><div class="stat-value" id="estimatedCost">$0</div><div class="stat-label">Est. Cost</div></div>
                 </div>
             </div>
+
+            <!-- Cost Breakdown -->
             <div class="sbar-section">
                 <div class="sbar-header"><i class="fas fa-receipt"></i> Cost Breakdown</div>
                 <div id="costBreakdown"><p class="empty-msg">Add rooms to see estimate</p></div>
             </div>
+
+            <!-- Quick Actions -->
             <div class="sbar-section">
                 <div class="sbar-header"><i class="fas fa-bolt"></i> Quick Actions</div>
                 <div class="actions-list">
+                    <!-- Templates -->
                     <button class="action-btn tmpl-btn" onclick="window._tmpl && window._tmpl.open()">
                         <i class="fas fa-layer-group"></i>
                         <div><strong>Templates</strong><small>Start from a smart layout</small></div>
                     </button>
-                    <button class="action-btn render-btn" onclick="generate3DModel()">
+                    <!-- 3D Model view -->
+                    <button class="action-btn render-btn" onclick="setView('interior');setTimeout(()=>setInteriorSubView('3dmodel'),100)">
                         <i class="fas fa-cube"></i>
-                        <div><strong>Render 3D</strong><small>Generate full 3D model</small></div>
+                        <div><strong>3D Model</strong><small>Full exterior 3D view</small></div>
                     </button>
-                    <button class="action-btn interior-btn" onclick="generateInterior()">
+                    <!-- Interior view -->
+                    <button class="action-btn interior-btn" onclick="setView('interior');setTimeout(()=>setInteriorSubView('interior'),100)">
                         <i class="fas fa-home"></i>
                         <div><strong>Interior View</strong><small>Furnished walkthrough</small></div>
                     </button>
+                    <!-- Dollhouse -->
+                    <button class="action-btn" onclick="setView('interior');setTimeout(()=>setInteriorSubView('dollhouse'),100)">
+                        <i class="fas fa-border-all"></i>
+                        <div><strong>Dollhouse View</strong><small>Top-down 3D layout</small></div>
+                    </button>
+                    <!-- Exterior -->
+                    <button class="action-btn" onclick="setView('interior');setTimeout(()=>setInteriorSubView('exterior'),100)">
+                        <i class="fas fa-tree"></i>
+                        <div><strong>Exterior View</strong><small>Outside 3D view</small></div>
+                    </button>
+                    <!-- Auto Layout -->
                     <button class="action-btn" onclick="autoLayout()">
                         <i class="fas fa-magic"></i>
                         <div><strong>Auto Layout</strong><small>Smart room arrangement</small></div>
                     </button>
+                    <!-- Redraw -->
                     <button class="action-btn" onclick="generateFloorPlan()">
                         <i class="fas fa-drafting-compass"></i>
                         <div><strong>Redraw Plan</strong><small>Refresh 2D view</small></div>
                     </button>
+                    <!-- Undo -->
+                    <button class="action-btn" onclick="undo()" id="undoBtnSide">
+                        <i class="fas fa-undo"></i>
+                        <div><strong>Undo</strong><small>Ctrl+Z</small></div>
+                    </button>
+                    <!-- Redo -->
+                    <button class="action-btn" onclick="redo()" id="redoBtnSide">
+                        <i class="fas fa-redo"></i>
+                        <div><strong>Redo</strong><small>Ctrl+Y</small></div>
+                    </button>
+                    <!-- Clear all -->
                     <button class="action-btn danger-btn" onclick="clearAll()">
                         <i class="fas fa-trash"></i>
-                        <div><strong>Clear All</strong><small>Remove all rooms</small></div>
+                        <div><strong>Clear All</strong><small>Remove all rooms on floor</small></div>
                     </button>
                 </div>
             </div>
+
             <!-- Ollama AI Chat -->
             <div class="sbar-section ollama-chat-section">
                 <div class="sbar-header ollama-header">
@@ -250,39 +405,170 @@
                 <div class="sbar-header"><i class="fas fa-brain"></i> AI Generate Layout</div>
                 <div class="form-group">
                     <label>Requirements</label>
-                    <textarea id="aiArchReq" rows="3" placeholder="e.g. 3 bedroom family home, open plan kitchen/living, double garage..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid #2d3651;color:#e2e8f0;padding:0.4rem;border-radius:6px;font-size:0.8rem;resize:vertical;"></textarea>
+                    <textarea id="aiArchReq" rows="3"
+                        placeholder="e.g. 3 bedroom family home, open plan kitchen/living, double garage..."
+                        style="width:100%;background:rgba(255,255,255,0.05);border:1px solid #2d3651;color:#e2e8f0;padding:0.4rem;border-radius:6px;font-size:0.8rem;resize:vertical;"></textarea>
                 </div>
                 <button class="action-btn render-btn" style="width:100%;" onclick="generateAIArchitecture()">
-                    <i class="fas fa-magic"></i><div><strong>Generate Architecture</strong><small>AI-powered design</small></div>
+                    <i class="fas fa-magic"></i>
+                    <div><strong>Generate Architecture</strong><small>AI-powered design</small></div>
                 </button>
                 <div id="aiArchOutput" style="max-height:120px;overflow-y:auto;margin-top:0.4rem;font-size:0.7rem;"></div>
             </div>
 
+            <!-- Tips -->
             <div class="sbar-section">
-                <div class="sbar-header"><i class="fas fa-lightbulb"></i> Tips</div>
+                <div class="sbar-header"><i class="fas fa-lightbulb"></i> Tips &amp; Shortcuts</div>
                 <ul class="tips-list">
-                    <li><strong>D</strong> = Door tool, <strong>W</strong> = Window tool</li>
+                    <li><kbd>V</kbd> Select &nbsp;<kbd>R</kbd> Room &nbsp;<kbd>D</kbd> Door &nbsp;<kbd>W</kbd> Window &nbsp;<kbd>S</kbd> Stairs</li>
+                    <li><kbd>Ctrl+Z</kbd> Undo &nbsp;<kbd>Ctrl+Y</kbd> Redo &nbsp;<kbd>Ctrl+S</kbd> Save</li>
                     <li>Click near a <strong>room wall</strong> to place doors/windows</li>
-                    <li><strong>Drag</strong> placed doors/windows to reposition</li>
-                    <li><kbd>V</kbd> Select &nbsp; <kbd>R</kbd> Add room</li>
-                    <li>Drag orange handles to resize rooms</li>
-                    <li>Pick a <strong>style</strong> before rendering 3D</li>
-                    <li>Set <strong>Floors</strong> for multi-storey houses</li>
-                    <li><kbd>Ctrl+S</kbd> to save quickly</li>
+                    <li>Drag orange corner handles to <strong>resize rooms</strong></li>
                     <li><kbd>Del</kbd> removes selected room</li>
+                    <li>Use <strong>Floor View</strong> buttons in 3D to isolate each floor</li>
+                    <li><strong>Walk mode</strong>: WASD/arrows to move, drag to look, Esc to exit</li>
+                    <li>Pick a <strong>style</strong> before rendering 3D for best results</li>
                 </ul>
             </div>
+
         </aside>
-    </div>
-</div>
+    </div><!-- /architect-main -->
+</div><!-- /architect-app -->
 
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- ═══════════════════ THREE.JS ═══════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+// ── Inline OrbitControls for Three.js r128 ──
+(function(){
+  if(typeof THREE==='undefined')return;
+  THREE.OrbitControls=function(camera,domElement){
+    const scope=this;
+    this.camera=camera;this.domElement=domElement;
+    this.enabled=true;this.enableDamping=false;this.dampingFactor=0.05;
+    this.minDistance=0;this.maxDistance=Infinity;
+    this.target=new THREE.Vector3();
+    let spherical=new THREE.Spherical();
+    let sphericalDelta=new THREE.Spherical();
+    let scale=1;
+    let isDragging=false,lastMouse={x:0,y:0};
+    const EPS=0.000001;
+    function init(){const offset=camera.position.clone().sub(scope.target);spherical.setFromVector3(offset);}
+    init();
+    this.update=function(){
+      const offset=new THREE.Vector3();
+      offset.copy(camera.position).sub(scope.target);
+      spherical.setFromVector3(offset);
+      spherical.theta+=sphericalDelta.theta;
+      spherical.phi+=sphericalDelta.phi;
+      spherical.phi=Math.max(EPS,Math.min(Math.PI-EPS,spherical.phi));
+      spherical.radius*=scale;
+      spherical.radius=Math.max(scope.minDistance,Math.min(scope.maxDistance,spherical.radius));
+      if(scope.enableDamping){sphericalDelta.theta*=(1-scope.dampingFactor);sphericalDelta.phi*=(1-scope.dampingFactor);}
+      else{sphericalDelta.set(0,0,0);}
+      scale=1;
+      offset.setFromSpherical(spherical);
+      camera.position.copy(scope.target).add(offset);
+      camera.lookAt(scope.target);
+    };
+    function onMouseDown(e){if(!scope.enabled)return;isDragging=true;lastMouse.x=e.clientX;lastMouse.y=e.clientY;}
+    function onMouseMove(e){
+      if(!scope.enabled||!isDragging)return;
+      const dx=e.clientX-lastMouse.x,dy=e.clientY-lastMouse.y;
+      lastMouse.x=e.clientX;lastMouse.y=e.clientY;
+      const el=domElement;
+      sphericalDelta.theta-=2*Math.PI*dx/el.clientWidth;
+      sphericalDelta.phi-=2*Math.PI*dy/el.clientHeight;
+      scope.update();
+    }
+    function onMouseUp(){isDragging=false;}
+    function onWheel(e){e.preventDefault();if(e.deltaY<0)scale/=1.1;else scale*=1.1;scope.update();}
+    function onTouchStart(e){if(!scope.enabled)return;isDragging=true;lastMouse.x=e.touches[0].clientX;lastMouse.y=e.touches[0].clientY;}
+    function onTouchMove(e){
+      if(!scope.enabled||!isDragging||e.touches.length<1)return;
+      const dx=e.touches[0].clientX-lastMouse.x,dy=e.touches[0].clientY-lastMouse.y;
+      lastMouse.x=e.touches[0].clientX;lastMouse.y=e.touches[0].clientY;
+      const el=domElement;
+      sphericalDelta.theta-=2*Math.PI*dx/el.clientWidth;
+      sphericalDelta.phi-=2*Math.PI*dy/el.clientHeight;
+      scope.update();
+    }
+    domElement.addEventListener('mousedown',onMouseDown);
+    domElement.addEventListener('mousemove',onMouseMove);
+    domElement.addEventListener('mouseup',onMouseUp);
+    domElement.addEventListener('mouseleave',onMouseUp);
+    domElement.addEventListener('wheel',onWheel,{passive:false});
+    domElement.addEventListener('touchstart',onTouchStart,{passive:true});
+    domElement.addEventListener('touchmove',onTouchMove,{passive:true});
+    domElement.addEventListener('touchend',onMouseUp);
+    this.dispose=function(){
+      domElement.removeEventListener('mousedown',onMouseDown);
+      domElement.removeEventListener('mousemove',onMouseMove);
+      domElement.removeEventListener('mouseup',onMouseUp);
+      domElement.removeEventListener('mouseleave',onMouseUp);
+      domElement.removeEventListener('wheel',onWheel);
+      domElement.removeEventListener('touchstart',onTouchStart);
+      domElement.removeEventListener('touchmove',onTouchMove);
+      domElement.removeEventListener('touchend',onMouseUp);
+    };
+  };
+  THREE.OrbitControls.prototype={constructor:THREE.OrbitControls};
+})();
+</script>
+
+<!-- ═══════════════════ APP SCRIPTS ═══════════════════ -->
 <script src="js/api.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/architect.js"></script>
 <script src="js/interior.js"></script>
 <script src="js/templates.js"></script>
+
+<script>
+// ── Post-load: wire up sidebar sub-view buttons to match toolbar ──
+(function(){
+  // Sync openTopMode2 (toolbar) ↔ openTopMode (sidebar)
+  const otMain = document.getElementById('openTopMode');
+  const otTool = document.getElementById('openTopMode2');
+  if(otMain && otTool){
+    otMain.addEventListener('change',()=>{ otTool.checked=otMain.checked; });
+    otTool.addEventListener('change',()=>{ otMain.checked=otTool.checked; });
+  }
+
+  // Sync wireframeBtn2 and fpBtn2 (sidebar) active state with toolbar buttons
+  const origToggleWireframe = window.toggleWireframe;
+  window.toggleWireframe = function(){
+    if(origToggleWireframe) origToggleWireframe();
+    const sb = document.getElementById('wireframeBtn2');
+    const tb = document.getElementById('wireframeToggleBtn');
+    if(sb && tb) sb.classList.toggle('active', tb.classList.contains('active'));
+  };
+
+  const origToggleFP = window.toggleFirstPerson;
+  window.toggleFirstPerson = function(){
+    if(origToggleFP) origToggleFP();
+    const sb = document.getElementById('fpBtn2');
+    const tb = document.getElementById('fpCameraBtn');
+    if(sb && tb) sb.classList.toggle('active', tb.classList.contains('active'));
+  };
+
+  // Sync sub-view sidebar buttons with toolbar tabs
+  const origSetISV = window.setInteriorSubView;
+  window.setInteriorSubView = function(v){
+    if(origSetISV) origSetISV(v);
+    // Toolbar sub-tabs
+    ['subInterior','subDollhouse','subExterior','sub3dmodel'].forEach(id=>{
+      const b = document.getElementById(id);
+      if(b) b.classList.toggle('active', id === 'sub'+( v==='3dmodel'?'3dmodel': v.charAt(0).toUpperCase()+v.slice(1)));
+    });
+    // Sidebar view buttons
+    ['sb_interior','sb_dollhouse','sb_exterior','sb_3dmodel'].forEach(id=>{
+      const b = document.getElementById(id);
+      if(b) b.classList.toggle('active', id === 'sb_'+v);
+    });
+  };
+})();
+</script>
+
 </body>
 </html>

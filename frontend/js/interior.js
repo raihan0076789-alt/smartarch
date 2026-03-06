@@ -53,14 +53,15 @@
 
     // ── Colour palette per room type ─────────────────────────
     const TYPE_COLOR = {
-        living:   { hex: 0x7c6fe0, css: '#7c6fe0', floor: 0x8b6b3d },
-        bedroom:  { hex: 0x47b89c, css: '#47b89c', floor: 0xc4a882 },
-        bathroom: { hex: 0xe06f6f, css: '#e06f6f', floor: 0xf0f0f0 },
-        kitchen:  { hex: 0xe0a847, css: '#e0a847', floor: 0xc8c0b0 },
-        dining:   { hex: 0x9c6fe0, css: '#9c6fe0', floor: 0xe8e0d0 },
-        office:   { hex: 0x6fa8e0, css: '#6fa8e0', floor: 0x8b8070 },
-        garage:   { hex: 0x8a8070, css: '#8a8070', floor: 0x707070 },
-        other:    { hex: 0xaaaaaa, css: '#aaaaaa', floor: 0x999999 },
+        living:    { hex: 0x7c6fe0, css: '#7c6fe0', floor: 0x8b6b3d },
+        bedroom:   { hex: 0x47b89c, css: '#47b89c', floor: 0xc4a882 },
+        bathroom:  { hex: 0xe06f6f, css: '#e06f6f', floor: 0xf0f0f0 },
+        kitchen:   { hex: 0xe0a847, css: '#e0a847', floor: 0xc8c0b0 },
+        dining:    { hex: 0x9c6fe0, css: '#9c6fe0', floor: 0xe8e0d0 },
+        office:    { hex: 0x6fa8e0, css: '#6fa8e0', floor: 0x8b8070 },
+        garage:    { hex: 0x8a8070, css: '#8a8070', floor: 0x707070 },
+        staircase: { hex: 0xff9632, css: '#ff9632', floor: 0xc8a870 },
+        other:     { hex: 0xaaaaaa, css: '#aaaaaa', floor: 0x999999 },
     };
 
     const WALL_H = 2.7;
@@ -150,6 +151,11 @@
         updateCameraPosition();
         animate();
 
+        // Expose refs for wireframe + first-person from architect.js
+        window._interiorScene = scene;
+        window._interiorCamera = camera;
+        window._interiorRenderer = renderer;
+
         // apply visibility from layer state
         Object.keys(groups).forEach(k => groups[k].forEach(m => m.visible = layers[k]));
     };
@@ -230,6 +236,7 @@
 
             // Per-room ceiling lights
             rooms.forEach(room => {
+                if (room.type === 'staircase') return; // open vertical shaft, no ceiling light
                 const cx = ox + room.x + room.width / 2;
                 const cz = oz + room.z + room.depth / 2;
                 const rh = room.height || floorH;
@@ -241,10 +248,11 @@
                 scene.add(pl);
             });
 
-            // Room floors
+            // Room floors (skip staircase — furnishStaircase draws its own treads)
             const floorRough = currentStyle === 'luxury' ? 0.25 : currentStyle === 'minimalist' ? 0.6 : 0.75;
             const floorMetal = currentStyle === 'luxury' ? 0.3 : 0;
             rooms.forEach(room => {
+                if (room.type === 'staircase') return; // staircase draws its own geometry
                 const cx = ox + room.x + room.width / 2;
                 const cz = oz + room.z + room.depth / 2;
                 let fc = (TYPE_COLOR[room.type] || TYPE_COLOR.other).floor;
@@ -431,7 +439,17 @@
         const iwColor = T.interiorWall;
         const iwRough = T.wallRough;
         const edges = new Set();
+
+        // Build a set of staircase room boundaries to skip
+        const staircaseEdges = new Set();
+        rooms.filter(r => r.type === 'staircase').forEach(r => {
+            // Mark all four edges of the staircase room as open
+            staircaseEdges.add(`v:${(r.x + r.width).toFixed(2)}`);
+            staircaseEdges.add(`h:${(r.z + r.depth).toFixed(2)}`);
+        });
+
         rooms.forEach(r => {
+            if (r.type === 'staircase') return; // don't generate walls FROM staircase rooms
             const rx = r.x + r.width;
             if (rx < HW) edges.add(`v:${rx.toFixed(2)}:${r.z.toFixed(2)}:${(r.z + r.depth).toFixed(2)}`);
             const rz = r.z + r.depth;
@@ -554,16 +572,167 @@
 
         // dispatch by type
         const fn = {
-            living:   furnishLiving,
-            kitchen:  furnishKitchen,
-            dining:   furnishDining,
-            bedroom:  furnishBedroom,
-            bathroom: furnishBathroom,
-            office:   furnishOffice,
+            living:    furnishLiving,
+            kitchen:   furnishKitchen,
+            dining:    furnishDining,
+            bedroom:   furnishBedroom,
+            bathroom:  furnishBathroom,
+            office:    furnishOffice,
+            staircase: furnishStaircase,
         }[room.type];
 
-        if (fn) fn(cx, cz, fl, rw, rd);
+        if (fn) fn(cx, cz, fl, rw, rd, room, baseY);
         else furnishDefault(cx, cz, fl, rw, rd);
+    }
+
+    // ── Staircase geometry ────────────────────────────────────
+    function furnishStaircase(cx, cz, fl, rw, rd, room, baseY) {
+        const T = STYLE_THEMES[currentStyle] || STYLE_THEMES.modern;
+        const floorH = room.height || WALL_H;
+        const baseFloorY = baseY !== undefined ? baseY : 0.22;
+
+        // Step dimensions fitted to the room
+        const stepCount = Math.max(8, Math.ceil(floorH / 0.175));
+        const stepH     = floorH / stepCount;
+        const stepD     = Math.min(rd / stepCount, 0.3);   // depth per step, capped
+        const stairW    = Math.min(rw - 0.2, 1.4);         // width inside room
+        const totalDepth = stepD * stepCount;
+
+        // Style-aware materials
+        const stepColor = currentStyle === 'luxury'       ? 0xd4b896 :
+                          currentStyle === 'traditional'  ? 0x9b6f3d :
+                          currentStyle === 'minimalist'   ? 0xdcdcdc : 0x7a8fa6;
+        const riserColor = currentStyle === 'luxury'      ? 0xfafafa :
+                           currentStyle === 'traditional' ? 0xeadcc8 :
+                           currentStyle === 'minimalist'  ? 0xffffff : 0xd0d8e4;
+        const railColor  = currentStyle === 'luxury'      ? 0xc9a84c :
+                           currentStyle === 'traditional' ? 0x5c2f0a :
+                           currentStyle === 'minimalist'  ? 0x888888 : 0x4a6fa5;
+        const postColor  = railColor;
+
+        const stepMat  = mat(stepColor,  currentStyle === 'luxury' ? 0.3 : 0.7, currentStyle === 'luxury' ? 0.3 : 0);
+        const riserMat = mat(riserColor, 0.85, 0);
+        const railMat  = mat(railColor,  0.4, currentStyle === 'luxury' ? 0.6 : 0.15);
+        const postMat  = mat(postColor,  0.4, currentStyle === 'luxury' ? 0.6 : 0.1);
+
+        // Origin: stairs run from cz - totalDepth/2 → cz + totalDepth/2, rising in Y
+        const startX = cx - stairW / 2;
+        const startZ = cz - totalDepth / 2;
+
+        // ── Steps (tread + riser per step) ──
+        for (let i = 0; i < stepCount; i++) {
+            const stepY    = baseFloorY + i * stepH;
+            const stepZpos = startZ + i * stepD + stepD / 2;
+
+            // Tread (horizontal surface)
+            const tread = new THREE.Mesh(
+                new THREE.BoxGeometry(stairW, stepH * 0.18, stepD + 0.02),
+                stepMat
+            );
+            tread.position.set(cx, stepY + stepH - stepH * 0.09, stepZpos);
+            tread.castShadow = true; tread.receiveShadow = true;
+            scene.add(tread); groups.furniture.push(tread);
+
+            // Riser (vertical face)
+            const riser = new THREE.Mesh(
+                new THREE.BoxGeometry(stairW, stepH, 0.04),
+                riserMat
+            );
+            riser.position.set(cx, stepY + stepH / 2, startZ + i * stepD);
+            riser.castShadow = true; riser.receiveShadow = true;
+            scene.add(riser); groups.furniture.push(riser);
+
+            // Stringer (solid side support block under step)
+            const stringer = new THREE.Mesh(
+                new THREE.BoxGeometry(0.06, stepH, stepD),
+                stepMat
+            );
+            [startX - 0.03, startX + stairW + 0.03].forEach(sx => {
+                const s = stringer.clone();
+                s.position.set(sx, stepY + stepH / 2, stepZpos);
+                s.castShadow = true; s.receiveShadow = true;
+                scene.add(s); groups.furniture.push(s);
+            });
+        }
+
+        // ── Under-stair solid wedge (stringer board) ──
+        const wedgeH   = floorH * 0.5;
+        const wedgeGeo = new THREE.BoxGeometry(stairW, 0.06, totalDepth);
+        const wedge    = new THREE.Mesh(wedgeGeo, stepMat);
+        wedge.position.set(cx, baseFloorY + wedgeH * 0.35, cz);
+        wedge.rotation.x = -Math.atan2(floorH, totalDepth);
+        wedge.castShadow = true; wedge.receiveShadow = true;
+        scene.add(wedge); groups.furniture.push(wedge);
+
+        // ── Balusters (vertical posts) ──
+        const balSpacing = Math.max(2, Math.round(stepCount / 8));
+        for (let i = 0; i <= stepCount; i += balSpacing) {
+            const balY     = baseFloorY + i * stepH;
+            const balZpos  = startZ + i * stepD;
+            const balH     = 0.9;
+
+            [startX - 0.03, startX + stairW + 0.03].forEach(bx => {
+                const post = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.05, balH, 0.05),
+                    postMat
+                );
+                post.position.set(bx, balY + balH / 2, balZpos);
+                post.castShadow = true;
+                scene.add(post); groups.furniture.push(post);
+            });
+        }
+
+        // ── Handrail (angled rod along both sides) ──
+        const railLen   = Math.sqrt(totalDepth * totalDepth + floorH * floorH);
+        const railAngle = Math.atan2(floorH, totalDepth);
+        const railY     = baseFloorY + floorH / 2 + 0.9;
+        const railZ     = cz;
+
+        [startX - 0.03, startX + stairW + 0.03].forEach(rx => {
+            // Main handrail bar
+            const rail = new THREE.Mesh(
+                new THREE.BoxGeometry(0.06, 0.06, railLen),
+                railMat
+            );
+            rail.position.set(rx, railY, railZ);
+            rail.rotation.x = railAngle;
+            rail.castShadow = true;
+            scene.add(rail); groups.furniture.push(rail);
+
+            // Decorative end cap at top
+            const cap = new THREE.Mesh(
+                new THREE.BoxGeometry(0.1, 0.1, 0.1),
+                railMat
+            );
+            cap.position.set(rx, baseFloorY + floorH + 0.9, startZ + totalDepth);
+            scene.add(cap); groups.furniture.push(cap);
+        });
+
+        // ── Top landing platform ──
+        const landing = new THREE.Mesh(
+            new THREE.BoxGeometry(stairW, 0.12, Math.min(rd * 0.2, 0.8)),
+            stepMat
+        );
+        landing.position.set(cx, baseFloorY + floorH + 0.06, startZ + totalDepth + Math.min(rd * 0.1, 0.4));
+        landing.castShadow = true; landing.receiveShadow = true;
+        scene.add(landing); groups.furniture.push(landing);
+
+        // ── Newel post at bottom ──
+        const newelBot = new THREE.Mesh(
+            new THREE.BoxGeometry(0.12, 1.05, 0.12),
+            postMat
+        );
+        newelBot.position.set(cx - stairW / 2 - 0.06, baseFloorY + 0.525, startZ - 0.06);
+        newelBot.castShadow = true;
+        scene.add(newelBot); groups.furniture.push(newelBot);
+
+        // Newel ball/cap
+        const newelCap = new THREE.Mesh(
+            new THREE.BoxGeometry(0.18, 0.18, 0.18),
+            railMat
+        );
+        newelCap.position.set(cx - stairW / 2 - 0.06, baseFloorY + 1.14, startZ - 0.06);
+        scene.add(newelCap); groups.furniture.push(newelCap);
     }
 
     function furnishLiving(cx, cz, fl, rw, rd) {
@@ -854,33 +1023,49 @@
         if (groups[name]) groups[name].forEach(m => m.visible = visible);
     };
 
-    window.setInteriorSubView = function (v) {
+    window._setInteriorSubView = function (v) {
         interiorSubView = v;
-        ['subInterior','subDollhouse','subExterior'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.classList.remove('active');
-        });
-        document.getElementById('sub' + v.charAt(0).toUpperCase() + v.slice(1))?.classList.add('active');
-    window._setInteriorSubView = window.setInteriorSubView;
 
         if (v === 'interior') {
-            // hide roof for interior walkthrough
             layers.roof = false;
             if (groups.roof) groups.roof.forEach(m => m.visible = false);
-            document.getElementById('layerRoof').checked = false;
+            const lr = document.getElementById('layerRoof'); if (lr) lr.checked = false;
             targetPhi = 0.5; targetRadius = 28;
+            lookTarget.set(0, 1.5, 0);
         } else if (v === 'dollhouse') {
             layers.roof = false;
             if (groups.roof) groups.roof.forEach(m => m.visible = false);
-            document.getElementById('layerRoof').checked = false;
+            const lr = document.getElementById('layerRoof'); if (lr) lr.checked = false;
             targetPhi = 1.3; targetRadius = 38;
         } else if (v === 'exterior') {
             layers.roof = true;
             if (groups.roof) groups.roof.forEach(m => m.visible = true);
-            document.getElementById('layerRoof').checked = true;
+            const lr = document.getElementById('layerRoof'); if (lr) lr.checked = true;
             targetPhi = 0.42; targetRadius = 36;
+        } else if (v === '3dmodel') {
+            // Full exterior model view — open top respects checkbox
+            const openTop = document.getElementById('openTopMode')?.checked !== false;
+            layers.roof = !openTop;
+            if (groups.roof) groups.roof.forEach(m => m.visible = !openTop);
+            const lr = document.getElementById('layerRoof'); if (lr) lr.checked = !openTop;
+            // Pull-back isometric-ish angle (like the old 3D model view)
+            const pd = window.projectData;
+            if (pd) {
+                const dist = Math.max(pd.totalWidth, pd.totalDepth) * 1.4;
+                targetRadius = dist + (pd.floors?.length || 1) * (pd.floors?.[0]?.height || 2.7);
+            }
+            targetPhi = 0.65;
+            targetTheta = 0.7;
+            lookTarget.set(0, ((window.projectData?.floors?.length || 1) * (window.projectData?.floors?.[0]?.height || 2.7)) / 2, 0);
         }
+        // Expose refs for wireframe and first-person
+        window._interiorScene = scene;
+        window._interiorCamera = camera;
+        window._interiorRenderer = renderer;
     };
+
+    // Keep old name for backward compat
+    window.setInteriorSubView = window._setInteriorSubView;
 
     // Focus camera on a specific room (called from room click in sidebar)
     window.focusInteriorRoom = function (room, ox, oz) {
