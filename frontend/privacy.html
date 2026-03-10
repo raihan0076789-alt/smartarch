@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy — SmartArch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --ink:       #060a12;
+            --ink-2:     #0d1424;
+            --ink-3:     #111827;
+            --cyan:      #00d4c8;
+            --amber:     #f59e0b;
+            --violet:    #8b5cf6;
+            --blue:      #3b82f6;
+            --green:     #10b981;
+            --slate:     #94a3b8;
+            --slate-2:   #64748b;
+            --white:     #f1f5f9;
+            --border:    rgba(255,255,255,0.07);
+            --card-bg:   rgba(255,255,255,0.04);
+            --nav-h:     68px;
+            --r:         12px;
+            --r-lg:      20px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--ink);
+            color: var(--white);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(0,212,200,0.022) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,200,0.022) 1px, transparent 1px);
+            background-size: 72px 72px;
+        }
+
+        .ambient { position: fixed; pointer-events: none; z-index: 0; border-radius: 50%; filter: blur(130px); }
+        .a1 { width: 600px; height: 600px; top: -150px; left: -150px; background: radial-gradient(circle, rgba(0,212,200,0.06) 0%, transparent 70%); }
+        .a2 { width: 500px; height: 500px; bottom: 10%; right: -100px; background: radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 70%); }
+
+        /* ── NAVBAR ───────────────────────────────────────────────────────── */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h);
+            display: flex; align-items: center; padding: 0 5%;
+            background: rgba(6,10,18,0.88); backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border); z-index: 1000;
+        }
+
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+
+        .nav-logo {
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, var(--cyan), #0891b2);
+            border-radius: 9px; display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 0.9rem;
+        }
+
+        .nav-brand-text {
+            font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.05rem;
+            color: var(--white); letter-spacing: -0.3px;
+        }
+        .nav-brand-text em { font-style: normal; color: var(--cyan); }
+
+        .nav-right { margin-left: auto; display: flex; gap: 0.75rem; align-items: center; }
+
+        .btn-ghost {
+            background: transparent; border: 1px solid rgba(255,255,255,0.13); color: var(--slate);
+            padding: 0.45rem 1.1rem; border-radius: 9px; font-size: 0.875rem; font-weight: 500;
+            cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
+            gap: 0.4rem; transition: all 0.2s;
+        }
+        .btn-ghost:hover { border-color: rgba(255,255,255,0.28); color: var(--white); background: rgba(255,255,255,0.05); }
+
+        .btn-cta {
+            background: var(--cyan); color: #060a12; border: none;
+            padding: 0.5rem 1.25rem; border-radius: 9px; font-size: 0.875rem;
+            font-weight: 700; cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            transition: all 0.25s; font-family: 'Syne', sans-serif;
+        }
+        .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,212,200,0.38); }
+
+        /* ── PAGE HERO ────────────────────────────────────────────────────── */
+        .page-hero {
+            padding: calc(var(--nav-h) + 4rem) 5% 3.5rem;
+            position: relative; z-index: 1;
+            max-width: 900px; margin: 0 auto; text-align: center;
+        }
+
+        .hero-eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(0,212,200,0.08); border: 1px solid rgba(0,212,200,0.22);
+            color: var(--cyan); padding: 5px 14px; border-radius: 40px;
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; margin-bottom: 1.5rem;
+        }
+
+        .page-h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+            font-weight: 800; letter-spacing: -1.5px;
+            color: var(--white); line-height: 1.1; margin-bottom: 1rem;
+        }
+
+        .page-h1 span {
+            background: linear-gradient(120deg, var(--cyan) 0%, #06b6d4 60%, var(--blue) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+
+        .page-sub { color: var(--slate); font-size: 1.05rem; line-height: 1.75; max-width: 580px; margin: 0 auto 1.5rem; }
+
+        .last-updated {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--card-bg); border: 1px solid var(--border);
+            padding: 6px 14px; border-radius: 30px;
+            font-size: 0.8rem; color: var(--slate-2);
+        }
+        .last-updated i { color: var(--cyan); }
+
+        /* ── LAYOUT ───────────────────────────────────────────────────────── */
+        .doc-layout {
+            max-width: 1200px; margin: 0 auto;
+            padding: 0 5% 6rem;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 3rem;
+            position: relative; z-index: 1;
+        }
+
+        /* ── SIDEBAR TOC ──────────────────────────────────────────────────── */
+        .toc {
+            position: sticky; top: calc(var(--nav-h) + 1.5rem);
+            height: fit-content;
+           
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 1.25rem;
+            
+          
+        }
+
+        .toc-title {
+            font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 700;
+            color: var(--slate-2); text-transform: uppercase; letter-spacing: 1.5px;
+            margin-bottom: 1rem; display: flex; align-items: center; gap: 6px;
+        }
+
+        .toc-title i { color: var(--cyan); }
+
+        .toc-link {
+            display: flex; align-items: flex-start; gap: 8px;
+            padding: 0.55rem 0.75rem; border-radius: 8px;
+            color: var(--slate-2); text-decoration: none; font-size: 0.82rem;
+            line-height: 1.4; transition: all 0.2s; margin-bottom: 2px;
+        }
+        .toc-link i { color: var(--cyan); font-size: 0.65rem; margin-top: 4px; flex-shrink: 0; }
+        .toc-link:hover { color: var(--white); background: rgba(255,255,255,0.06); }
+        .toc-link.active { color: var(--cyan); background: rgba(0,212,200,0.08); }
+
+        /* ── CONTENT ──────────────────────────────────────────────────────── */
+        .doc-content { min-width: 0; }
+
+        .doc-section {
+            margin-bottom: 3rem;
+            padding-bottom: 3rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .doc-section:last-child { border-bottom: none; padding-bottom: 0; }
+
+        .section-num {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; color: var(--cyan); margin-bottom: 0.75rem;
+        }
+        .section-num::before {
+            content: '';
+            display: inline-block; width: 24px; height: 2px;
+            background: var(--cyan); border-radius: 2px;
+        }
+
+        .section-h2 {
+            font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800;
+            letter-spacing: -0.5px; color: var(--white); margin-bottom: 1rem;
+        }
+
+        .doc-p {
+            color: var(--slate); font-size: 0.96rem; line-height: 1.85;
+            margin-bottom: 1rem;
+        }
+        .doc-p:last-child { margin-bottom: 0; }
+
+        .doc-p strong { color: var(--white); font-weight: 600; }
+
+        /* Data item cards */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.875rem; margin: 1.5rem 0;
+        }
+
+        .data-card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: var(--r); padding: 1.1rem 1.25rem;
+            display: flex; align-items: flex-start; gap: 0.875rem;
+            transition: border-color 0.2s;
+        }
+        .data-card:hover { border-color: rgba(0,212,200,0.2); }
+
+        .data-card-icon {
+            width: 36px; height: 36px; border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.95rem; flex-shrink: 0;
+        }
+        .data-card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.875rem; color: var(--white); margin-bottom: 0.2rem; }
+        .data-card-desc { font-size: 0.78rem; color: var(--slate-2); line-height: 1.5; }
+
+        .ic-cyan   { background: rgba(0,212,200,0.1);   color: var(--cyan); }
+        .ic-amber  { background: rgba(245,158,11,0.1);  color: var(--amber); }
+        .ic-violet { background: rgba(139,92,246,0.1);  color: var(--violet); }
+        .ic-blue   { background: rgba(59,130,246,0.1);  color: var(--blue); }
+        .ic-green  { background: rgba(16,185,129,0.1);  color: var(--green); }
+        .ic-red    { background: rgba(239,68,68,0.1);   color: #ef4444; }
+        .ic-slate  { background: rgba(148,163,184,0.1); color: var(--slate); }
+
+        /* Bullet list */
+        .doc-list {
+            list-style: none; margin: 1rem 0 1rem 0;
+            display: flex; flex-direction: column; gap: 0.5rem;
+        }
+        .doc-list li {
+            display: flex; align-items: flex-start; gap: 0.75rem;
+            color: var(--slate); font-size: 0.95rem; line-height: 1.7;
+        }
+        .doc-list li::before {
+            content: ''; width: 6px; height: 6px; border-radius: 50%;
+            background: var(--cyan); flex-shrink: 0; margin-top: 9px;
+        }
+        .doc-list li strong { color: var(--white); }
+
+        /* Highlight box */
+        .highlight-box {
+            background: rgba(0,212,200,0.06);
+            border: 1px solid rgba(0,212,200,0.2);
+            border-left: 3px solid var(--cyan);
+            border-radius: var(--r);
+            padding: 1.1rem 1.4rem;
+            margin: 1.5rem 0;
+            font-size: 0.93rem; color: var(--slate); line-height: 1.75;
+        }
+        .highlight-box strong { color: var(--white); }
+        .highlight-box.amber  { background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.25); border-left-color: var(--amber); }
+        .highlight-box.violet { background: rgba(139,92,246,0.06); border-color: rgba(139,92,246,0.25); border-left-color: var(--violet); }
+        .highlight-box.green  { background: rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.25); border-left-color: var(--green); }
+
+        /* Rights table */
+        .rights-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; margin: 1.5rem 0;
+        }
+
+        .right-item {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: var(--r); padding: 1.1rem 1.25rem;
+            transition: border-color 0.2s;
+        }
+        .right-item:hover { border-color: rgba(0,212,200,0.2); }
+        .right-item i { color: var(--cyan); margin-right: 0.4rem; font-size: 0.85rem; }
+        .right-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.875rem; color: var(--white); margin-bottom: 0.3rem; }
+        .right-desc { font-size: 0.8rem; color: var(--slate-2); line-height: 1.55; }
+
+        /* Contact card */
+        .contact-card {
+            background: linear-gradient(135deg, rgba(0,212,200,0.07), rgba(99,102,241,0.05));
+            border: 1px solid rgba(0,212,200,0.18);
+            border-radius: var(--r-lg); padding: 2rem;
+            text-align: center; margin-top: 1.5rem;
+        }
+        .contact-card i { font-size: 2rem; color: var(--cyan); display: block; margin-bottom: 0.75rem; }
+        .contact-card h3 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; color: var(--white); margin-bottom: 0.4rem; }
+        .contact-card p { color: var(--slate); font-size: 0.875rem; margin-bottom: 0.75rem; }
+        .contact-card a { color: var(--cyan); text-decoration: none; font-weight: 600; }
+        .contact-card a:hover { text-decoration: underline; }
+
+        /* ── FOOTER ───────────────────────────────────────────────────────── */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 3.5rem 5%;
+            position: relative; z-index: 1;
+            background: rgba(6,10,18,0.6);
+        }
+
+        .footer-inner {
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 3rem; margin-bottom: 2.5rem;
+            max-width: 1400px; margin-left: auto; margin-right: auto;
+        }
+
+        .footer-logo-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 0.75rem; }
+
+        .footer-brand-name {
+            font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 800;
+            color: var(--white); letter-spacing: -0.3px;
+        }
+        .footer-brand-name em { font-style: normal; color: var(--cyan); }
+        .footer-brand-desc { color: var(--slate-2); font-size: 0.875rem; line-height: 1.65; max-width: 260px; }
+
+        .footer-col h4 {
+            font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700;
+            color: var(--slate); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1.1rem;
+        }
+        .footer-col a {
+            display: block; color: var(--slate-2); text-decoration: none;
+            font-size: 0.875rem; margin-bottom: 0.6rem; transition: color 0.2s;
+        }
+        .footer-col a:hover { color: var(--cyan); }
+        .footer-col a.admin-link { color: var(--cyan); }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border); padding-top: 1.5rem;
+            display: flex; align-items: center; justify-content: space-between;
+            color: var(--slate-2); font-size: 0.82rem;
+            max-width: 1400px; margin: 0 auto;
+        }
+        .footer-bottom a { color: var(--cyan); text-decoration: none; }
+        .footer-divider { margin: 0 0.5rem; opacity: 0.4; }
+
+        /* ── RESPONSIVE ───────────────────────────────────────────────────── */
+        @media (max-width: 1024px) {
+            .doc-layout { grid-template-columns: 1fr; }
+            .toc { position: static; }
+            .footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; }
+        }
+        @media (max-width: 768px) {
+            .rights-grid { grid-template-columns: 1fr; }
+            .data-grid { grid-template-columns: 1fr; }
+            .footer-inner { grid-template-columns: 1fr; }
+            .footer-bottom { flex-direction: column; gap: 0.5rem; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="ambient a1"></div>
+<div class="ambient a2"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <a href="index.html" class="nav-brand">
+        <div class="nav-logo"><i class="fas fa-home"></i></div>
+        <span class="nav-brand-text">Smart<em> Arch</em></span>
+    </a>
+    <div class="nav-right">
+        
+        <a href="terms.html" class="btn-ghost">Terms of Service</a>
+    <!-- Guest buttons -->
+    <div id="navGuest">
+        <a href="index.html" class="btn-ghost">← Back to Home</a>
+    </div>
+
+    <!-- Logged in -->
+    <div id="navUser" style="display:none;">
+        <a href="dashboard.html" class="btn-cta">
+            <i class="fas fa-rocket"></i> Dashboard
+        </a>
+    </div>
+        
+    </div>
+</nav>
+
+
+
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+    <div class="hero-eyebrow"><i class="fas fa-lock"></i> Legal &amp; Privacy</div>
+    <h1 class="page-h1">Privacy <span>Policy</span></h1>
+    <p class="page-sub">
+        Your privacy matters. This policy explains exactly what data we collect, why we collect it,
+        how it is stored and protected, and what rights you have over your information.
+    </p>
+    <span class="last-updated"><i class="fas fa-calendar-alt"></i> Last updated: December 2025</span>
+</div>
+
+<!-- DOC LAYOUT -->
+<div class="doc-layout">
+
+    <!-- SIDEBAR TOC -->
+    <aside class="toc">
+        <div class="toc-title"><i class="fas fa-list"></i> Contents</div>
+        <a href="#overview"       class="toc-link"><i class="fas fa-circle"></i> Overview</a>
+        <a href="#data-collected" class="toc-link"><i class="fas fa-circle"></i> Data We Collect</a>
+        <a href="#how-used"       class="toc-link"><i class="fas fa-circle"></i> How Data Is Used</a>
+        <a href="#account-auth"   class="toc-link"><i class="fas fa-circle"></i> Authentication</a>
+        <a href="#storage"        class="toc-link"><i class="fas fa-circle"></i> Storage &amp; Security</a>
+        <a href="#ai-services"    class="toc-link"><i class="fas fa-circle"></i> AI &amp; APIs</a>
+        <a href="#sharing"        class="toc-link"><i class="fas fa-circle"></i> Data Sharing</a>
+        <a href="#user-rights"    class="toc-link"><i class="fas fa-circle"></i> Your Rights</a>
+        <a href="#cookies"        class="toc-link"><i class="fas fa-circle"></i> Cookies &amp; Storage</a>
+        <a href="#children"       class="toc-link"><i class="fas fa-circle"></i> Children's Privacy</a>
+        <a href="#updates"        class="toc-link"><i class="fas fa-circle"></i> Policy Updates</a>
+        <a href="#contact"        class="toc-link"><i class="fas fa-circle"></i> Contact Us</a>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="doc-content">
+
+        <!-- 1. Overview -->
+        <div class="doc-section" id="overview">
+            <div class="section-num">Section 01</div>
+            <h2 class="section-h2">Overview</h2>
+            <p class="doc-p">
+                SmartArch("<strong>we</strong>", "<strong>us</strong>", or "<strong>our</strong>") is an AI-powered architectural design and project management platform. We are committed to protecting the personal information of all users who register and use our services.
+            </p>
+            <p class="doc-p">
+                This Privacy Policy applies to all services provided through the SmartArch web application, including our main platform, AI design generation service, admin dashboard, and any associated APIs. By creating an account or using the platform, you acknowledge that you have read, understood, and agree to the terms described in this policy.
+            </p>
+            <div class="highlight-box">
+                <strong>Plain English Summary:</strong> We collect only the data needed to run the platform — your account details, your design projects, and basic usage information. We do not sell your data. We do not serve ads. Your architectural designs belong to you.
+            </div>
+        </div>
+
+        <!-- 2. Data Collected -->
+        <div class="doc-section" id="data-collected">
+            <div class="section-num">Section 02</div>
+            <h2 class="section-h2">Data We Collect</h2>
+            <p class="doc-p">
+                We collect different categories of data depending on how you interact with the platform. All collection is limited to what is necessary to provide our services.
+            </p>
+
+            <div class="data-grid">
+                <div class="data-card">
+                    <div class="data-card-icon ic-cyan"><i class="fas fa-user"></i></div>
+                    <div>
+                        <div class="data-card-title">Account Information</div>
+                        <div class="data-card-desc">Full name, email address, password (hashed), company name (optional), phone number (optional), and user role.</div>
+                    </div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-icon ic-amber"><i class="fas fa-home"></i></div>
+                    <div>
+                        <div class="data-card-title">Project Data</div>
+                        <div class="data-card-desc">Project names, descriptions, floor plans, room configurations, dimensions, materials, specifications, tags, and version history.</div>
+                    </div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-icon ic-violet"><i class="fas fa-cogs"></i></div>
+                    <div>
+                        <div class="data-card-title">Preferences</div>
+                        <div class="data-card-desc">UI theme preference (light/dark), default measurement units (meters/feet), and auto-save settings stored in your profile.</div>
+                    </div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-icon ic-blue"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <div class="data-card-title">Usage Timestamps</div>
+                        <div class="data-card-desc">Account creation date, last project modification date, and collaboration activity timestamps used for analytics and auditing.</div>
+                    </div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-icon ic-green"><i class="fas fa-robot"></i></div>
+                    <div>
+                        <div class="data-card-title">AI Generation Inputs</div>
+                        <div class="data-card-desc">Design parameters submitted to our AI service: building type, floor count, area size, room types, and any uploaded floor plan images.</div>
+                    </div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card-icon ic-slate"><i class="fas fa-key"></i></div>
+                    <div>
+                        <div class="data-card-title">Authentication Tokens</div>
+                        <div class="data-card-desc">JWT session tokens stored locally in your browser's localStorage to maintain your authenticated session.</div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="doc-p">
+                We do <strong>not</strong> collect payment card information (no payments are processed through the platform), government identification numbers, biometric data, or any sensitive personal information beyond what is listed above.
+            </p>
+        </div>
+
+        <!-- 3. How Data Is Used -->
+        <div class="doc-section" id="how-used">
+            <div class="section-num">Section 03</div>
+            <h2 class="section-h2">How Your Data Is Used</h2>
+            <p class="doc-p">All data we collect is used exclusively to operate and improve the SmartArch platform. Specifically:</p>
+
+            <ul class="doc-list">
+                <li><strong>Account Authentication:</strong> Your email and hashed password are used to verify your identity and grant secure access to your account and projects.</li>
+                <li><strong>Project Storage &amp; Retrieval:</strong> Project data (floor plans, rooms, materials, metadata) is stored in MongoDB and retrieved on demand to power your dashboard and design workspace.</li>
+                <li><strong>AI Design Generation:</strong> Design parameters you provide (building type, dimensions, room requirements) are passed to our local AI service to generate floor plan layouts. These inputs are not retained by the AI model beyond the duration of the generation request.</li>
+                <li><strong>Automated Cost Estimation:</strong> Your project's dimensions and floor count are used to automatically compute total area, estimated construction cost, and projected build time displayed in your project metadata.</li>
+                <li><strong>Admin Analytics:</strong> Aggregated, non-personally-identifiable usage statistics (total user count, projects per day, status distributions) are displayed in the admin dashboard for platform monitoring.</li>
+                <li><strong>Collaboration Features:</strong> Your name and email are used to identify you as a collaborator on shared projects you have been invited to join.</li>
+                <li><strong>Platform Improvement:</strong> Usage patterns may be reviewed in aggregate form to identify bugs, improve performance, and prioritize new features.</li>
+            </ul>
+
+            <div class="highlight-box amber">
+                <strong>We never use your data for advertising.</strong> SmartArch contains no advertising systems, no tracking pixels, and no third-party marketing integrations. Your project data is never used to train AI models operated by third parties.
+            </div>
+        </div>
+
+        <!-- 4. Authentication -->
+        <div class="doc-section" id="account-auth">
+            <div class="section-num">Section 04</div>
+            <h2 class="section-h2">Authentication &amp; Account Security</h2>
+            <p class="doc-p">
+                We take authentication security seriously. Here is exactly how your credentials are handled:
+            </p>
+
+            <ul class="doc-list">
+                <li><strong>Password Hashing:</strong> Your password is never stored in plain text. When you register or update your password, it is hashed using<strong>bcryptjs</strong>with a salt factor of 10 before being written to the database. The original password is never recoverable from our systems.</li>
+                <li><strong>JWT Tokens:</strong> Upon successful login, a signed JSON Web Token (JWT) is issued containing your user ID and role. This token is stored in your browser's <code>localStorage</code> and included in the Authorization header of every API request. Tokens expire according to the system's configured expiry period.</li>
+                <li><strong>Role-Based Access Control:</strong> The platform enforces three access levels—<em>user</em>,<em>architect</em>, and <em>admin</em>. Middleware on every protected route validates your token and role before granting access.</li>
+                <li><strong>Admin Authentication:</strong> Admin accounts use a separate login endpoint that issues tokens with an additional <code>isAdmin</code> flag, verified by dedicated admin middleware on all admin routes.</li>
+                <li><strong>Password Reset Tokens:</strong> If a password reset is initiated, a time-limited, cryptographically random token is generated and stored. This token is invalidated upon use or expiry.</li>
+            </ul>
+
+            <div class="highlight-box green">
+                <strong>Security recommendation:</strong> Use a strong, unique password for your SmartArch account. We recommend at least 12 characters including a mix of letters, numbers, and symbols. Never share your login credentials with anyone.
+            </div>
+        </div>
+
+        <!-- 5. Storage & Security -->
+        <div class="doc-section" id="storage">
+            <div class="section-num">Section 05</div>
+            <h2 class="section-h2">Data Storage &amp; Security</h2>
+            <p class="doc-p">
+                All user and project data is stored in a <strong>MongoDB</strong> database managed through the <strong>Mongoose</strong> ODM. The database structure is defined by validated schemas that enforce data types, field lengths, and required fields to maintain data integrity.
+            </p>
+
+            <p class="doc-p">
+                We implement the following security practices to protect stored data:
+            </p>
+
+            <ul class="doc-list">
+                <li>Passwords are never stored in recoverable form — only bcrypt hashes are persisted</li>
+                <li>Database credentials and JWT secrets are stored in environment variables (<code>.env</code> files), never in source code</li>
+                <li>All API routes that handle personal or project data require a valid, non-expired JWT token</li>
+                <li>Admin-only routes require both JWT validation and an admin role check via dedicated middleware</li>
+                <li>CORS policies restrict which origins can make API requests to the backend service</li>
+                <li>Request body size limits (10MB) prevent denial-of-service via oversized payloads</li>
+                <li>Sensitive password fields are excluded from all API responses using Mongoose's <code>select: false</code> option</li>
+            </ul>
+
+            <p class="doc-p">
+                While we implement industry-standard security practices, no system is 100% immune to security threats. We encourage users to use strong passwords and to notify us immediately if they suspect unauthorized access to their account.
+            </p>
+        </div>
+
+        <!-- 6. AI Services -->
+        <div class="doc-section" id="ai-services">
+            <div class="section-num">Section 06</div>
+            <h2 class="section-h2">AI Services &amp; External APIs</h2>
+            <p class="doc-p">
+                SmartArch uses an AI service to generate architectural floor plans based on parameters you provide. Here is how this works and what it means for your privacy:
+            </p>
+
+            <div class="highlight-box violet">
+                <strong>Local AI Processing:</strong> Our AI service runs the <strong>Ollama phi3:mini</strong> model locally on our server infrastructure. Your design parameters are sent to this local service — they are <em>not</em> transmitted to any external third-party AI provider such as OpenAI, Anthropic, or Google. All AI processing occurs within our own controlled environment.
+            </div>
+
+            <ul class="doc-list">
+                <li><strong>AI Input Data:</strong> When you request a floor plan, parameters including building type, floor count, total area, and desired room types are sent to the AI backend service (Port 3001). These parameters are used solely to generate your layout.</li>
+                <li><strong>Image Uploads:</strong> If you upload a floor plan image for analysis, that image is processed locally by our edge detection system to extract room outlines. Images are processed in memory and are not permanently stored on our servers.</li>
+                <li><strong>AI Output:</strong> Generated floor plan data (room positions, dimensions, layouts) is returned to your browser and can be saved as a project at your discretion. Unsaved AI outputs are not retained.</li>
+                <li><strong>No Model Training:</strong> Your inputs to the AI service are never used to train, fine-tune, or update any AI model. The phi3:mini model operates in inference-only mode.</li>
+            </ul>
+
+            <p class="doc-p">
+                The platform's front-end communicates with two backend services: the <strong>Main API</strong> (Port 5000) for authentication, project management, and user operations, and the <strong>AI Service</strong> (Port 3001) for layout generation and image analysis. Both services are operated by SmartArch and subject to this privacy policy.
+            </p>
+        </div>
+
+        <!-- 7. Data Sharing -->
+        <div class="doc-section" id="sharing">
+            <div class="section-num">Section 07</div>
+            <h2 class="section-h2">Data Sharing &amp; Third Parties</h2>
+            <p class="doc-p">
+                We do not sell, rent, or trade your personal information to any third parties. Your data is shared in only the following limited circumstances:
+            </p>
+
+            <ul class="doc-list">
+                <li><strong>Project Collaborators:</strong> If you invite another user to collaborate on a project, your name and email will be visible to that collaborator within the project interface. You control who is invited.</li>
+                <li><strong>Public Projects:</strong> If you mark a project as "public" (isPublic: true), its details may be visible to other authenticated users of the platform. You can revert a project to private at any time.</li>
+                <li><strong>Platform Administrators:</strong> Authorized administrators with valid admin credentials can view user account information and project listings through the admin dashboard for the purpose of platform management, support, and moderation.</li>
+                <li><strong>Legal Requirements:</strong> We may disclose information if required to do so by law, court order, or to protect the safety and rights of our users or the platform.</li>
+            </ul>
+
+            <p class="doc-p">
+                Beyond the above, your data remains within the SmartArch platform and is not shared with any external third-party companies, advertisers, analytics providers, or data brokers.
+            </p>
+        </div>
+
+        <!-- 8. User Rights -->
+        <div class="doc-section" id="user-rights">
+            <div class="section-num">Section 08</div>
+            <h2 class="section-h2">Your Rights &amp; Data Control</h2>
+            <p class="doc-p">
+                You have meaningful control over your data. The following rights are available to all registered users:
+            </p>
+
+            <div class="rights-grid">
+                <div class="right-item">
+                    <div class="right-title"><i class="fas fa-eye"></i>Access Your Data</div>
+                    <p class="right-desc">View all your account information and projects at any time through your Dashboard. Your profile page shows all stored personal details.</p>
+                </div>
+                <div class="right-item">
+                    <div class="right-title"><i class="fas fa-edit"></i>Update Your Data</div>
+                    <p class="right-desc">Edit your name, company, phone, preferences, and avatar through the profile update endpoint. Changes are saved immediately to the database.</p>
+                </div>
+                <div class="right-item">
+                    <div class="right-title"><i class="fas fa-trash-alt"></i>Delete Your Projects</div>
+                    <p class="right-desc">Delete any of your architectural projects at any time from the dashboard. Deleted projects are permanently removed from the database.</p>
+                </div>
+                <div class="right-item">
+                    <div class="right-title"><i class="fas fa-user-slash"></i>Account Deletion</div>
+                    <p class="right-desc">Request full deletion of your account and all associated project data by contacting our admin team. All data will be permanently erased.</p>
+                </div>
+                <div class="right-item">
+                    <div class="right-title"><i class="fas fa-lock"></i>Change Your Password</div>
+                    <p class="right-desc">Update your password at any time through the profile settings. New passwords are immediately hashed and stored securely.</p>
+                </div>
+                <div class="right-item">
+                    <div class="right-title"><i class="fas fa-globe"></i>Control Project Visibility</div>
+                    <p class="right-desc">Toggle any project between public and private visibility at any time, controlling who on the platform can discover your designs.</p>
+                </div>
+            </div>
+
+            <p class="doc-p" style="margin-top:1.5rem">
+                To exercise any of these rights or to make a data request not covered by in-app features, please contact us using the details in the Contact section below.
+            </p>
+        </div>
+
+        <!-- 9. Cookies -->
+        <div class="doc-section" id="cookies">
+            <div class="section-num">Section 09</div>
+            <h2 class="section-h2">Cookies &amp; Browser Storage</h2>
+            <p class="doc-p">
+                SmartArch uses browser <strong>localStorage</strong> (not cookies) to store your session token and cached user profile on your device. Specifically:
+            </p>
+
+            <ul class="doc-list">
+                <li><strong><code>token</code></strong> — Your JWT authentication token, used to authenticate API requests during your session. This remains until you log out or manually clear browser storage.</li>
+                <li><strong><code>user</code></strong> — A JSON object containing your basic profile information (name, email, role) used to populate the UI without requiring a server request on every page load.</li>
+                <li><strong><code>adminToken</code></strong> / <strong><code>adminUser</code></strong> — Equivalent tokens stored when an admin logs in through the admin panel. Cleared on admin logout.</li>
+            </ul>
+
+            <p class="doc-p">
+                We do <strong>not</strong> use third-party tracking cookies, analytics cookies (Google Analytics, etc.), or advertising cookies of any kind. You can clear your browser's localStorage at any time through your browser's developer tools or privacy settings, which will log you out of the platform.
+            </p>
+        </div>
+
+        <!-- 10. Children -->
+        <div class="doc-section" id="children">
+            <div class="section-num">Section 10</div>
+            <h2 class="section-h2">Children's Privacy</h2>
+            <p class="doc-p">
+                SmartArch is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe a child under 13 has registered on our platform without parental consent, please contact us immediately and we will promptly delete the account and all associated data.
+            </p>
+            <p class="doc-p">
+                Users between the ages of 13 and 18 are permitted to use the platform with parental or guardian consent. By registering, users confirm they meet the minimum age requirement or have the necessary parental approval.
+            </p>
+        </div>
+
+        <!-- 11. Updates -->
+        <div class="doc-section" id="updates">
+            <div class="section-num">Section 11</div>
+            <h2 class="section-h2">Policy Updates</h2>
+            <p class="doc-p">
+                We may update this Privacy Policy from time to time to reflect changes in our platform, data practices, or applicable laws. When we make material changes, we will:
+            </p>
+
+            <ul class="doc-list">
+                <li>Update the "Last Updated" date at the top of this page</li>
+                <li>Display a notice within the platform interface for significant changes</li>
+                <li>Maintain the updated policy at this URL permanently</li>
+            </ul>
+
+            <p class="doc-p">
+                Continued use of SmartArch after a policy update constitutes your acceptance of the revised terms. We encourage you to review this page periodically to stay informed about how we protect your information.
+            </p>
+        </div>
+
+        <!-- 12. Contact -->
+        <div class="doc-section" id="contact">
+            <div class="section-num">Section 12</div>
+            <h2 class="section-h2">Contact Us</h2>
+            <p class="doc-p">
+                If you have questions, concerns, or requests related to this Privacy Policy or your personal data, please reach out to us:
+            </p>
+            <div class="contact-card">
+                <i class="fas fa-envelope-open-text"></i>
+                <h3>Privacy &amp; Data Inquiries</h3>
+                <p>For data access requests, deletion requests, or privacy concerns:</p>
+                <a href="mailto:privacy@housearchitect.pro">privacy@smartarch.pro</a>
+                <p style="margin-top:0.75rem;font-size:0.8rem;color:var(--slate-2)">We aim to respond to all privacy inquiries within 5 business days.</p>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-inner">
+        <div>
+            <div class="footer-logo-wrap">
+                <div class="nav-logo"><i class="fas fa-home"></i></div>
+                <span class="footer-brand-name">Smart<em> Arch</em></span>
+            </div>
+            <p class="footer-brand-desc">AI-powered architectural design platform for modern homes and professional projects.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Product</h4>
+            <a href="index.html#features">Features</a>
+            <a href="index.html#workflow">How It Works</a>
+            <a href="dashboard.html">Dashboard</a>
+        </div>
+        <div class="footer-col">
+            <h4>Company</h4>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <div class="footer-col">
+            <h4>Legal &amp; Admin</h4>
+            <a href="privacy.html" style="color:var(--cyan)">Privacy Policy</a>
+            <a href="terms.html">Terms of Service</a>
+            <a href="admin-login.html" class="admin-link"><i class="fas fa-shield-alt" style="margin-right:4px"></i>Admin Panel</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>&copy; 2025 SmartArch. All rights reserved.</span>
+        <span>Built with <span style="color:var(--cyan)">♥</span> using Node.js, MongoDB & AI</span>
+    </div>
+</footer>
+
+<script>
+    // Highlight active TOC link on scroll
+    const sections = document.querySelectorAll('.doc-section');
+    const tocLinks = document.querySelectorAll('.toc-link');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                tocLinks.forEach(l => l.classList.remove('active'));
+                const active = document.querySelector(`.toc-link[href="#${entry.target.id}"]`);
+                if (active) active.classList.add('active');
+            }
+        });
+    }, { rootMargin: '-20% 0px -60% 0px', threshold: 0 });
+
+    sections.forEach(s => observer.observe(s));
+  
+    function checkAuth(){
+
+        const token = localStorage.getItem("token");
+
+        if(token){
+            document.getElementById("navGuest").style.display = "none";
+            document.getElementById("navUser").style.display = "block";
+        }else{
+            document.getElementById("navGuest").style.display = "block";
+            document.getElementById("navUser").style.display = "none";
+        }
+
+    }
+    document.addEventListener("DOMContentLoaded", checkAuth);
+
+</script>
+</body>
+</html>

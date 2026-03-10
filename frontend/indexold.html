@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Architect - Design Your Dream Home</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="app">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-home"></i>
+                <span>House Architect</span>
+            </div>
+            <div class="nav-links" id="navLinks">
+                <a href="#" class="nav-link active" data-page="home">Home</a>
+                <a href="#" onclick="scrollToFeatures()" class="nav-link" data-page="features">Features</a>
+            </div>
+            <div class="nav-auth" id="navAuth">
+                <button class="btn btn-outline" onclick="showLogin()">Login</button>
+                <button class="btn btn-primary" onclick="showRegister()">Sign Up Free</button>
+            </div>
+            <div class="nav-user" id="navUser" style="display: none;">
+                <a href="dashboard.html" class="btn btn-primary">Dashboard</a>
+                <div class="user-menu">
+                    <img src="" alt="User" id="userAvatar" class="avatar">
+                    <div class="dropdown-menu">
+                        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <section class="hero" id="heroSection">
+            <div class="hero-content">
+                <h1>Design Your Dream Home</h1>
+                <p>Transform your house ideas into detailed 2D floor plans and stunning 3D models with our powerful architectural design tool.</p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary btn-lg" onclick="showRegister()">
+                        <i class="fas fa-rocket"></i> Get Started Free
+                    </button>
+                    <button class="btn btn-outline btn-lg" onclick="scrollToFeatures()">
+                        <i class="fas fa-play"></i> Learn More
+                    </button>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">10,000+</span>
+                        <span class="stat-label">Designs Created</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">5,000+</span>
+                        <span class="stat-label">Happy Users</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">50+</span>
+                        <span class="stat-label">Countries</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="preview-card">
+                    <div class="preview-placeholder">
+                        <i class="fas fa-drafting-compass"></i>
+                        <p>Interactive 3D & 2D Design</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features" id="featuresSection">
+            <div class="section-header">
+                <h2>Powerful Features</h2>
+                <p>Everything you need to bring your architectural vision to life</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-drafting-compass"></i></div>
+                    <h3>2D Floor Plans</h3>
+                    <p>Create detailed floor plans with precise measurements, drag-and-drop rooms, and auto-scaling.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-cube"></i></div>
+                    <h3>3D Visualization</h3>
+                    <p>Transform your 2D plans into stunning interactive 3D models with realistic rendering.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-magic"></i></div>
+                    <h3>Auto Layout</h3>
+                    <p>Let our smart algorithm automatically arrange rooms for optimal space usage.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-file-export"></i></div>
+                    <h3>Export Options</h3>
+                    <p>Export your designs in multiple formats including JSON, OBJ, and GLTF.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-history"></i></div>
+                    <h3>Version History</h3>
+                    <p>Track changes and restore previous versions with automatic backups.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-calculator"></i></div>
+                    <h3>Cost Estimation</h3>
+                    <p>Get accurate cost estimates based on materials, area, and specifications.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="modal" id="authModal">
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <div id="loginForm" class="auth-form">
+                    <h2><i class="fas fa-home" style="color:#667eea;margin-right:0.5rem"></i>Welcome Back</h2>
+                    <form id="loginFormElement" onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="loginEmail" required placeholder="your@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="loginPassword" required placeholder="Your password">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Login</button>
+                        <p class="auth-switch">Don't have an account? <a href="#" onclick="showRegister()">Sign Up Free</a></p>
+                    </form>
+                </div>
+                <div id="registerForm" class="auth-form" style="display: none;">
+                    <h2><i class="fas fa-home" style="color:#667eea;margin-right:0.5rem"></i>Create Account</h2>
+                    <form id="registerFormElement" onsubmit="handleRegister(event)">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="registerName" required placeholder="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="registerEmail" required placeholder="your@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="registerPassword" required minlength="6" placeholder="Min 6 characters">
+                        </div>
+                        <div class="form-group">
+                            <label>Company (Optional)</label>
+                            <input type="text" id="registerCompany" placeholder="Your company name">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                        <p class="auth-switch">Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <i class="fas fa-home"></i>
+                <span>House Architect</span>
+                <p>Design your dream home with powerful 2D and 3D modeling tools.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Product</h4>
+                <a href="#">Features</a>
+                <a href="#">Pricing</a>
+            </div>
+            <div class="footer-links">
+                <h4>Company</h4>
+                <a href="#">About</a>
+                <a href="#">Contact</a>
+            </div>
+            <div class="footer-links">
+                <h4>Legal</h4>
+                <a href="#">Privacy & Terms</a>
+                <a href="admin-login.html" style="color:#667eea;margin-top:0.5rem"><i class="fas fa-shield-alt"></i> Admin Panel</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 House Architect. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+        });
+
+        function scrollToFeatures() {
+            document.getElementById('featuresSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showLogin() {
+            document.getElementById('authModal').style.display = 'flex';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+        }
+
+        function showRegister() {
+            document.getElementById('authModal').style.display = 'flex';
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('authModal').style.display = 'none';
+        }
+
+        document.getElementById('authModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+</body>
+</html>

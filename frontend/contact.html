@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us — SmartArch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --ink: #060a12; --ink-2: #0d1424; --ink-3: #111827;
+            --cyan: #00d4c8; --amber: #f59e0b; --violet: #8b5cf6;
+            --blue: #3b82f6; --green: #10b981; --red: #ef4444;
+            --slate: #94a3b8; --slate-2: #64748b; --white: #f1f5f9;
+            --border: rgba(255,255,255,0.07); --card-bg: rgba(255,255,255,0.04);
+            --nav-h: 68px; --r: 12px; --r-lg: 20px;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Outfit', sans-serif; background: var(--ink); color: var(--white); overflow-x: hidden; line-height: 1.6; }
+        body::before {
+            content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image: linear-gradient(rgba(0,212,200,0.022) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,200,0.022) 1px, transparent 1px);
+            background-size: 72px 72px;
+        }
+        .amb { position: fixed; pointer-events: none; z-index: 0; border-radius: 50%; filter: blur(140px); }
+        .amb-1 { width: 700px; height: 700px; top: -200px; left: -200px; background: radial-gradient(circle, rgba(0,212,200,0.07) 0%, transparent 70%); }
+        .amb-2 { width: 600px; height: 600px; bottom: -50px; right: -150px; background: radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%); }
+
+        /* NAVBAR */
+        .navbar { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h); display: flex; align-items: center; padding: 0 5%; background: rgba(6,10,18,0.85); backdrop-filter: blur(24px); border-bottom: 1px solid var(--border); z-index: 1000; }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+        .nav-logo { width: 36px; height: 36px; background: linear-gradient(135deg, var(--cyan), #0891b2); border-radius: 9px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1rem; box-shadow: 0 0 20px rgba(0,212,200,0.3); }
+        .nav-brand-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--white); letter-spacing: -0.5px; }
+        .nav-brand-text em { font-style: normal; color: var(--cyan); }
+        .nav-center { display: flex; align-items: center; gap: 0.2rem; margin: 0 auto; }
+        .nav-link { text-decoration: none; color: var(--slate); font-size: 0.875rem; font-weight: 500; padding: 0.45rem 0.875rem; border-radius: 8px; transition: all 0.2s; }
+        .nav-link:hover { color: var(--white); background: rgba(255,255,255,0.06); }
+        .nav-link.active { color: var(--cyan); background: rgba(0,212,200,0.08); }
+        .nav-right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+        .btn-ghost { background: transparent; border: 1px solid rgba(255,255,255,0.13); color: var(--slate); padding: 0.45rem 1.1rem; border-radius: 9px; font-size: 0.875rem; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.2s; }
+        .btn-ghost:hover { border-color: rgba(255,255,255,0.3); color: var(--white); background: rgba(255,255,255,0.05); }
+        .btn-cta { background: var(--cyan); color: #060a12; border: none; padding: 0.5rem 1.25rem; border-radius: 9px; font-size: 0.875rem; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.25s; font-family: 'Syne', sans-serif; }
+        .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,212,200,0.4); }
+        .hamburger { display: none; background: none; border: none; cursor: pointer; color: var(--slate); font-size: 1.3rem; padding: 0.25rem; }
+        .mobile-menu { display: none; position: fixed; top: var(--nav-h); left: 0; right: 0; background: rgba(6,10,18,0.97); border-bottom: 1px solid var(--border); padding: 1rem 5%; z-index: 999; backdrop-filter: blur(20px); }
+        .mobile-menu.open { display: flex; flex-direction: column; gap: 0.5rem; }
+        .mobile-menu .nav-link { padding: 0.75rem 1rem; display: block; border-radius: var(--r); }
+        .mobile-menu .btn-ghost, .mobile-menu .btn-cta { display: block; text-align: center; margin-top: 0.5rem; justify-content: center; }
+
+        /* HERO */
+        .page-hero { padding: calc(var(--nav-h) + 5rem) 5% 4rem; position: relative; z-index: 1; text-align: center; }
+        .hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: rgba(0,212,200,0.08); border: 1px solid rgba(0,212,200,0.22); color: var(--cyan); padding: 5px 14px; border-radius: 40px; font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 1.5rem; }
+        .pulse-dot { width: 7px; height: 7px; background: var(--cyan); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.75)} }
+        .hero-h1 { font-family: 'Syne', sans-serif; font-size: clamp(2.6rem, 5vw, 4rem); font-weight: 800; letter-spacing: -2px; color: var(--white); line-height: 1.08; margin-bottom: 1.25rem; }
+        .grad { background: linear-gradient(120deg, var(--cyan) 0%, #06b6d4 50%, var(--blue) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-sub { color: var(--slate); font-size: 1.1rem; line-height: 1.75; max-width: 540px; margin: 0 auto; }
+
+        /* PAGE BODY */
+        .page-body { max-width: 1300px; margin: 0 auto; padding: 0 5% 6rem; position: relative; z-index: 1; }
+
+        /* INFO CARDS */
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.1rem; margin-bottom: 4rem; }
+        .info-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.75rem; display: flex; flex-direction: column; gap: 1rem; position: relative; overflow: hidden; transition: all 0.35s cubic-bezier(0.22,1,0.36,1); }
+        .info-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; opacity: 0; transition: opacity 0.3s; }
+        .info-card:hover { border-color: rgba(0,212,200,0.22); background: rgba(0,212,200,0.035); transform: translateY(-5px); box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+        .info-card:hover::before { opacity: 1; }
+        .info-card.c-cyan::before  { background: linear-gradient(90deg, var(--cyan), transparent); }
+        .info-card.c-amber::before { background: linear-gradient(90deg, var(--amber), transparent); }
+        .info-card.c-violet::before{ background: linear-gradient(90deg, var(--violet), transparent); }
+        .info-card.c-green::before { background: linear-gradient(90deg, var(--green), transparent); }
+        .info-icon { width: 50px; height: 50px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
+        .ic-cyan   { background: rgba(0,212,200,0.12);   color: var(--cyan); }
+        .ic-amber  { background: rgba(245,158,11,0.12);  color: var(--amber); }
+        .ic-violet { background: rgba(139,92,246,0.12);  color: var(--violet); }
+        .ic-green  { background: rgba(16,185,129,0.12);  color: var(--green); }
+        .info-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: var(--slate-2); margin-bottom: 0.25rem; }
+        .info-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: var(--white); margin-bottom: 0.3rem; }
+        .info-value { color: var(--slate); font-size: 0.875rem; line-height: 1.55; }
+        .info-value a { color: var(--cyan); text-decoration: none; transition: color 0.2s; }
+        .info-value a:hover { color: #2ee8dc; text-decoration: underline; }
+        .info-badge { display: inline-flex; align-items: center; gap: 5px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: var(--green); padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; margin-top: 0.35rem; }
+        .info-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+
+        /* FORM + SIDEBAR */
+        .contact-main { display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: start; }
+        .form-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+        .form-card-header { padding: 1.75rem 2rem 0; }
+        .form-section-eyebrow { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--cyan); margin-bottom: 0.6rem; }
+        .form-section-eyebrow::before { content: ''; width: 20px; height: 2px; background: var(--cyan); border-radius: 2px; }
+        .form-h2 { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; color: var(--white); margin-bottom: 0.4rem; }
+        .form-subtitle { color: var(--slate); font-size: 0.9rem; line-height: 1.6; }
+        .form-body { padding: 1.75rem 2rem 2rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-group { margin-bottom: 1.1rem; }
+        .form-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--slate); margin-bottom: 0.45rem; letter-spacing: 0.02em; }
+        .form-input-wrap { position: relative; }
+        .form-input-icon { position: absolute; left: 0.875rem; top: 50%; transform: translateY(-50%); color: var(--slate-2); font-size: 0.85rem; pointer-events: none; }
+        .form-input, .form-select, .form-textarea { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--r); color: var(--white); font-family: 'Outfit', sans-serif; font-size: 0.9rem; padding: 0.75rem 1rem 0.75rem 2.5rem; transition: all 0.25s; outline: none; -webkit-appearance: none; }
+        .form-textarea { padding: 0.875rem 1rem 0.875rem 2.5rem; resize: vertical; min-height: 140px; }
+        .form-select { cursor: pointer; }
+        .form-input::placeholder, .form-textarea::placeholder { color: var(--slate-2); }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: rgba(0,212,200,0.5); background: rgba(0,212,200,0.05); box-shadow: 0 0 0 3px rgba(0,212,200,0.1); }
+        .form-select option { background: var(--ink-2); color: var(--white); }
+        .char-count { font-size: 0.75rem; color: var(--slate-2); text-align: right; margin-top: 0.3rem; }
+        .form-submit { width: 100%; background: var(--cyan); color: var(--ink); border: none; padding: 0.9rem; border-radius: var(--r); font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
+        .form-submit:hover { background: #2ee8dc; box-shadow: 0 12px 40px rgba(0,212,200,0.4); transform: translateY(-2px); }
+        .form-submit:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .form-submit i { transition: transform 0.3s; }
+        .form-submit:hover:not(:disabled) i { transform: translateX(3px); }
+        .form-success { display: none; text-align: center; padding: 3rem 1rem; }
+        .form-success-icon { width: 64px; height: 64px; border-radius: 50%; background: rgba(16,185,129,0.12); border: 2px solid rgba(16,185,129,0.3); display: flex; align-items: center; justify-content: center; font-size: 1.75rem; color: var(--green); margin: 0 auto 1.25rem; animation: popIn 0.5s cubic-bezier(0.22,1,0.36,1); }
+        @keyframes popIn { from{opacity:0;transform:scale(0.5)} to{opacity:1;transform:scale(1)} }
+        .form-success h3 { font-family:'Syne',sans-serif; font-weight:800; font-size:1.25rem; color:var(--white); margin-bottom:0.5rem; }
+        .form-success p { color:var(--slate); font-size:0.9rem; max-width: 320px; margin: 0 auto 1.5rem; line-height: 1.7; }
+        .btn-reset { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--slate); padding: 0.65rem 1.25rem; border-radius: var(--r); font-size: 0.875rem; cursor: pointer; transition: all 0.2s; }
+        .btn-reset:hover { color: var(--white); background: rgba(255,255,255,0.1); }
+
+        /* SIDEBAR */
+        .sidebar { display: flex; flex-direction: column; gap: 1.25rem; }
+        .resp-card { background: linear-gradient(135deg, rgba(0,212,200,0.07), rgba(99,102,241,0.05)); border: 1px solid rgba(0,212,200,0.18); border-radius: var(--r-lg); padding: 1.5rem; position: relative; overflow: hidden; }
+        .resp-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--cyan), #3b82f6); }
+        .resp-card-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--white); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .resp-card-title i { color: var(--cyan); }
+        .resp-item { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+        .resp-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .resp-label { font-size: 0.82rem; color: var(--slate); }
+        .resp-value { font-size: 0.82rem; font-weight: 600; color: var(--cyan); }
+        .faq-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.5rem; }
+        .faq-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--white); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .faq-title i { color: var(--amber); }
+        .faq-item { margin-bottom: 1rem; }
+        .faq-item:last-child { margin-bottom: 0; }
+        .faq-q { font-size: 0.825rem; font-weight: 600; color: var(--white); margin-bottom: 0.3rem; display: flex; align-items: flex-start; gap: 6px; }
+        .faq-q::before { content: 'Q'; font-family:'Syne',sans-serif; font-weight:800; font-size:0.7rem; color:var(--amber); background:rgba(245,158,11,0.1); border-radius:4px; padding:1px 5px; flex-shrink:0; margin-top:1px; }
+        .faq-a { font-size: 0.8rem; color: var(--slate-2); line-height: 1.6; padding-left: 1.5rem; }
+        .admin-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.5rem; }
+        .admin-card-title { font-family:'Syne',sans-serif; font-weight:800; font-size:0.95rem; color:var(--white); margin-bottom:0.875rem; display:flex; align-items:center; gap:0.5rem; }
+        .admin-card-title i { color:var(--violet); }
+        .admin-card p { font-size:0.82rem; color:var(--slate-2); line-height:1.6; margin-bottom:0.875rem; }
+        .admin-lnk { display:inline-flex; align-items:center; gap:0.5rem; background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.22); color:var(--violet); padding:0.55rem 1rem; border-radius:9px; font-size:0.82rem; font-weight:600; text-decoration:none; transition:all 0.2s; width:100%; justify-content:center; }
+        .admin-lnk:hover { background:rgba(139,92,246,0.18); border-color:rgba(139,92,246,0.4); }
+
+        /* SOCIAL */
+        .social-section { margin-top: 4rem; }
+        .section-eyebrow { display: flex; align-items: center; gap: 10px; color: var(--cyan); font-size: 0.72rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.875rem; }
+        .section-eyebrow::before { content: ''; width: 28px; height: 2px; background: var(--cyan); border-radius: 2px; }
+        .section-h2 { font-family: 'Syne', sans-serif; font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; letter-spacing: -0.8px; color: var(--white); margin-bottom: 0.5rem; }
+        .section-sub { color: var(--slate); font-size: 0.975rem; line-height: 1.7; margin-bottom: 2.5rem; max-width: 560px; }
+        .social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+        .social-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.75rem 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 0.875rem; text-decoration: none; position: relative; overflow: hidden; transition: all 0.35s cubic-bezier(0.22,1,0.36,1); }
+        .social-card:hover { transform: translateY(-6px); box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .social-card.gh  { --sc: #e2e8f0; }
+        .social-card.li  { --sc: #0a66c2; }
+        .social-card.tw  { --sc: #1d9bf0; }
+        .social-card.ig  { --sc: #e1306c; }
+        .social-card.yt  { --sc: #ff0000; }
+        .social-card:hover { border-color: var(--sc); }
+        .social-icon-wrap { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.35s; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--slate); }
+        .social-card:hover .social-icon-wrap { color: var(--sc); border-color: var(--sc); transform: scale(1.1); }
+        .social-card.gh:hover .social-icon-wrap { background: rgba(226,232,240,0.08); box-shadow: 0 0 20px rgba(226,232,240,0.2); }
+        .social-card.li:hover .social-icon-wrap { background: rgba(10,102,194,0.1); box-shadow: 0 0 20px rgba(10,102,194,0.3); }
+        .social-card.tw:hover .social-icon-wrap { background: rgba(29,155,240,0.1); box-shadow: 0 0 20px rgba(29,155,240,0.3); }
+        .social-card.ig:hover .social-icon-wrap { background: rgba(225,48,108,0.1); box-shadow: 0 0 20px rgba(225,48,108,0.3); }
+        .social-card.yt:hover .social-icon-wrap { background: rgba(255,0,0,0.1); box-shadow: 0 0 20px rgba(255,0,0,0.3); }
+        .social-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--white); transition: color 0.25s; }
+        .social-card:hover .social-name { color: var(--sc); }
+        .social-handle { font-size: 0.78rem; color: var(--slate-2); }
+        .social-ext { font-size: 0.72rem; color: var(--slate-2); position: absolute; top: 0.875rem; right: 0.875rem; opacity: 0; transform: translateY(3px); transition: all 0.25s; }
+        .social-card:hover .social-ext { opacity: 1; transform: none; color: var(--sc); }
+
+        /* LOCATION */
+        .location-section { margin-top: 4rem; }
+        .location-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; display: grid; grid-template-columns: 1fr 300px; }
+        .map-visual { min-height: 300px; position: relative; overflow: hidden; background: var(--ink-3); }
+        .map-visual svg { width: 100%; height: 100%; position: absolute; inset: 0; }
+        .map-rings { position: absolute; top: 50%; left: 42%; transform: translate(-50%,-50%); }
+        .ring { position: absolute; border-radius: 50%; border: 1px solid rgba(0,212,200,0.2); top: 50%; left: 50%; transform: translate(-50%,-50%); animation: ringPulse 3s ease-out infinite; }
+        .ring:nth-child(1) { width: 80px; height: 80px; animation-delay: 0s; }
+        .ring:nth-child(2) { width: 140px; height: 140px; animation-delay: 0.9s; }
+        .ring:nth-child(3) { width: 200px; height: 200px; animation-delay: 1.8s; }
+        @keyframes ringPulse { 0%{opacity:0.6;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)} }
+        .map-pin { position: absolute; top: 50%; left: 42%; transform: translate(-50%,-60%); display: flex; flex-direction: column; align-items: center; animation: pinBob 3s ease-in-out infinite; }
+        @keyframes pinBob { 0%,100%{transform:translate(-50%,-60%)} 50%{transform:translate(-50%,-68%)} }
+        .map-pin-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--cyan); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--ink); box-shadow: 0 0 0 8px rgba(0,212,200,0.18); }
+        .map-pin-label { margin-top: 9px; background: rgba(6,10,18,0.9); border: 1px solid rgba(0,212,200,0.25); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; color: var(--cyan); white-space: nowrap; }
+        .location-info { padding: 2rem; display: flex; flex-direction: column; justify-content: center; gap: 1.25rem; border-left: 1px solid var(--border); }
+        .location-info-title { font-family:'Syne',sans-serif; font-weight:800; font-size:1rem; color:var(--white); display:flex; align-items:center; gap:0.5rem; }
+        .location-info-title i { color: var(--cyan); }
+        .loc-detail { display: flex; align-items: flex-start; gap: 0.875rem; }
+        .loc-detail-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
+        .loc-detail-label { font-size: 0.72rem; color: var(--slate-2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 0.15rem; }
+        .loc-detail-value { font-size: 0.875rem; color: var(--white); font-weight: 500; line-height: 1.5; }
+
+        /* TOAST */
+        .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; }
+        .toast { display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1.25rem; background: var(--ink-2); border: 1px solid var(--border); border-radius: var(--r); box-shadow: 0 20px 60px rgba(0,0,0,0.5); font-size: 0.875rem; min-width: 280px; animation: toastIn 0.3s ease; border-left: 3px solid var(--cyan); }
+        .toast.success { border-left-color: var(--green); }
+        .toast.error   { border-left-color: var(--red); }
+        .toast i { color: var(--cyan); }
+        .toast.success i { color: var(--green); }
+        .toast.error i   { color: var(--red); }
+        @keyframes toastIn { from{opacity:0;transform:translateX(50px)} to{opacity:1;transform:none} }
+
+        /* FOOTER */
+        .footer { border-top: 1px solid var(--border); padding: 3.5rem 5%; position: relative; z-index: 1; background: rgba(6,10,18,0.6); }
+        .footer-inner { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 2.5rem; max-width: 1400px; margin-left: auto; margin-right: auto; }
+        .footer-logo-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 0.75rem; }
+        .footer-brand-name { font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:800; color:var(--white); letter-spacing:-0.3px; }
+        .footer-brand-name em { font-style:normal; color:var(--cyan); }
+        .footer-brand-desc { color:var(--slate-2); font-size:0.875rem; line-height:1.65; max-width:260px; }
+        .footer-col h4 { font-family:'Syne',sans-serif; font-size:0.78rem; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:1.2px; margin-bottom:1.1rem; }
+        .footer-col a { display:block; color:var(--slate-2); text-decoration:none; font-size:0.875rem; margin-bottom:0.6rem; transition:color 0.2s; }
+        .footer-col a:hover { color:var(--cyan); }
+        .footer-bottom { border-top:1px solid var(--border); padding-top:1.5rem; display:flex; align-items:center; justify-content:space-between; color:var(--slate-2); font-size:0.82rem; max-width:1400px; margin:0 auto; }
+        .footer-bottom a { color:var(--cyan); text-decoration:none; }
+        .footer-divider { margin:0 0.5rem; opacity:0.4; }
+
+        /* REVEAL */
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+        .reveal.visible { opacity: 1; transform: none; }
+        .rd1{transition-delay:0.1s} .rd2{transition-delay:0.2s} .rd3{transition-delay:0.3s} .rd4{transition-delay:0.4s} .rd5{transition-delay:0.5s}
+
+        /* RESPONSIVE */
+        @media (max-width: 1100px) {
+            .contact-main { grid-template-columns: 1fr; }
+            .sidebar { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+            .location-card { grid-template-columns: 1fr; }
+            .location-info { border-left: none; border-top: 1px solid var(--border); }
+            .footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; }
+        }
+        @media (max-width: 768px) {
+            .nav-center { display: none; }
+            .hamburger { display: block; }
+            .form-row { grid-template-columns: 1fr; }
+            .social-grid { grid-template-columns: repeat(3, 1fr); }
+            .info-grid { grid-template-columns: 1fr 1fr; }
+            .sidebar { grid-template-columns: 1fr; }
+            .footer-inner { grid-template-columns: 1fr; }
+            .footer-bottom { flex-direction: column; gap: 0.5rem; text-align: center; }
+        }
+        @media (max-width: 480px) {
+            .social-grid { grid-template-columns: repeat(2, 1fr); }
+            .info-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="amb amb-1"></div>
+<div class="amb amb-2"></div>
+
+<!-- ══════════ NAVBAR ══════════════════════════════════════════════════════════ -->
+<nav class="navbar">
+    <a href="index.html" class="nav-brand">
+        <div class="nav-logo"><i class="fas fa-home"></i></div>
+        <span class="nav-brand-text">Smart<em> Arch</em></span>
+    </a>
+    <div class="nav-center">
+        <!-- <a href="index.html#features" class="nav-link">Features</a> -->
+        <!-- <a href="index.html#workflow" class="nav-link">How It Works</a> -->
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="about.html" class="nav-link">About</a>
+        <a href="contact.html" class="nav-link active">Contact</a>
+    </div>
+    <div class="nav-right">
+
+    <!-- Guest buttons -->
+    <div id="navGuest">
+        <!-- <a href="index.html" class="btn-ghost">← Back to Home</a> -->
+    </div>
+
+    <!-- Logged in -->
+    <div id="navUser" style="display:none;">
+        <a href="dashboard.html" class="btn-cta">
+            <i class="fas fa-rocket"></i> Dashboard
+        </a>
+    </div>
+
+</div>
+    <button class="hamburger" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+</nav>
+
+<!-- Mobile nav -->
+<div class="mobile-menu" id="mobileMenu">
+    <a href="index.html#features" class="nav-link">Features</a>
+    <a href="index.html#workflow" class="nav-link">How It Works</a>
+    <a href="about.html" class="nav-link">About</a>
+    <a href="contact.html" class="nav-link active">Contact</a>
+    <a href="dashboard.html" class="btn-cta" style="margin-top:0.5rem">Dashboard</a>
+</div>
+
+<!-- ══════════ HERO ═════════════════════════════════════════════════════════════ -->
+<div class="page-hero">
+    <div class="hero-eyebrow"><span class="pulse-dot"></span> We're Here to Help</div>
+    <h1 class="hero-h1">Get in <span class="grad">Touch</span></h1>
+    <p class="hero-sub">Questions about SmartArch? Need support, have a partnership idea, or want to report an issue? We'd love to hear from you.</p>
+</div>
+
+<!-- ══════════ PAGE BODY ════════════════════════════════════════════════════════ -->
+<div class="page-body">
+
+    <!-- INFO CARDS -->
+    <div class="info-grid">
+        <div class="info-card c-cyan reveal rd1">
+            <div class="info-icon ic-cyan"><i class="fas fa-envelope"></i></div>
+            <div>
+                <div class="info-label">General Inquiries</div>
+                <div class="info-title">Email Us</div>
+                <div class="info-value"><a href="mailto:hello@smartarch.pro">hello@smartarch.pro</a></div>
+                <div class="info-badge">Responds within 24h</div>
+            </div>
+        </div>
+        <div class="info-card c-amber reveal rd2">
+            <div class="info-icon ic-amber"><i class="fas fa-life-ring"></i></div>
+            <div>
+                <div class="info-label">Technical Support</div>
+                <div class="info-title">Support Channel</div>
+                <div class="info-value"><a href="mailto:support@smartarch.pro">support@smartarch.pro</a></div>
+                <div class="info-badge">Mon–Fri, 9am–6pm</div>
+            </div>
+        </div>
+        <div class="info-card c-violet reveal rd3">
+            <div class="info-icon ic-violet"><i class="fas fa-lock"></i></div>
+            <div>
+                <div class="info-label">Legal &amp; Privacy</div>
+                <div class="info-title">Legal Contacts</div>
+                <div class="info-value">
+                    <a href="mailto:privacy@smartarch.pro">privacy@smartarch.pro</a><br>
+                    <a href="mailto:legal@smartarch.pro" style="margin-top:3px;display:inline-block">legal@smartarch.pro</a>
+                </div>
+            </div>
+        </div>
+        <div class="info-card c-green reveal rd4">
+            <div class="info-icon ic-green"><i class="fas fa-map-marker-alt"></i></div>
+            <div>
+                <div class="info-label">Headquarters</div>
+                <div class="info-title">Our Location</div>
+                <div class="info-value">Tech Innovation Hub<br>Greenwood District<br>San Francisco, CA 94105</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORM + SIDEBAR -->
+    <div class="contact-main">
+
+        <!-- FORM -->
+        <div class="form-card reveal">
+            <div class="form-card-header">
+                <div class="form-section-eyebrow">Send a Message</div>
+                <h2 class="form-h2">How Can We Help?</h2>
+                <p class="form-subtitle">Fill in the form and we'll get back to you as soon as possible.</p>
+            </div>
+            <div class="form-body">
+                <div id="contactFormWrap">
+                    <form id="contactForm" onsubmit="handleContactSubmit(event)" novalidate>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="cf-name">Full Name <span style="color:var(--red)">*</span></label>
+                                <div class="form-input-wrap">
+                                    <span class="form-input-icon"><i class="fas fa-user"></i></span>
+                                    <input type="text" id="cf-name" class="form-input" placeholder="John Doe" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="cf-email">Email Address <span style="color:var(--red)">*</span></label>
+                                <div class="form-input-wrap">
+                                    <span class="form-input-icon"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" id="cf-email" class="form-input" placeholder="your@email.com" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="cf-subject">Subject <span style="color:var(--red)">*</span></label>
+                                <div class="form-input-wrap">
+                                    <span class="form-input-icon"><i class="fas fa-tag"></i></span>
+                                    <select id="cf-subject" class="form-select form-input" required>
+                                        <option value="" disabled selected>Select a topic…</option>
+                                        <option value="general">General Inquiry</option>
+                                        <option value="support">Technical Support</option>
+                                        <option value="ai">AI Generation Issue</option>
+                                        <option value="account">Account &amp; Billing</option>
+                                        <option value="feature">Feature Request</option>
+                                        <option value="bug">Bug Report</option>
+                                        <option value="partnership">Partnership / Business</option>
+                                        <option value="privacy">Privacy &amp; Legal</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="cf-company">Company <span style="color:var(--slate-2);font-weight:400">(Optional)</span></label>
+                                <div class="form-input-wrap">
+                                    <span class="form-input-icon"><i class="fas fa-building"></i></span>
+                                    <input type="text" id="cf-company" class="form-input" placeholder="Your company name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="cf-message">Message <span style="color:var(--red)">*</span></label>
+                            <div class="form-input-wrap">
+                                <span class="form-input-icon" style="top:1rem;transform:none"><i class="fas fa-comment-alt"></i></span>
+                                <textarea id="cf-message" class="form-textarea" placeholder="Tell us how we can help you…" required maxlength="1000" oninput="updateCharCount(this)"></textarea>
+                            </div>
+                            <div class="char-count"><span id="charCount">0</span> / 1000</div>
+                        </div>
+                        <button type="submit" class="form-submit" id="submitBtn">
+                            <i class="fas fa-paper-plane"></i> Send Message
+                        </button>
+                    </form>
+                </div>
+                <div class="form-success" id="formSuccess">
+                    <div class="form-success-icon"><i class="fas fa-check"></i></div>
+                    <h3>Message Sent!</h3>
+                    <p>Thanks for reaching out. We'll review your message and respond to your email address, usually within 24 hours.</p>
+                    <button class="btn-reset" onclick="resetForm()"><i class="fas fa-redo"></i> Send Another</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="resp-card reveal rd1">
+                <div class="resp-card-title"><i class="fas fa-clock"></i> Response Times</div>
+                <div class="resp-item"><span class="resp-label">General inquiries</span><span class="resp-value">Within 24h</span></div>
+                <div class="resp-item"><span class="resp-label">Technical support</span><span class="resp-value">Within 12h</span></div>
+                <div class="resp-item"><span class="resp-label">Bug reports</span><span class="resp-value">Within 6h</span></div>
+                <div class="resp-item"><span class="resp-label">Privacy requests</span><span class="resp-value">Within 5 days</span></div>
+                <div class="resp-item"><span class="resp-label">Business inquiries</span><span class="resp-value">Within 48h</span></div>
+            </div>
+
+            <div class="faq-card reveal rd2">
+                <div class="faq-title"><i class="fas fa-question-circle"></i> Quick Answers</div>
+                <div class="faq-item">
+                    <div class="faq-q">Is AI generation free to use?</div>
+                    <div class="faq-a">Yes — floor plan generation is included with all registered accounts at no charge.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q">How do I reset my password?</div>
+                    <div class="faq-a">Use the "Forgot Password" link on the login screen, or email support with your registered address.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q">Can I export my designs?</div>
+                    <div class="faq-a">Yes — projects export in JSON, OBJ, and GLTF formats from the project detail view.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q">Who handles account issues?</div>
+                    <div class="faq-a">Email support@housearchitect.pro with your registered email and a description of the issue.</div>
+                </div>
+            </div>
+
+            <div class="admin-card reveal rd3">
+                <div class="admin-card-title"><i class="fas fa-shield-alt"></i> Admin Access</div>
+                <p>System administrators can access platform management, user controls, and analytics via the Admin Panel.</p>
+                <a href="admin-login.html" class="admin-lnk"><i class="fas fa-lock"></i> Open Admin Panel</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SOCIAL MEDIA -->
+    <div class="social-section">
+        <div class="section-eyebrow reveal">Connect With Us</div>
+        <h2 class="section-h2 reveal rd1">Follow the Journey</h2>
+        <p class="section-sub reveal rd2">Stay up to date with platform updates, architectural inspiration, and development progress across our social channels.</p>
+
+        <div class="social-grid">
+            <a href="https://github.com" target="_blank" rel="noopener" class="social-card gh reveal rd1">
+                <i class="fas fa-arrow-up-right-from-square social-ext"></i>
+                <div class="social-icon-wrap"><i class="fab fa-github"></i></div>
+                <div class="social-name">GitHub</div>
+                <div class="social-handle">@smartarch-pro</div>
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener" class="social-card li reveal rd2">
+                <i class="fas fa-arrow-up-right-from-square social-ext"></i>
+                <div class="social-icon-wrap"><i class="fab fa-linkedin-in"></i></div>
+                <div class="social-name">LinkedIn</div>
+                <div class="social-handle">SmartArch</div>
+            </a>
+            <a href="https://twitter.com" target="_blank" rel="noopener" class="social-card tw reveal rd3">
+                <i class="fas fa-arrow-up-right-from-square social-ext"></i>
+                <div class="social-icon-wrap"><i class="fab fa-x-twitter"></i></div>
+                <div class="social-name">X / Twitter</div>
+                <div class="social-handle">@SmartArchPro</div>
+            </a>
+            <a href="https://instagram.com" target="_blank" rel="noopener" class="social-card ig reveal rd4">
+                <i class="fas fa-arrow-up-right-from-square social-ext"></i>
+                <div class="social-icon-wrap"><i class="fab fa-instagram"></i></div>
+                <div class="social-name">Instagram</div>
+                <div class="social-handle">@hsmartarchpro</div>
+            </a>
+            <a href="https://youtube.com" target="_blank" rel="noopener" class="social-card yt reveal rd5">
+                <i class="fas fa-arrow-up-right-from-square social-ext"></i>
+                <div class="social-icon-wrap"><i class="fab fa-youtube"></i></div>
+                <div class="social-name">YouTube</div>
+                <div class="social-handle">SmartArch</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- LOCATION -->
+    <div class="location-section reveal">
+        <div class="section-eyebrow" style="margin-bottom:0.875rem">Our Location</div>
+        <h2 class="section-h2" style="margin-bottom:1.75rem">Where to Find Us</h2>
+        <div class="location-card">
+            <div class="map-visual">
+                <svg viewBox="0 0 600 300" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <pattern id="mapgrid" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0,212,200,0.08)" stroke-width="0.5"/>
+                        </pattern>
+                        <radialGradient id="glow" cx="42%" cy="50%">
+                            <stop offset="0%" stop-color="rgba(0,212,200,0.1)"/>
+                            <stop offset="100%" stop-color="transparent"/>
+                        </radialGradient>
+                    </defs>
+                    <rect width="600" height="300" fill="url(#mapgrid)"/>
+                    <rect width="600" height="300" fill="url(#glow)"/>
+                    <line x1="0" y1="150" x2="600" y2="150" stroke="rgba(0,212,200,0.14)" stroke-width="10"/>
+                    <line x1="252" y1="0" x2="252" y2="300" stroke="rgba(0,212,200,0.14)" stroke-width="7"/>
+                    <line x1="0" y1="80" x2="600" y2="80" stroke="rgba(0,212,200,0.07)" stroke-width="3"/>
+                    <line x1="0" y1="220" x2="600" y2="220" stroke="rgba(0,212,200,0.07)" stroke-width="3"/>
+                    <line x1="120" y1="0" x2="120" y2="300" stroke="rgba(0,212,200,0.07)" stroke-width="3"/>
+                    <line x1="400" y1="0" x2="400" y2="300" stroke="rgba(0,212,200,0.07)" stroke-width="3"/>
+                    <rect x="30" y="95" width="75" height="42" fill="rgba(0,212,200,0.04)" stroke="rgba(0,212,200,0.1)" stroke-width="1" rx="3"/>
+                    <rect x="270" y="95" width="110" height="42" fill="rgba(0,212,200,0.04)" stroke="rgba(0,212,200,0.1)" stroke-width="1" rx="3"/>
+                    <rect x="415" y="95" width="80" height="42" fill="rgba(0,212,200,0.04)" stroke="rgba(0,212,200,0.1)" stroke-width="1" rx="3"/>
+                    <rect x="30" y="165" width="75" height="42" fill="rgba(0,212,200,0.04)" stroke="rgba(0,212,200,0.1)" stroke-width="1" rx="3"/>
+                    <rect x="270" y="165" width="110" height="42" fill="rgba(0,212,200,0.04)" stroke="rgba(0,212,200,0.1)" stroke-width="1" rx="3"/>
+                    <rect x="415" y="165" width="80" height="42" fill="rgba(0,212,200,0.04)" stroke="rgba(0,212,200,0.1)" stroke-width="1" rx="3"/>
+                </svg>
+                <div class="map-rings">
+                    <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+                </div>
+                <div class="map-pin">
+                    <div class="map-pin-icon"><i class="fas fa-home"></i></div>
+                    <div class="map-pin-label">SmartArch HQ</div>
+                </div>
+            </div>
+            <div class="location-info">
+                <div class="location-info-title"><i class="fas fa-map-marker-alt"></i> Office Details</div>
+                <div class="loc-detail">
+                    <div class="loc-detail-icon ic-cyan"><i class="fas fa-building"></i></div>
+                    <div><div class="loc-detail-label">Building</div><div class="loc-detail-value">Tech Innovation Hub</div></div>
+                </div>
+                <div class="loc-detail">
+                    <div class="loc-detail-icon ic-amber"><i class="fas fa-road"></i></div>
+                    <div><div class="loc-detail-label">Address</div><div class="loc-detail-value">Greenwood District<br>San Francisco, CA 94105</div></div>
+                </div>
+                <div class="loc-detail">
+                    <div class="loc-detail-icon ic-violet"><i class="fas fa-clock"></i></div>
+                    <div><div class="loc-detail-label">Office Hours</div><div class="loc-detail-value">Mon – Fri: 9am – 6pm PST</div></div>
+                </div>
+                <div class="loc-detail">
+                    <div class="loc-detail-icon ic-green"><i class="fas fa-globe"></i></div>
+                    <div><div class="loc-detail-label">Platform</div><div class="loc-detail-value">Available worldwide, online only</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /page-body -->
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-inner">
+        <div>
+            <div class="footer-logo-wrap">
+                <div class="nav-logo"><i class="fas fa-home"></i></div>
+                <span class="footer-brand-name">Smart<em> Arch</em></span>
+            </div>
+            <p class="footer-brand-desc">AI-powered architectural design platform for modern homes and professional projects.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Product</h4>
+            <a href="index.html#features">Features</a>
+            <a href="index.html#workflow">How It Works</a>
+            <a href="dashboard.html">Dashboard</a>
+        </div>
+        <div class="footer-col">
+            <h4>Company</h4>
+            <a href="about.html">About</a>
+            <a href="contact.html" style="color:var(--cyan)">Contact</a>
+        </div>
+        <div class="footer-col">
+            <h4>Legal &amp; Admin</h4>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html">Terms of Service</a>
+            <a href="admin-login.html" style="color:var(--cyan)"><i class="fas fa-shield-alt" style="margin-right:4px"></i>Admin Panel</a>
+        </div>
+    </div>
+   <div class="footer-bottom">
+        <span>&copy; 2025 SmartArch. All rights reserved.</span>
+        <span>Built with <span style="color:var(--cyan)">♥</span> using Node.js, MongoDB & AI</span>
+    </div>
+</footer>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+    function toggleMobileMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+    function updateCharCount(el) { document.getElementById('charCount').textContent = el.value.length; }
+
+    function showToast(msg, type) {
+        const c = document.getElementById('toastContainer');
+        const t = document.createElement('div');
+        t.className = 'toast ' + (type||'');
+        const ic = {success:'fa-check-circle',error:'fa-exclamation-circle',info:'fa-info-circle'};
+        t.innerHTML = '<i class="fas '+(ic[type]||ic.info)+'"></i><span>'+msg+'</span>';
+        c.appendChild(t);
+        setTimeout(()=>{ t.style.cssText='opacity:0;transform:translateX(60px);transition:all 0.3s'; setTimeout(()=>t.remove(),350); }, 3500);
+    }
+
+    function handleContactSubmit(e) {
+        e.preventDefault();
+        const name    = document.getElementById('cf-name').value.trim();
+        const email   = document.getElementById('cf-email').value.trim();
+        const subject = document.getElementById('cf-subject').value;
+        const message = document.getElementById('cf-message').value.trim();
+        if (!name || !email || !subject || !message) { showToast('Please fill in all required fields.','error'); return; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Please enter a valid email address.','error'); return; }
+        if (message.length < 10) { showToast('Please write at least 10 characters.','error'); return; }
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+        btn.disabled = true;
+        setTimeout(()=>{
+            document.getElementById('contactFormWrap').style.display = 'none';
+            document.getElementById('formSuccess').style.display = 'block';
+            showToast('Message sent successfully!','success');
+        }, 1400);
+    }
+
+    function resetForm() {
+        document.getElementById('contactForm').reset();
+        document.getElementById('charCount').textContent = '0';
+        document.getElementById('contactFormWrap').style.display = 'block';
+        document.getElementById('formSuccess').style.display = 'none';
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+        btn.disabled = false;
+    }
+
+    const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+    
+   function checkAuth(){
+
+        const token = localStorage.getItem("token");
+
+        if(token){
+            document.getElementById("navGuest").style.display = "none";
+            document.getElementById("navUser").style.display = "block";
+        }else{
+            document.getElementById("navGuest").style.display = "block";
+            document.getElementById("navUser").style.display = "none";
+        }
+
+    }
+    document.addEventListener("DOMContentLoaded", checkAuth);
+</script>
+</body>
+</html>

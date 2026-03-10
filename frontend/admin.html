@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — SmartArch</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<div class="admin-layout">
+
+    <!-- ─── Sidebar ───────────────────────────────────────────────────────── -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="fas fa-home"></i></div>
+            <div class="sidebar-brand-text">
+                <strong>SmartArch</strong>
+                <span>Admin Panel</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-label">Overview</div>
+                <a class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a class="nav-item" data-page="analytics">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">Management</div>
+                <a class="nav-item" data-page="users">
+                    <i class="fas fa-users"></i> Users
+                </a>
+                <a class="nav-item" data-page="projects">
+                    <i class="fas fa-drafting-compass"></i> Projects
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">System</div>
+                <a class="nav-item" href="index.html" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> View Site
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="admin-profile">
+                <div class="admin-avatar" id="adminNameInitials">A</div>
+                <div class="admin-info">
+                    <strong id="adminName">Admin</strong>
+                    <span id="adminEmail">admin@site.com</span>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="adminLogout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- ─── Main Content ──────────────────────────────────────────────────── -->
+    <div class="main-content">
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="topbar-btn" id="mobileMenuBtn" style="display:none">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div>
+                    <div class="page-title" id="pageTitle">Dashboard</div>
+                    <div class="page-subtitle" id="pageSubtitle">Overview & analytics</div>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <div class="live-badge"><span class="live-dot"></span> Live</div>
+                <button class="topbar-btn" onclick="location.reload()" title="Refresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- ─── Page: Dashboard ───────────────────────────────────────────── -->
+        <div class="page-content">
+
+            <div class="page active" id="page-dashboard">
+
+                <!-- Stats Row -->
+                <div class="stats-grid">
+                    <div class="stat-card blue">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-total-users">—</div>
+                            <div class="stat-label">Total Users</div>
+                            <div class="stat-change up"><i class="fas fa-arrow-up"></i> <span id="stat-users-week">—</span> this week</div>
+                        </div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-icon"><i class="fas fa-home"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-total-projects">—</div>
+                            <div class="stat-label">Total Projects</div>
+                            <div class="stat-change up"><i class="fas fa-arrow-up"></i> <span id="stat-projects-week">—</span> this week</div>
+                        </div>
+                    </div>
+                    <div class="stat-card orange">
+                        <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-projects-today">—</div>
+                            <div class="stat-label">Projects Today</div>
+                            <div class="stat-change neutral">New today</div>
+                        </div>
+                    </div>
+                    <div class="stat-card purple">
+                        <div class="stat-icon"><i class="fas fa-user-plus"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-users-today">—</div>
+                            <div class="stat-label">New Users Today</div>
+                            <div class="stat-change neutral">Registered today</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 1 -->
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-chart-line"></i> User Registrations (30 days)</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container"><canvas id="userGrowthChart"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-chart-area"></i> Projects Created (30 days)</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container"><canvas id="projectGrowthChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 2 + Activity -->
+                <div class="grid-2">
+                    <div class="grid-2" style="grid-template-columns:1fr 1fr;gap:1.25rem">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-chart-pie"></i> By Status</div>
+                            </div>
+                            <div class="card-body">
+                                <div class="donut-container">
+                                    <div class="donut-chart"><canvas id="statusChart"></canvas></div>
+                                    <div class="donut-legend" id="statusLegend"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-building"></i> By Type</div>
+                            </div>
+                            <div class="card-body">
+                                <div class="donut-container">
+                                    <div class="donut-chart"><canvas id="typeChart"></canvas></div>
+                                    <div class="donut-legend" id="typeLegend"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-history"></i> Recent Activity</div>
+                        </div>
+                        <div class="card-body" style="padding-top:0.5rem">
+                            <div class="activity-feed" id="activityFeed">
+                                <div class="loading-spinner"><i class="fas fa-spinner"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Tables -->
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-folder-open"></i> Recent Projects</div>
+                            <button class="btn btn-sm btn-gray" onclick="navigateTo('projects')">View All</button>
+                        </div>
+                        <div class="card-body" style="padding-top:0.5rem">
+                            <div id="recentProjectsList">
+                                <div class="loading-spinner"><i class="fas fa-spinner"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-user-clock"></i> Recent Users</div>
+                            <button class="btn btn-sm btn-gray" onclick="navigateTo('users')">View All</button>
+                        </div>
+                        <div class="card-body" style="padding-top:0.5rem">
+                            <div id="recentUsersList">
+                                <div class="loading-spinner"><i class="fas fa-spinner"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Users -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-trophy"></i> Most Active Users</div>
+                    </div>
+                    <div class="card-body" style="padding-top:0.5rem">
+                        <div id="topUsersList">
+                            <div class="loading-spinner"><i class="fas fa-spinner"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ─── Page: Users ────────────────────────────────────────────── -->
+            <div class="page" id="page-users">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-users"></i> All Users <span id="usersTotalCount" style="font-weight:400;color:var(--gray);font-size:0.82rem;margin-left:0.5rem"></span></div>
+                    </div>
+                    <div class="table-controls">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="userSearch" placeholder="Search by name or email...">
+                        </div>
+                        <select class="filter-select" id="userSort">
+                            <option value="-createdAt">Newest First</option>
+                            <option value="createdAt">Oldest First</option>
+                            <option value="name">Name A-Z</option>
+                            <option value="-name">Name Z-A</option>
+                        </select>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Role</th>
+                                    <th>Projects</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr><td colspan="6"><div class="loading-spinner"><i class="fas fa-spinner"></i></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <span class="pagination-info" id="usersPaginationInfo"></span>
+                        <div class="pagination-btns" id="usersPaginationBtns"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── Page: Projects ─────────────────────────────────────────── -->
+            <div class="page" id="page-projects">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-drafting-compass"></i> All Projects <span id="projectsTotalCount" style="font-weight:400;color:var(--gray);font-size:0.82rem;margin-left:0.5rem"></span></div>
+                    </div>
+                    <div class="table-controls">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="projectSearch" placeholder="Search projects...">
+                        </div>
+                        <select class="filter-select" id="statusFilter">
+                            <option value="">All Statuses</option>
+                            <option value="draft">Draft</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="review">Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="archived">Archived</option>
+                        </select>
+                        <select class="filter-select" id="typeFilter">
+                            <option value="">All Types</option>
+                            <option value="residential">Residential</option>
+                            <option value="commercial">Commercial</option>
+                            <option value="industrial">Industrial</option>
+                            <option value="mixed">Mixed</option>
+                        </select>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Owner</th>
+                                    <th>Status</th>
+                                    <th>Type</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="projectsTableBody">
+                                <tr><td colspan="6"><div class="loading-spinner"><i class="fas fa-spinner"></i></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <span class="pagination-info" id="projectsPaginationInfo"></span>
+                        <div class="pagination-btns" id="projectsPaginationBtns"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── Page: Analytics ───────────────────────────────────────── -->
+            <div class="page" id="page-analytics">
+                <div class="stats-grid" style="margin-bottom:1.5rem">
+                    <div class="stat-card blue">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-total-users-2">—</div>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-icon"><i class="fas fa-home"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-total-projects-2">—</div>
+                            <div class="stat-label">Total Projects</div>
+                        </div>
+                    </div>
+                    <div class="stat-card teal">
+                        <div class="stat-icon"><i class="fas fa-user-check"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-users-week-2">—</div>
+                            <div class="stat-label">New Users (7d)</div>
+                        </div>
+                    </div>
+                    <div class="stat-card red">
+                        <div class="stat-icon"><i class="fas fa-folder-plus"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-projects-week-2">—</div>
+                            <div class="stat-label">New Projects (7d)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="margin-bottom:1.5rem">
+                    <div class="card">
+                        <div class="card-header"><div class="card-title"><i class="fas fa-chart-line"></i> User Growth (30 days)</div></div>
+                        <div class="card-body"><div class="chart-container"><canvas id="userGrowthChart2"></canvas></div></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><div class="card-title"><i class="fas fa-chart-bar"></i> Project Activity (30 days)</div></div>
+                        <div class="card-body"><div class="chart-container"><canvas id="projectGrowthChart2"></canvas></div></div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header"><div class="card-title"><i class="fas fa-trophy"></i> Top Contributors</div></div>
+                        <div class="card-body" style="padding-top:0.5rem"><div id="topUsersListAnalytics"></div></div>
+                    </div>
+                    <div class="grid-2" style="display:flex;flex-direction:column;gap:1.25rem">
+                        <div class="card">
+                            <div class="card-header"><div class="card-title"><i class="fas fa-chart-pie"></i> Projects by Status</div></div>
+                            <div class="card-body">
+                                <div class="donut-container">
+                                    <div class="donut-chart"><canvas id="statusChart2"></canvas></div>
+                                    <div class="donut-legend" id="statusLegend2"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><div class="card-title"><i class="fas fa-building"></i> Projects by Type</div></div>
+                            <div class="card-body">
+                                <div class="donut-container">
+                                    <div class="donut-chart"><canvas id="typeChart2"></canvas></div>
+                                    <div class="donut-legend" id="typeLegend2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- /page-content -->
+
+    </div>
+    <!-- /main-content -->
+
+</div>
+<!-- /admin-layout -->
+
+<!-- ─── Modals ─────────────────────────────────────────────────────────────── -->
+
+<!-- User Detail Modal -->
+<div class="modal-overlay" id="userDetailModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">User Details</div>
+            <button class="modal-close" onclick="closeModal('userDetailModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="userDetailBody">
+            <div class="loading-spinner"><i class="fas fa-spinner"></i></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-gray" onclick="closeModal('userDetailModal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Project Detail Modal -->
+<div class="modal-overlay" id="projectDetailModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">Project Details</div>
+            <button class="modal-close" onclick="closeModal('projectDetailModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="projectDetailBody">
+            <div class="loading-spinner"><i class="fas fa-spinner"></i></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-gray" onclick="closeModal('projectDetailModal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal-box" style="max-width:420px">
+        <div class="modal-body">
+            <div class="confirm-modal-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="confirm-modal-text">
+                <h3 id="confirmTitle">Confirm Action</h3>
+                <p id="confirmMessage">Are you sure?</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-gray" onclick="closeModal('confirmModal')">Cancel</button>
+            <button class="btn btn-danger" id="confirmBtn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="js/admin.js"></script>
+
+<script>
+// Analytics page additional rendering
+const origLoadDashboard = window.loadDashboard || (() => {});
+
+// Hook into navigateTo for analytics
+const _origNavigate = window.navigateTo;
+window.navigateTo = function(page) {
+    _origNavigate(page);
+    if (page === 'analytics') renderAnalyticsPage();
+};
+
+async function renderAnalyticsPage() {
+    try {
+        const res = await fetch(`http://localhost:5000/api/admin/dashboard`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        const json = await res.json();
+        if (!json.success) return;
+        const d = json.data;
+
+        // Update secondary stat elements
+        const s2 = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        s2('stat-total-users-2', d.stats.totalUsers);
+        s2('stat-total-projects-2', d.stats.totalProjects);
+        s2('stat-users-week-2', d.stats.usersThisWeek);
+        s2('stat-projects-week-2', d.stats.projectsThisWeek);
+
+        // Charts
+        if (window.Chart && document.getElementById('userGrowthChart2')) {
+            renderLineChart('userGrowthChart2', d.userGrowth, 'Users', '#667eea');
+            renderLineChart('projectGrowthChart2', d.projectGrowth, 'Projects', '#11998e');
+            renderDonut('statusChart2', d.projectsByStatus, 'status');
+            renderDonut('typeChart2', d.projectsByType, 'type');
+        }
+
+        // Top users
+        renderTopUsers2(d.topUsers);
+    } catch (e) { console.error(e); }
+}
+
+function renderTopUsers2(users) {
+    const el = document.getElementById('topUsersListAnalytics');
+    if (!el || !users) return;
+    if (!users.length) { el.innerHTML = '<div class="empty-state"><i class="fas fa-trophy"></i><p>No data yet</p></div>'; return; }
+    el.innerHTML = users.map((u, i) => {
+        const rc = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+        return `<div class="top-user-item">
+            <div class="rank-badge ${rc}">${i+1}</div>
+            <div class="user-avatar-sm">${u.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)}</div>
+            <div class="top-user-info"><div class="top-user-name">${u.name}</div><div class="top-user-email">${u.email}</div></div>
+            <div class="top-user-count">${u.projectCount} <span style="font-size:0.7rem;color:var(--gray);font-weight:400">projects</span></div>
+        </div>`;
+    }).join('');
+}
+
+// Show mobile menu button on small screens
+if (window.innerWidth <= 768) {
+    const btn = document.getElementById('mobileMenuBtn');
+    if (btn) btn.style.display = 'flex';
+}
+</script>
+
+</body>
+</html>

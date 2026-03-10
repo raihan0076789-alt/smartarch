@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema({
         defaultUnit: { type: String, enum: ['meters', 'feet'], default: 'meters' },
         autoSave: { type: Boolean, default: true }
     },
+    suspended: { type: Boolean, default: false },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     createdAt: { type: Date, default: Date.now }

@@ -62,7 +62,7 @@
         </div>
         <div class="nav-center">
             <!-- Drawing Tools -->
-            <div class="tool-group">
+            <div class="tool-group" style="margin-top: 28px;">
                 <button class="tool-btn active" data-tool="select" onclick="setTool('select')" title="Select (V)"><i class="fas fa-mouse-pointer"></i><span>Select</span></button>
                 <button class="tool-btn" data-tool="room"     onclick="setTool('room')"     title="Add Room (R)"><i class="fas fa-vector-square"></i><span>Room</span></button>
                 <button class="tool-btn" data-tool="door"     onclick="setTool('door')"     title="Door (D)"><i class="fas fa-door-open"></i><span>Door</span></button>
@@ -199,10 +199,10 @@
                     <button id="fpBtn2"        class="toolbar-toggle-btn" onclick="toggleFirstPerson()" title="First-person walk mode (WASD)"><i class="fas fa-walking"></i> Walk</button>
                     <button                    class="toolbar-toggle-btn" onclick="refresh3D()" title="Refresh 3D scene"><i class="fas fa-sync-alt"></i> Refresh</button>
                 </div>
-                <label class="layer-toggle" style="margin-top:6px;">
+                <!-- <label class="layer-toggle" style="margin-top:6px;">
                     <input type="checkbox" id="openTopMode" checked onchange="refresh3D()">
                     <span class="layer-dot" style="background:#ffc107"></span> Open Top (roof off)
-                </label>
+                </label> -->
 
                 <!-- Layer toggles -->
                 <div style="font-size:0.68rem;color:#6678a0;font-weight:700;letter-spacing:.05em;margin:8px 0 5px;">LAYER VISIBILITY</div>
@@ -250,7 +250,8 @@
                         <button class="sub-tab active" id="subInterior"  onclick="setInteriorSubView('interior')"><i class="fas fa-home"></i> Interior</button>
                         <button class="sub-tab"        id="subDollhouse" onclick="setInteriorSubView('dollhouse')"><i class="fas fa-border-all"></i> Dollhouse</button>
                         <button class="sub-tab"        id="subExterior"  onclick="setInteriorSubView('exterior')"><i class="fas fa-tree"></i> Exterior</button>
-                        <button class="sub-tab"        id="sub3dmodel"   onclick="setInteriorSubView('3dmodel')"><i class="fas fa-cube"></i> 3D Model</button>
+                        <!-- <button class="sub-tab"        id="sub3dmodel"   onclick="setInteriorSubView('3dmodel')"><i class="fas fa-cube"></i> 3D Model</button> -->
+                        
                     </div>
 
                     <!-- Open Top toggle (3D only) -->
@@ -259,22 +260,22 @@
                     </label>
 
                     <!-- Wireframe toggle button (3D only) -->
-                    <button id="wireframeToggleBtn"
+                    <!-- <button id="wireframeToggleBtn"
                             class="zoom-btn"
                             style="display:none;padding:0 0.65rem;height:28px;font-size:0.72rem;font-weight:600;white-space:nowrap;gap:0.3rem;"
                             onclick="toggleWireframe()"
                             title="Toggle Wireframe">
                         <i class="fas fa-border-all"></i> Wireframe
-                    </button>
+                    </button> -->
 
                     <!-- First-person walk button (3D only) -->
-                    <button id="fpCameraBtn"
+                    <!-- <button id="fpCameraBtn"
                             class="zoom-btn"
                             style="display:none;padding:0 0.65rem;height:28px;font-size:0.72rem;font-weight:600;white-space:nowrap;gap:0.3rem;"
                             onclick="toggleFirstPerson()"
                             title="First-Person Walk Mode — WASD to move, drag to look, Esc to exit">
                         <i class="fas fa-walking"></i> Walk
-                    </button>
+                    </button> -->
                 </div>
             </div>
 

@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About — House Architect Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --ink:       #060a12;
+            --ink-2:     #0d1424;
+            --cyan:      #00d4c8;
+            --amber:     #f59e0b;
+            --violet:    #8b5cf6;
+            --blue:      #3b82f6;
+            --green:     #10b981;
+            --slate:     #94a3b8;
+            --slate-2:   #64748b;
+            --white:     #f1f5f9;
+            --border:    rgba(255,255,255,0.07);
+            --card-bg:   rgba(255,255,255,0.04);
+            --nav-h:     68px;
+            --r:         12px;
+            --r-lg:      20px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--ink);
+            color: var(--white);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(0,212,200,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,200,0.025) 1px, transparent 1px);
+            background-size: 72px 72px;
+        }
+
+        .ambient { position: fixed; pointer-events: none; z-index: 0; border-radius: 50%; filter: blur(130px); }
+        .a1 { width: 600px; height: 600px; top: -200px; right: -100px; background: radial-gradient(circle, rgba(0,212,200,0.06) 0%, transparent 70%); }
+        .a2 { width: 500px; height: 500px; bottom: 0; left: -100px; background: radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%); }
+
+        /* ── NAVBAR ─────────────────────────────────────────────────── */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h);
+            display: flex; align-items: center; padding: 0 5%;
+            background: rgba(6,10,18,0.85);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+        }
+
+        .nav-brand {
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-logo {
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, var(--cyan), #0891b2);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 0.9rem;
+        }
+
+        .nav-brand-text {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800; font-size: 1.05rem;
+            color: var(--white); letter-spacing: -0.3px;
+        }
+
+        .nav-brand-text em { font-style: normal; color: var(--cyan); }
+
+        .nav-links { display: flex; align-items: center; gap: 0.25rem; margin: 0 auto; }
+
+        .nav-link {
+            text-decoration: none; color: var(--slate); font-size: 0.875rem;
+            font-weight: 500; padding: 0.45rem 0.875rem; border-radius: 8px; transition: all 0.2s;
+        }
+        .nav-link.active { color: var(--cyan); background: rgba(0,212,200,0.08); }
+        .nav-link:hover { color: var(--white); background: rgba(255,255,255,0.06); }
+
+        .nav-right { display: flex; gap: 0.75rem; }
+
+        .btn-ghost {
+            background: transparent; border: 1px solid rgba(255,255,255,0.15); color: var(--slate);
+            padding: 0.45rem 1.1rem; border-radius: 9px; font-size: 0.875rem;
+            font-weight: 500; cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.2s;
+        }
+
+        .btn-ghost:hover { border-color: rgba(255,255,255,0.3); color: var(--white); background: rgba(255,255,255,0.05); }
+
+        .btn-cta {
+            background: var(--cyan); color: #060a12; border: none;
+            padding: 0.5rem 1.25rem; border-radius: 9px; font-size: 0.875rem;
+            font-weight: 700; cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            transition: all 0.25s; font-family: 'Syne', sans-serif;
+        }
+
+        .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,212,200,0.4); }
+
+        /* ── PAGE HERO ──────────────────────────────────────────────── */
+        .page-hero {
+            padding: calc(var(--nav-h) + 4rem) 5% 4rem;
+            position: relative; z-index: 1;
+            text-align: center;
+            max-width: 1300px;
+           
+            margin: 0 auto;
+        }
+
+        .eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(0,212,200,0.08); border: 1px solid rgba(0,212,200,0.22);
+            color: var(--cyan); padding: 5px 14px; border-radius: 40px;
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; margin-bottom: 1.5rem;
+        }
+
+        .page-h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.4rem, 5vw, 3.8rem);
+            font-weight: 800;
+            letter-spacing: -2px;
+            color: var(--white);
+            line-height: 1.1;
+            margin-bottom: 1.25rem;
+        }
+
+        .page-h1 span {
+            background: linear-gradient(120deg, var(--cyan) 0%, #06b6d4 50%, var(--blue) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+
+        .page-sub {
+            color: var(--slate); font-size: 1.1rem; line-height: 1.75; max-width: 600px; margin: 0 auto;
+        }
+        .page-sub{
+    color: var(--slate);
+    font-size: 1.1rem;
+    line-height: 1.75;
+    max-width: 1400px;
+    margin: 20px auto;
+}
+        /* ── SECTIONS ───────────────────────────────────────────────── */
+        .about-content { max-width: 1300px; margin: 0 auto; padding: 0 5% 6rem; position: relative; z-index: 1; }
+
+        .section-block { margin-bottom: 5rem; }
+
+        .block-eyebrow {
+            display: flex; align-items: center; gap: 10px;
+            color: var(--cyan); font-size: 0.72rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.875rem;
+        }
+
+        .block-eyebrow i { font-size: 0.8rem; }
+
+        .block-h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(1.6rem, 3vw, 2.2rem);
+            font-weight: 800; letter-spacing: -0.8px;
+            color: var(--white); margin-bottom: 1rem;
+        }
+
+        .block-p {
+            color: var(--slate); font-size: 1rem; line-height: 1.8;
+            max-width: 720px; margin-bottom: 1rem;
+        }
+
+        /* ── OVERVIEW CARDS ─────────────────────────────────────────── */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.1rem;
+            margin-top: 2rem;
+        }
+
+        .overview-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 1.75rem;
+            transition: all 0.3s;
+        }
+
+        .overview-card:hover {
+            border-color: rgba(0,212,200,0.2);
+            background: rgba(0,212,200,0.04);
+            transform: translateY(-4px);
+        }
+
+        .ov-icon {
+            width: 46px; height: 46px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; margin-bottom: 1rem;
+        }
+
+        .ov-icon.cyan   { background: rgba(0,212,200,0.12); color: var(--cyan); }
+        .ov-icon.amber  { background: rgba(245,158,11,0.12); color: var(--amber); }
+        .ov-icon.violet { background: rgba(139,92,246,0.12); color: var(--violet); }
+        .ov-icon.green  { background: rgba(16,185,129,0.12); color: var(--green); }
+        .ov-icon.blue   { background: rgba(59,130,246,0.12); color: var(--blue); }
+        .ov-icon.red    { background: rgba(239,68,68,0.12); color: #ef4444; }
+
+        .ov-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem; font-weight: 700;
+            color: var(--white); margin-bottom: 0.5rem;
+        }
+
+        .ov-desc { color: var(--slate); font-size: 0.875rem; line-height: 1.65; }
+
+        /* ── ARCHITECTURE DIAGRAM ───────────────────────────────────── */
+        .arch-section { margin-top: 2rem; }
+
+        .arch-full {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+        }
+
+        .arch-header {
+            padding: 1.25rem 1.75rem;
+            border-bottom: 1px solid var(--border);
+            font-family: 'Syne', sans-serif;
+            font-size: 0.78rem; font-weight: 700;
+            color: var(--slate-2); text-transform: uppercase; letter-spacing: 1.5px;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+
+        .arch-body {
+            padding: 2rem 1.75rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .arch-node {
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .arch-node:hover { border-color: rgba(0,212,200,0.3); transform: translateY(-3px); }
+
+        .arch-node-icon { font-size: 1.8rem; margin-bottom: 0.75rem; display: block; }
+        .arch-node-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; color: var(--white); margin-bottom: 0.3rem; }
+        .arch-node-sub { font-size: 0.78rem; color: var(--slate-2); line-height: 1.5; }
+
+        .arch-node.n1 { background: rgba(0,212,200,0.05); border-color: rgba(0,212,200,0.15); }
+        .arch-node.n2 { background: rgba(245,158,11,0.05); border-color: rgba(245,158,11,0.15); }
+        .arch-node.n3 { background: rgba(139,92,246,0.05); border-color: rgba(139,92,246,0.15); }
+        .arch-node.n4 { background: rgba(16,185,129,0.05); border-color: rgba(16,185,129,0.15); }
+        .arch-node.n5 { background: rgba(59,130,246,0.05); border-color: rgba(59,130,246,0.15); }
+
+        .arch-arrows {
+            padding: 0.5rem 1.75rem 1.25rem;
+            display: flex; align-items: center; justify-content: center;
+            gap: 1.5rem; color: var(--slate-2); font-size: 0.8rem;
+        }
+
+        .arch-arrow-line {
+            display: flex; align-items: center; gap: 0.4rem;
+            color: var(--slate-2);
+        }
+
+        /* ── TECH STACK ─────────────────────────────────────────────── */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .tech-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 1.25rem;
+            display: flex; align-items: center; gap: 0.875rem;
+            transition: all 0.25s;
+        }
+
+        .tech-item:hover {
+            border-color: rgba(0,212,200,0.2);
+            background: rgba(0,212,200,0.04);
+        }
+
+        .tech-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; flex-shrink: 0;
+        }
+
+        .tech-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.875rem; color: var(--white); }
+        .tech-desc { font-size: 0.75rem; color: var(--slate-2); margin-top: 0.15rem; }
+
+        /* ── FEATURES TABLE ─────────────────────────────────────────── */
+        .features-list {
+            display: flex; flex-direction: column; gap: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        .feat-row {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 1.25rem 1.5rem;
+            display: flex; align-items: flex-start; gap: 1.25rem;
+            transition: all 0.25s;
+        }
+
+        .feat-row:hover { border-color: rgba(0,212,200,0.2); background: rgba(0,212,200,0.03); }
+
+        .feat-row-icon {
+            width: 42px; height: 42px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; flex-shrink: 0;
+        }
+
+        .feat-row-body { flex: 1; }
+        .feat-row-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--white); margin-bottom: 0.3rem; }
+        .feat-row-desc { color: var(--slate); font-size: 0.875rem; line-height: 1.6; }
+        .feat-row-badge {
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+            padding: 3px 10px; border-radius: 20px; flex-shrink: 0; margin-top: 2px;
+        }
+
+        .badge-backend  { background: rgba(245,158,11,0.12); color: var(--amber); }
+        .badge-frontend { background: rgba(0,212,200,0.1);   color: var(--cyan); }
+        .badge-ai       { background: rgba(139,92,246,0.12); color: var(--violet); }
+        .badge-security { background: rgba(239,68,68,0.1);   color: #ef4444; }
+        .badge-admin    { background: rgba(16,185,129,0.1);  color: var(--green); }
+        .badge-fullstack{ background: rgba(59,130,246,0.1);  color: var(--blue); }
+
+        /* ── WORKFLOW TIMELINE ──────────────────────────────────────── */
+        .timeline { margin-top: 2rem; }
+
+        .tl-item {
+            display: flex; gap: 1.5rem;
+            padding-bottom: 2rem;
+            position: relative;
+        }
+
+        .tl-item:not(:last-child)::after {
+            content: '';
+            position: absolute; left: 21px; top: 48px;
+            width: 2px;
+            height: calc(100% - 30px);
+            background: linear-gradient(to bottom, rgba(0,212,200,0.4), transparent);
+        }
+
+        .tl-num {
+            width: 44px; height: 44px;
+            border: 1.5px solid rgba(0,212,200,0.4);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.9rem;
+            color: var(--cyan); background: rgba(0,212,200,0.06); flex-shrink: 0;
+        }
+
+        .tl-content { padding-top: 0.25rem; }
+        .tl-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; color: var(--white); margin-bottom: 0.4rem; }
+        .tl-desc { color: var(--slate); font-size: 0.875rem; line-height: 1.7; }
+
+        /* ── FUTURE & HIGHLIGHTS ────────────────────────────────────── */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-top: 2rem;
+        }
+
+        .future-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .future-card:hover { border-color: rgba(0,212,200,0.2); transform: translateY(-3px); }
+
+        .future-card-icon { font-size: 1.5rem; margin-bottom: 0.875rem; display: block; }
+        .future-card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--white); margin-bottom: 0.4rem; }
+        .future-card-desc { color: var(--slate); font-size: 0.875rem; line-height: 1.65; }
+
+        /* ── HIGHLIGHTS ─────────────────────────────────────────────── */
+        .highlights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.1rem;
+            margin-top: 2rem;
+        }
+
+        .highlight {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 1.75rem;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative; overflow: hidden;
+        }
+
+        .highlight::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            opacity: 0; transition: opacity 0.3s;
+        }
+
+        .highlight:hover { transform: translateY(-4px); }
+        .highlight:hover::before { opacity: 1; }
+
+        .hl1::before { background: linear-gradient(90deg, var(--cyan), transparent); }
+        .hl2::before { background: linear-gradient(90deg, var(--violet), transparent); }
+        .hl3::before { background: linear-gradient(90deg, var(--green), transparent); }
+        .hl4::before { background: linear-gradient(90deg, var(--amber), transparent); }
+
+        .highlight-icon { font-size: 2rem; display: block; margin-bottom: 0.875rem; }
+        .highlight-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; color: var(--white); margin-bottom: 0.4rem; }
+        .highlight-desc { color: var(--slate); font-size: 0.85rem; line-height: 1.65; }
+
+        /* ── CTA BAND ───────────────────────────────────────────────── */
+        .cta-band {
+            background: linear-gradient(135deg, rgba(0,212,200,0.07), rgba(99,102,241,0.06));
+            border: 1px solid rgba(0,212,200,0.18);
+            border-radius: var(--r-lg);
+            padding: 3.5rem;
+            text-align: center;
+            margin-top: 4rem;
+            position: relative; overflow: hidden;
+        }
+       
+        .cta-band::before {
+            content: '';
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 50%; height: 1px;
+            background: linear-gradient(to right, transparent, var(--cyan), transparent);
+        }
+
+        .cta-band h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(1.6rem, 3vw, 2.2rem);
+            font-weight: 800; letter-spacing: -1px;
+            color: var(--white); margin-bottom: 0.875rem;
+        }
+
+        .cta-band p { color: var(--slate); font-size: 1rem; margin-bottom: 2rem; }
+
+        .btn-hero-primary {
+            background: var(--cyan); color: var(--ink); border: none;
+            padding: 0.9rem 2rem; border-radius: var(--r);
+            font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700;
+            cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.6rem;
+            transition: all 0.3s;
+        }
+
+        .btn-hero-primary:hover {
+            transform: translateY(-3px); box-shadow: 0 16px 48px rgba(0,212,200,0.45); background: #2ee8dc;
+        }
+
+        .btn-hero-outline {
+            background: transparent; color: var(--white);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 0.9rem 2rem; border-radius: var(--r);
+            font-size: 0.95rem; font-weight: 500; cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.6rem; transition: all 0.3s; margin-left: 0.75rem;
+        }
+
+        .btn-hero-outline:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,212,200,0.06); }
+
+        /* ── FOOTER ─────────────────────────────────────────────────── */
+        .footer {
+            border-top: 1px solid var(--border); padding: 3.5rem 5%;
+            position: relative; z-index: 1; background: rgba(6,10,18,0.6);
+        }
+
+        .footer-inner {
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 3rem; margin-bottom: 2.5rem;
+            max-width: 1400px; margin-left: auto; margin-right: auto;
+        }
+
+        .footer-logo-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 0.75rem; }
+        .footer-brand-name { font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 800; color: var(--white); letter-spacing: -0.3px; }
+        .footer-brand-name em { font-style: normal; color: var(--cyan); }
+        .footer-brand-desc { color: var(--slate-2); font-size: 0.875rem; line-height: 1.65; max-width: 260px; }
+
+        .footer-col h4 { font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700; color: var(--slate); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 1.1rem; }
+        .footer-col a { display: block; color: var(--slate-2); text-decoration: none; font-size: 0.875rem; margin-bottom: 0.6rem; transition: color 0.2s; }
+        .footer-col a:hover { color: var(--cyan); }
+        .footer-col a.admin-link { color: var(--cyan); }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border); padding-top: 1.5rem;
+            display: flex; align-items: center; justify-content: space-between;
+            color: var(--slate-2); font-size: 0.82rem;
+            max-width: 1400px; margin: 0 auto;
+        }
+        .footer-bottom a { color: var(--cyan); text-decoration: none; }
+        .footer-divider { margin: 0 0.5rem; opacity: 0.4; }
+
+        /* ── SCROLL REVEAL ──────────────────────────────────────────── */
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+        .reveal.visible { opacity: 1; transform: none; }
+        .rd1 { transition-delay: 0.1s; }
+        .rd2 { transition-delay: 0.2s; }
+        .rd3 { transition-delay: 0.3s; }
+        .rd4 { transition-delay: 0.4s; }
+        .rd5 { transition-delay: 0.5s; }
+
+        /* ── RESPONSIVE ─────────────────────────────────────────────── */
+        @media (max-width: 1024px) { .two-col { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .arch-body { grid-template-columns: 1fr 1fr; }
+            .tech-grid { grid-template-columns: 1fr 1fr; }
+            .highlights-grid { grid-template-columns: 1fr 1fr; }
+            .cta-band { padding: 2rem 1.5rem; }
+        }
+        @media (max-width: 480px) {
+            .arch-body { grid-template-columns: 1fr; }
+            .tech-grid { grid-template-columns: 1fr; }
+            .highlights-grid { grid-template-columns: 1fr; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="ambient a1"></div>
+<div class="ambient a2"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <a href="index.html" class="nav-brand">
+        <div class="nav-logo"><i class="fas fa-home"></i></div>
+        <span class="nav-brand-text"> Smart<em>Arch</em></span>
+    </a>
+    <div class="nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="about.html" class="nav-link active">About</a>
+        <a href="contact.html" class="nav-link ">Contact</a>
+
+        <!-- <a href="index.html#features" class="nav-link">Features</a> -->
+       
+    </div>
+   <div class="nav-right">
+
+    <!-- Guest buttons -->
+    <div id="navGuest">
+        <!-- <a href="index.html" class="btn-ghost">← Back to Home</a> -->
+    </div>
+
+    <!-- Logged in -->
+    <div id="navUser" style="display:none;">
+        <a href="dashboard.html" class="btn-cta">
+            <i class="fas fa-rocket"></i> Dashboard
+        </a>
+        
+    </div>
+
+</div>
+</nav>
+<!-- PAGE HERO -->
+<div class="page-hero">
+    <div class="eyebrow">About the Project</div>
+    <h1 class="page-h1">
+        Building the Future of<br>
+        <span>Architectural Design</span>
+    </h1>
+    <p class="page-sub">
+        SmartArch is a full-stack, AI-powered platform designed to transform the way architectural planning and residential design are created and managed. By combining intelligent design generation, interactive visualization tools, and professional project management features, the platform provides a seamless environment where users can move from concept to structured architectural planning with greater efficiency.
+    </p>
+    <p class="page-sub">
+        The system leverages modern technologies to assist users in generating architectural layouts based on specific requirements such as room types, dimensions, and structural preferences. Through its intelligent processing capabilities, the platform analyzes user inputs and produces structured design outputs that help visualize residential layouts and planning ideas in a more organized and accessible way.
+    </p>
+    <p class="page-sub">
+    The platform is built using a modern full-stack architecture that integrates a responsive frontend interface, a scalable backend system, and a secure database layer. This ensures that the system remains flexible, efficient, and capable of supporting future enhancements such as advanced AI design assistance, expanded visualization capabilities, and collaborative project environments.
+     </p>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="about-content">
+
+    <!-- ── PROJECT OVERVIEW ─────────────────────────────────────────────── -->
+    <div class="section-block">
+        <div class="block-eyebrow reveal"><i class="fas fa-info-circle"></i> Project Overview</div>
+        <h2 class="block-h2 reveal rd1">What is SmartArch?</h2>
+        <p class="block-p reveal rd2">
+            SmartArch is a modern web application designed to democratize architectural design. 
+            Using artificial intelligence, it enables anyone — from professional architects to first-time homeowners — 
+            to generate precise, optimized floor plans and visualize them in stunning 3D.
+        </p>
+        <p class="block-p reveal rd3">
+            The system combines a robust Node.js/Express API backend with a locally-running AI model (Ollama phi3:mini) 
+            to provide intelligent layout generation, real-time 3D visualization, full project lifecycle management, 
+            and a comprehensive administrative control panel — all backed by MongoDB for persistent storage.
+        </p>
+
+        <div class="overview-grid">
+            <div class="overview-card reveal rd1">
+                <div class="ov-icon cyan"><i class="fas fa-brain"></i></div>
+                <div class="ov-title">AI-Powered Design</div>
+                <p class="ov-desc">Automated floor plan generation using large language models and binary space partitioning algorithms, eliminating manual layout work.</p>
+            </div>
+            <div class="overview-card reveal rd2">
+                <div class="ov-icon amber"><i class="fas fa-cube"></i></div>
+                <div class="ov-title">3D Visualization</div>
+                <p class="ov-desc">Real-time interactive 3D model generation from 2D floor plans with material customization and export capabilities.</p>
+            </div>
+            <div class="overview-card reveal rd3">
+                <div class="ov-icon violet"><i class="fas fa-users"></i></div>
+                <div class="ov-title">Team Collaboration</div>
+                <p class="ov-desc">Multi-user project system with role-based access control, collaborator invites, and version history tracking.</p>
+            </div>
+            <div class="overview-card reveal rd4">
+                <div class="ov-icon green"><i class="fas fa-shield-alt"></i></div>
+                <div class="ov-title">Enterprise Security</div>
+                <p class="ov-desc">JWT token authentication, bcrypt password hashing, and middleware-enforced admin routes protect all data and operations.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── SYSTEM ARCHITECTURE ─────────────────────────────────────────── -->
+    <div class="section-block">
+        <div class="block-eyebrow reveal"><i class="fas fa-sitemap"></i> System Architecture</div>
+        <h2 class="block-h2 reveal rd1">How the System Works</h2>
+        <p class="block-p reveal rd2">
+            The application is structured as a multi-service architecture with a static frontend communicating with two 
+            separate backend services — a main REST API and a dedicated AI service — both backed by a shared MongoDB database.
+        </p>
+
+        <div class="arch-section reveal rd2">
+            <div class="arch-full">
+                <div class="arch-header">
+                    <i class="fas fa-project-diagram"></i> Architecture Diagram
+                </div>
+                <div class="arch-body">
+                    <div class="arch-node n1">
+                        <span class="arch-node-icon">🖥️</span>
+                        <div class="arch-node-title">Frontend</div>
+                        <div class="arch-node-sub">HTML · CSS · Vanilla JS<br>Static file serving</div>
+                    </div>
+                    <div class="arch-node n2">
+                        <span class="arch-node-icon">⚙️</span>
+                        <div class="arch-node-title">Main API</div>
+                        <div class="arch-node-sub">Node.js + Express<br>Port 5000 · REST API</div>
+                    </div>
+                    <div class="arch-node n3">
+                        <span class="arch-node-icon">🤖</span>
+                        <div class="arch-node-title">AI Service</div>
+                        <div class="arch-node-sub">Ollama phi3:mini<br>Port 3001 · BSP Engine</div>
+                    </div>
+                    <div class="arch-node n4">
+                        <span class="arch-node-icon">🗄️</span>
+                        <div class="arch-node-title">Database</div>
+                        <div class="arch-node-sub">MongoDB · Mongoose<br>Users · Projects</div>
+                    </div>
+                    <div class="arch-node n5">
+                        <span class="arch-node-icon">🛡️</span>
+                        <div class="arch-node-title">Auth Layer</div>
+                        <div class="arch-node-sub">JWT · bcryptjs<br>Role middleware</div>
+                    </div>
+                </div>
+                <div class="arch-arrows">
+                    <div class="arch-arrow-line"><i class="fas fa-arrows-alt-h"></i> Frontend ↔ Main API (Port 5000)</div>
+                    <span>·</span>
+                    <div class="arch-arrow-line"><i class="fas fa-arrows-alt-h"></i> Frontend ↔ AI API (Port 3001)</div>
+                    <span>·</span>
+                    <div class="arch-arrow-line"><i class="fas fa-database"></i> Both APIs ↔ MongoDB</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TECHNOLOGIES ─────────────────────────────────────────────────── -->
+    <div class="section-block">
+        <div class="block-eyebrow reveal"><i class="fas fa-layer-group"></i> Technologies</div>
+        <h2 class="block-h2 reveal rd1">Built With Modern Tools</h2>
+        <p class="block-p reveal rd2">
+            Every technology in the stack was chosen for performance, reliability, and developer productivity — 
+            with a focus on a clean, maintainable codebase.
+        </p>
+
+        <div class="tech-grid reveal rd2">
+            <div class="tech-item">
+                <div class="tech-icon" style="background:rgba(0,212,200,0.1);color:var(--cyan)"><i class="fab fa-html5"></i></div>
+                <div><div class="tech-name">HTML5 / CSS3</div><div class="tech-desc">Frontend structure & styling</div></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon" style="background:rgba(245,196,0,0.1);color:#f5c400"><i class="fab fa-js"></i></div>
+                <div><div class="tech-name">Vanilla JavaScript</div><div class="tech-desc">Client-side logic & API calls</div></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon" style="background:rgba(83,153,68,0.12);color:#539344"><i class="fab fa-node-js"></i></div>
+                <div><div class="tech-name">Node.js</div><div class="tech-desc">Server-side JavaScript runtime</div></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon" style="background:rgba(255,255,255,0.06);color:var(--slate)"><i class="fas fa-server"></i></div>
+                <div><div class="tech-name">Express.js</div><div class="tech-desc">REST API framework</div></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon" style="background:rgba(77,179,61,0.12);color:#4db33d"><i class="fas fa-leaf"></i></div>
+                <div><div class="tech-name">MongoDB</div><div class="tech-desc">NoSQL document database</div></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon" style="background:rgba(140,82,255,0.12);color:#8c52ff"><i class="fas fa-code-branch"></i></div>
+                <div><div class="tech-name">Mongoose</div><div class="tech-desc">MongoDB ODM & schema modeling</div></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon" style="background:rgba(239,68,68,0.1);color:#ef4444"><i class="fas fa-key"></i></div>
+                <div><div class="tech-name">JWT + bcryptjs</div><div class="tech-desc">Auth tokens & password hashing</div></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon" style="background:rgba(139,92,246,0.12);color:var(--violet)"><i class="fas fa-robot"></i></div>
+                <div><div class="tech-name">Ollama (phi3:mini)</div><div class="tech-desc">Local AI language model</div></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon" style="background:rgba(59,130,246,0.12);color:var(--blue)"><i class="fas fa-chart-line"></i></div>
+                <div><div class="tech-name">Chart.js</div><div class="tech-desc">Admin analytics charts</div></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon" style="background:rgba(245,158,11,0.12);color:var(--amber)"><i class="fas fa-vector-square"></i></div>
+                <div><div class="tech-name">BSP Algorithm</div><div class="tech-desc">Binary space partitioning for layouts</div></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon" style="background:rgba(16,185,129,0.12);color:var(--green)"><i class="fas fa-image"></i></div>
+                <div><div class="tech-name">Edge Detection</div><div class="tech-desc">Image-based floorplan analysis</div></div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon" style="background:rgba(0,212,200,0.08);color:var(--cyan)"><i class="fas fa-shield-alt"></i></div>
+                <div><div class="tech-name">CORS + dotenv</div><div class="tech-desc">Security & environment config</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── KEY FEATURES ─────────────────────────────────────────────────── -->
+    <div class="section-block">
+        <div class="block-eyebrow reveal"><i class="fas fa-star"></i> Key Features</div>
+        <h2 class="block-h2 reveal rd1">Complete Feature Set</h2>
+        <p class="block-p reveal rd2">
+            Every feature was built to serve real architectural workflow needs — from initial concept to final export.
+        </p>
+
+        <div class="features-list reveal rd2">
+            <div class="feat-row">
+                <div class="feat-row-icon" style="background:rgba(139,92,246,0.12);color:var(--violet)"><i class="fas fa-brain"></i></div>
+                <div class="feat-row-body">
+                    <div class="feat-row-title">AI Floor Plan Generation</div>
+                    <div class="feat-row-desc">Specify building type, floor count, total area, and desired rooms. The phi3:mini model + BSP algorithm generates a complete, optimized room layout automatically.</div>
+                </div>
+                <div class="feat-row-badge badge-ai">AI</div>
+            </div>
+            <div class="feat-row">
+                <div class="feat-row-icon" style="background:rgba(0,212,200,0.1);color:var(--cyan)"><i class="fas fa-upload"></i></div>
+                <div class="feat-row-body">
+                    <div class="feat-row-title">Floorplan Image Upload & Analysis</div>
+                    <div class="feat-row-desc">Upload PNG, JPEG, or WEBP floor plan images. Edge detection algorithms parse the image, extract room outlines, and produce a structured digital layout.</div>
+                </div>
+                <div class="feat-row-badge badge-ai">AI</div>
+            </div>
+            <div class="feat-row">
+                <div class="feat-row-icon" style="background:rgba(245,158,11,0.12);color:var(--amber)"><i class="fas fa-cube"></i></div>
+                <div class="feat-row-body">
+                    <div class="feat-row-title">2D & 3D Visualization</div>
+                    <div class="feat-row-desc">Instant 2D floor plan rendering and interactive 3D model generation with material customization (floors, walls, exterior). Export in OBJ and GLTF formats.</div>
+                </div>
+                <div class="feat-row-badge badge-frontend">Frontend</div>
+            </div>
+            <div class="feat-row">
+                <div class="feat-row-icon" style="background:rgba(59,130,246,0.12);color:var(--blue)"><i class="fas fa-folder-open"></i></div>
+                <div class="feat-row-body">
+                    <div class="feat-row-title">Full Project Lifecycle Management</div>
+                    <div class="feat-row-desc">Create, edit, and delete architectural projects. Track status (draft, in-progress, review, approved, archived), add tags, toggle visibility, and maintain version history.</div>
+                </div>
+                <div class="feat-row-badge badge-fullstack">Full Stack</div>
+            </div>
+            <div class="feat-row">
+                <div class="feat-row-icon" style="background:rgba(239,68,68,0.1);color:#ef4444"><i class="fas fa-shield-alt"></i></div>
+                <div class="feat-row-body">
+                    <div class="feat-row-title">JWT Authentication & Role-Based Access</div>
+                    <div class="feat-row-desc">Secure registration and login with bcrypt hashing. Three roles: user, architect, admin. Protected routes via middleware. Admin tokens carry an additional isAdmin flag.</div>
+                </div>
+                <div class="feat-row-badge badge-security">Security</div>
+            </div>
+            <!-- <div class="feat-row">
+                <div class="feat-row-icon" style="background:rgba(16,185,129,0.12);color:var(--green)"><i class="fas fa-tachometer-alt"></i></div>
+                <div class="feat-row-body">
+                    <div class="feat-row-title">Admin Dashboard & Analytics</div>
+                    <div class="feat-row-desc">Full admin panel with live stats, 30-day growth charts, user/project management tables, suspend/activate controls, activity feed, and top contributors leaderboard.</div>
+                </div>
+                <div class="feat-row-badge badge-admin">Admin</div>
+            </div> -->
+            <div class="feat-row">
+                <div class="feat-row-icon" style="background:rgba(245,158,11,0.12);color:var(--amber)"><i class="fas fa-calculator"></i></div>
+                <div class="feat-row-body">
+                    <div class="feat-row-title">Automated Cost & Build Estimation</div>
+                    <div class="feat-row-desc">Pre-save hooks automatically calculate total floor area, room counts, estimated construction cost ($1,500/m²), and construction time (4 weeks/floor).</div>
+                </div>
+                <div class="feat-row-badge badge-backend">Backend</div>
+            </div>
+            <div class="feat-row">
+                <div class="feat-row-icon" style="background:rgba(0,212,200,0.1);color:var(--cyan)"><i class="fas fa-users"></i></div>
+                <div class="feat-row-body">
+                    <div class="feat-row-title">Project Collaboration System</div>
+                    <div class="feat-row-desc">Add collaborators to any project with defined roles (viewer, editor, admin). Version history tracks all changes with timestamps and last-modified-by attribution.</div>
+                </div>
+                <div class="feat-row-badge badge-fullstack">Full Stack</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── WORKFLOW ─────────────────────────────────────────────────────── -->
+    <div class="section-block">
+        <div class="block-eyebrow reveal"><i class="fas fa-route"></i> System Workflow</div>
+        <h2 class="block-h2 reveal rd1">From Input to Output</h2>
+        <p class="block-p reveal rd2">
+            The user journey is designed to be fast and intuitive — from account creation to a fully rendered 3D building model in minutes.
+        </p>
+
+        <div class="timeline reveal rd2">
+            <div class="tl-item">
+                <div class="tl-num">01</div>
+                <div class="tl-content">
+                    <div class="tl-title">User Registration & Authentication</div>
+                    <div class="tl-desc">Users register with name, email, and password. Bcrypt hashes the password before storage. A JWT token is issued on successful login, stored client-side, and sent with every subsequent API request.</div>
+                </div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-num">02</div>
+                <div class="tl-content">
+                    <div class="tl-title">Project Configuration</div>
+                    <div class="tl-desc">Users create a new project specifying: name, description, building type, total dimensions (width × depth), number of floors, desired rooms by type, materials (exterior, interior), and optional garage/pool specifications.</div>
+                </div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-num">03</div>
+                <div class="tl-content">
+                    <div class="tl-title">AI Generation (Port 3001)</div>
+                    <div class="tl-desc">The frontend sends parameters to the AI backend service. The phi3:mini model processes the request, while the BSP layout engine partitions the floor space and positions rooms based on type, adjacency rules, and area constraints.</div>
+                </div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-num">04</div>
+                <div class="tl-content">
+                    <div class="tl-title">Visualization & Editing</div>
+                    <div class="tl-desc">The generated floor plan renders in 2D (SVG-based blueprint view) and 3D (interactive WebGL model). Users can adjust room positions, change materials, and see cost estimates update in real-time.</div>
+                </div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-num">05</div>
+                <div class="tl-content">
+                    <div class="tl-title">Save & Persistence</div>
+                    <div class="tl-desc">Projects auto-save to MongoDB via the main API. Pre-save hooks recalculate metadata (total area, rooms, cost, build time). Version history is maintained for rollback. Projects can be shared publicly or kept private.</div>
+                </div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-num">06</div>
+                <div class="tl-content">
+                    <div class="tl-title">Export & Collaboration</div>
+                    <div class="tl-desc">Finalized designs export as JSON (structured data), OBJ (3D mesh), or GLTF (for game engines and visualization tools). Collaborators can be invited with viewer or editor roles to contribute to the same project.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── FUTURE SCOPE ─────────────────────────────────────────────────── -->
+    <div class="section-block">
+        <div class="block-eyebrow reveal"><i class="fas fa-rocket"></i> Future Scope</div>
+        <h2 class="block-h2 reveal rd1">What's Next</h2>
+        <p class="block-p reveal rd2">
+            The platform is built with scalability in mind. Planned future improvements span AI capabilities, deployment, mobile access, and advanced analytics.
+        </p>
+
+        <div class="two-col reveal rd2">
+            <div class="future-card">
+                <span class="future-card-icon">🤖</span>
+                <div class="future-card-title">Advanced AI Models</div>
+                <p class="future-card-desc">Integration with larger, cloud-based models (GPT-4, Claude) for natural language design instructions — "add a sunroom facing east" — and intelligent design critique.</p>
+            </div>
+            <div class="future-card">
+                <span class="future-card-icon">📱</span>
+                <div class="future-card-title">Mobile Application</div>
+                <p class="future-card-desc">Native iOS and Android apps using React Native, enabling on-site architectural visualization with AR overlays for real-world space measurement and design preview.</p>
+            </div>
+            <div class="future-card">
+                <span class="future-card-icon">☁️</span>
+                <div class="future-card-title">Cloud Deployment & CDN</div>
+                <p class="future-card-desc">Containerized deployment using Docker and Kubernetes on AWS/GCP, with a CDN for static assets, auto-scaling, and managed MongoDB Atlas for global availability.</p>
+            </div>
+            <div class="future-card">
+                <span class="future-card-icon">📊</span>
+                <div class="future-card-title">Advanced Analytics</div>
+                <p class="future-card-desc">Detailed project-level analytics including user engagement heatmaps, design trend reports, material popularity insights, and AI suggestion acceptance rates.</p>
+            </div>
+            <div class="future-card">
+                <span class="future-card-icon">🌐</span>
+                <div class="future-card-title">Real-Time Collaboration</div>
+                <p class="future-card-desc">WebSocket-based live multi-user editing where multiple architects can work on the same floor plan simultaneously, with presence indicators and conflict resolution.</p>
+            </div>
+            <div class="future-card">
+                <span class="future-card-icon">🏗️</span>
+                <div class="future-card-title">BIM Integration</div>
+                <p class="future-card-desc">Export to Building Information Modeling (BIM) formats (IFC, Revit) for direct use in professional architecture and engineering workflows without re-entry.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── PROJECT HIGHLIGHTS ───────────────────────────────────────────── -->
+    <div class="section-block">
+        <div class="block-eyebrow reveal"><i class="fas fa-gem"></i> Project Highlights</div>
+        <h2 class="block-h2 reveal rd1">Built to Professional Standards</h2>
+
+        <div class="highlights-grid reveal rd2">
+            <div class="highlight hl1">
+                <span class="highlight-icon">🔐</span>
+                <div class="highlight-title">Security First</div>
+                <p class="highlight-desc">Bcrypt hashing, JWT tokens with expiry, role-based middleware, and admin-separate authentication flows protect every endpoint.</p>
+            </div>
+            <div class="highlight hl2">
+                <span class="highlight-icon">📐</span>
+                <div class="highlight-title">Scalable Architecture</div>
+                <p class="highlight-desc">Two-service microservice design with clear separation of concerns — auth/projects on one server, AI/generation on another. Easy to scale independently.</p>
+            </div>
+            <div class="highlight hl3">
+                <span class="highlight-icon">⚡</span>
+                <div class="highlight-title">Automated Intelligence</div>
+                <p class="highlight-desc">Mongoose pre-save hooks auto-calculate area, cost, and build time. AI generation reduces design time from hours to seconds.</p>
+            </div>
+            <div class="highlight hl4">
+                <span class="highlight-icon">🌍</span>
+                <div class="highlight-title">Real-World Application</div>
+                <p class="highlight-desc">Handles residential, commercial, industrial, and mixed-use projects. Multi-floor support with per-floor room management and material specifications.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-band reveal">
+        <h2>Try SmartArch</h2>
+        <p>Experience AI-powered architectural design — free to start, no credit card required.</p>
+        <a href="index.html" class="btn-hero-primary"><i class="fas fa-rocket"></i> Get Started Free</a>
+        <a href="dashboard.html" class="btn-hero-outline"><i class="fas fa-th-large"></i> Open Dashboard</a>
+    </div>
+
+</div>
+
+<!-- FOOTER -->
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-inner">
+        <div>
+            <div class="footer-logo-wrap">
+                <div class="nav-logo"><i class="fas fa-home"></i></div>
+                <span class="footer-brand-name">Smart<em> Arch</em></span>
+            </div>
+            <p class="footer-brand-desc">AI-powered architectural design platform for modern homes and professional projects.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Product</h4>
+            <a href="index.html#features">Features</a>
+            <a href="index.html#workflow">How It Works</a>
+            <a href="dashboard.html">Dashboard</a>
+        </div>
+        <div class="footer-col">
+            <h4>Company</h4>
+            <a href="about.html" style="color:var(--cyan)">About</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <div class="footer-col">
+            <h4>Legal &amp; Admin</h4>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html">Terms of Service</a>
+            <a href="admin-login.html" class="admin-link"><i class="fas fa-shield-alt" style="margin-right:4px"></i>Admin Panel</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <div class="footer-bottom">
+        <span>&copy; 2025 SmartArch. All rights reserved.</span>
+        <span>Built with <span style="color:var(--cyan)">♥</span> using Node.js, MongoDB & AI</span>
+    </div>
+</footer>
+
+
+<script>
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+function checkAuth(){
+
+    const token = localStorage.getItem("token");
+
+    if(token){
+        document.getElementById("navGuest").style.display = "none";
+        document.getElementById("navUser").style.display = "block";
+    }else{
+        document.getElementById("navGuest").style.display = "block";
+        document.getElementById("navUser").style.display = "none";
+    }
+
+}
+
+document.addEventListener("DOMContentLoaded", checkAuth);
+</script>
+</body>
+</html>

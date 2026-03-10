@@ -3,218 +3,1677 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>House Architect - Design Your Dream Home</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <title>SmartArch — Design Your Dream Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   
+    <style>
+        /* ── Reset & Root ─────────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --ink:       #060a12;
+            --ink-2:     #0d1424;
+            --ink-3:     #111827;
+            --cyan:      #00d4c8;
+            --cyan-glow: rgba(0,212,200,0.25);
+            --amber:     #f59e0b;
+            --slate:     #94a3b8;
+            --slate-2:   #64748b;
+            --white:     #f1f5f9;
+            --border:    rgba(255,255,255,0.07);
+            --card-bg:   rgba(255,255,255,0.04);
+            --nav-h:     68px;
+            --r:         14px;
+            --r-lg:      22px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--ink);
+            color: var(--white);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ── Global grid overlay ──────────────────────────────────────── */
+        body::before {
+            content: '';
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(0,212,200,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,200,0.025) 1px, transparent 1px);
+            background-size: 72px 72px;
+        }
+
+        /* ── Noise texture ────────────────────────────────────────────── */
+        body::after {
+            content: '';
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            opacity: 0.4;
+        }
+
+        /* ── Ambient glows ────────────────────────────────────────────── */
+        .ambient {
+            position: fixed; pointer-events: none; z-index: 0; border-radius: 50%;
+            filter: blur(120px);
+        }
+        .ambient-1 {
+            width: 700px; height: 700px;
+            top: -200px; left: -150px;
+            background: radial-gradient(circle, rgba(0,212,200,0.08) 0%, transparent 70%);
+        }
+        .ambient-2 {
+            width: 600px; height: 600px;
+            bottom: -100px; right: -100px;
+            background: radial-gradient(circle, rgba(245,158,11,0.07) 0%, transparent 70%);
+        }
+        .ambient-3 {
+            width: 500px; height: 500px;
+            top: 40%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(0,212,200,0.04) 0%, transparent 70%);
+        }
+
+        /* ─── NAVBAR ──────────────────────────────────────────────────── */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0;
+            height: var(--nav-h);
+            display: flex; align-items: center;
+            padding: 0 5%;
+            background: rgba(6,10,18,0.8);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            transition: background 0.3s;
+        }
+
+        .nav-brand {
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none; flex-shrink: 0;
+        }
+
+        .nav-logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--cyan), #0891b2);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; color: #fff;
+            box-shadow: 0 0 20px rgba(0,212,200,0.35);
+        }
+
+        .nav-brand-text {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--white);
+            letter-spacing: -0.5px;
+        }
+
+        .nav-brand-text em {
+            font-style: normal;
+            color: var(--cyan);
+        }
+
+        .nav-center {
+            display: flex; align-items: center; gap: 0.25rem;
+            margin: 0 auto;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--slate);
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 0.45rem 0.875rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+            letter-spacing: 0.01em;
+        }
+
+        .nav-link:hover { color: var(--white); background: rgba(255,255,255,0.06); }
+
+        .nav-right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+
+        .nav-auth { display: flex; align-items: center; gap: 0.75rem; }
+        .nav-user { display: none; align-items: center; gap: 0.75rem; }
+
+        .btn-ghost {
+            background: var(--cyan); color: #060a12;;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #060a12;
+            padding: 0.45rem 1.1rem;
+            border-radius: 9px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            transition: all 0.2s;
+        }
+
+        .btn-ghost:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: var(--white);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .btn-cta {
+            background: var(--cyan);
+            color: #060a12;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 9px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            transition: all 0.25s;
+            letter-spacing: 0.01em;
+            font-family: 'Syne', sans-serif;
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,212,200,0.4);
+            background: #2ee8dc;
+        }
+
+        /* Avatar menu */
+        .user-menu-wrap { position: relative; }
+        .user-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--cyan);
+            cursor: pointer;
+            object-fit: cover;
+        }
+
+        .user-dropdown {
+            position: absolute; top: calc(100% + 10px); right: 0;
+            background: var(--ink-2);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            min-width: 170px;
+            padding: 0.5rem;
+            display: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .user-menu-wrap:hover .user-dropdown { display: block; }
+
+        .user-dropdown a {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.6rem 0.875rem;
+            border-radius: 8px;
+            color: var(--slate);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.15s;
+        }
+
+        .user-dropdown a:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+
+        /* Mobile hamburger */
+        .hamburger {
+            display: none;
+            background: none; border: none; cursor: pointer;
+            color: var(--slate); font-size: 1.3rem;
+            padding: 0.25rem;
+        }
+
+        /* ── TICKER ───────────────────────────────────────────────────── */
+        .ticker-bar {
+            margin-top: var(--nav-h);
+            overflow: hidden;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255,255,255,0.018);
+            padding: 11px 0;
+            position: relative; z-index: 1;
+        }
+
+        .ticker-track {
+            display: flex; gap: 56px;
+            width: max-content;
+            animation: ticker 28s linear infinite;
+        }
+
+        .ticker-item {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--slate-2);
+            white-space: nowrap;
+            display: flex; align-items: center; gap: 12px;
+        }
+
+        .ticker-dot { color: var(--cyan); }
+
+        @keyframes ticker {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        /* ── HERO ─────────────────────────────────────────────────────── */
+        .hero {
+            min-height: calc(100vh - var(--nav-h) - 42px);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            gap: 4rem;
+            padding: 5rem 5% 4rem;
+            position: relative; z-index: 1;
+        }
+
+        .hero-eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(0,212,200,0.08);
+            border: 1px solid rgba(0,212,200,0.22);
+            color: var(--cyan);
+            padding: 5px 14px;
+            border-radius: 40px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .pulse-dot {
+            width: 7px; height: 7px;
+            background: var(--cyan);
+            border-radius: 50%;
+            animation: pulseAnim 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseAnim {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.75); }
+        }
+
+        .hero-h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.6rem, 5.5vw, 4.2rem);
+            font-weight: 800;
+            line-height: 1.08;
+            letter-spacing: -2px;
+            color: var(--white);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-h1 .gradient-text {
+            background: linear-gradient(120deg, var(--cyan) 0%, #06b6d4 50%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-p {
+            color: var(--slate);
+            font-size: 1.05rem;
+            line-height: 1.75;
+            max-width: 480px;
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+        .btn-hero-primary {
+            background: var(--cyan);
+            color: var(--ink);
+            border: none;
+            padding: 0.9rem 2rem;
+            border-radius: var(--r);
+            font-family: 'Syne', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.6rem;
+            transition: all 0.3s;
+            letter-spacing: 0.01em;
+        }
+
+        .btn-hero-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 48px rgba(0,212,200,0.45);
+            background: #2ee8dc;
+        }
+
+        .btn-hero-outline {
+            background: transparent;
+            color: var(--white);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 0.9rem 2rem;
+            border-radius: var(--r);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.6rem;
+            transition: all 0.3s;
+        }
+
+        .btn-hero-outline:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            background: rgba(0,212,200,0.06);
+        }
+
+        .hero-stats {
+            display: flex; gap: 2.5rem;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .hero-stat-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--cyan);
+            line-height: 1;
+            display: block;
+        }
+
+        .hero-stat-label {
+            font-size: 0.8rem;
+            color: var(--slate-2);
+            margin-top: 0.3rem;
+            display: block;
+            letter-spacing: 0.02em;
+        }
+
+        /* ── Hero Visual ──────────────────────────────────────────────── */
+        .hero-visual {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .blueprint-card {
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 4/3.2;
+            background: var(--card-bg);
+            border: 1px solid rgba(0,212,200,0.18);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 80px rgba(0,212,200,0.1), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+
+        /* Blueprint SVG floor plan */
+        .blueprint-card svg {
+            width: 100%; height: 100%;
+            opacity: 0.9;
+        }
+
+        /* floating badges */
+        .float-badge {
+            position: absolute;
+            background: rgba(6,10,18,0.85);
+            border: 1px solid rgba(0,212,200,0.3);
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--cyan);
+            white-space: nowrap;
+            backdrop-filter: blur(10px);
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        .float-badge-1 { top: 14%; right: -8%; animation: float1 5s ease-in-out infinite; }
+        .float-badge-2 { bottom: 22%; left: -6%; animation: float2 5.5s ease-in-out infinite 0.8s; }
+        .float-badge-3 { top: 52%; right: -10%; animation: float1 6s ease-in-out infinite 1.5s; }
+
+        @keyframes float1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+
+        .badge-icon {
+            width: 20px; height: 20px;
+            background: rgba(0,212,200,0.15);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; color: var(--cyan);
+        }
+
+        /* ── FEATURES ─────────────────────────────────────────────────── */
+        .section { padding: 6rem 5%; position: relative; z-index: 1; }
+
+        .section-eyebrow {
+            display: flex; align-items: center; gap: 10px;
+            color: var(--cyan);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 0.875rem;
+        }
+
+        .section-eyebrow::before, .section-eyebrow::after {
+            content: ''; flex: 1; height: 1px;
+            background: linear-gradient(to right, var(--cyan), transparent);
+        }
+
+        .section-eyebrow::before { max-width: 40px; }
+
+        .section-h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(1.9rem, 3.5vw, 2.8rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: var(--white);
+            margin-bottom: 1rem;
+        }
+
+        .section-sub {
+            color: var(--slate);
+            font-size: 1.05rem;
+            max-width: 540px;
+            line-height: 1.7;
+        }
+
+        .section-header { margin-bottom: 3.5rem; }
+
+        /* Feature grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .feat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 1.75rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            cursor: default;
+        }
+
+        .feat-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feat-card:hover {
+            border-color: rgba(0,212,200,0.22);
+            background: rgba(0,212,200,0.04);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 30px rgba(0,212,200,0.06);
+        }
+
+        .feat-card:hover::before { opacity: 1; }
+
+        .feat-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem;
+            margin-bottom: 1.25rem;
+            position: relative;
+        }
+
+        .feat-icon.c1 { background: rgba(0,212,200,0.12); color: var(--cyan); }
+        .feat-icon.c2 { background: rgba(245,158,11,0.12); color: var(--amber); }
+        .feat-icon.c3 { background: rgba(139,92,246,0.12); color: #8b5cf6; }
+        .feat-icon.c4 { background: rgba(59,130,246,0.12); color: #3b82f6; }
+        .feat-icon.c5 { background: rgba(16,185,129,0.12); color: #10b981; }
+        .feat-icon.c6 { background: rgba(239,68,68,0.12); color: #ef4444; }
+        .feat-icon.c7 { background: rgba(236,72,153,0.12); color: #ec4899; }
+        .feat-icon.c8 { background: rgba(14,165,233,0.12); color: #0ea5e9; }
+
+        .feat-tag {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--slate-2);
+            margin-bottom: 0.4rem;
+        }
+
+        .feat-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 0.6rem;
+            letter-spacing: -0.3px;
+        }
+
+        .feat-desc {
+            color: var(--slate);
+            font-size: 0.875rem;
+            line-height: 1.65;
+        }
+
+        /* ── HOW IT WORKS ─────────────────────────────────────────────── */
+        .workflow-section {
+            padding: 6rem 5%;
+            position: relative; z-index: 1;
+        }
+
+        .workflow-section::before {
+            content: '';
+            position: absolute; left: 0; right: 0; top: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(0,212,200,0.2), transparent);
+        }
+
+        .workflow-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5rem;
+            align-items: center;
+            margin-top: 3.5rem;
+        }
+
+        .steps { display: flex; flex-direction: column; gap: 0; }
+
+        .step {
+            display: flex; gap: 1.25rem;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+
+        .step:last-child { border-bottom: none; }
+
+        .step-num {
+            width: 44px; height: 44px;
+            border: 1.5px solid rgba(0,212,200,0.35);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: var(--cyan);
+            background: rgba(0,212,200,0.06);
+            flex-shrink: 0;
+        }
+
+        .step-body h4 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 0.4rem;
+        }
+
+        .step-body p {
+            color: var(--slate);
+            font-size: 0.875rem;
+            line-height: 1.65;
+        }
+
+        /* Workflow visual */
+        .workflow-visual {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .arch-diagram {
+            width: 100%; max-width: 420px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 2rem;
+            position: relative;
+        }
+
+        .arch-layer {
+            display: flex; align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1rem;
+            border-radius: var(--r);
+            margin-bottom: 0.875rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+        }
+
+        .arch-layer:last-child { margin-bottom: 0; }
+        .arch-layer-icon { font-size: 1.1rem; }
+
+        .arch-layer.l1 { background: rgba(0,212,200,0.07); border-color: rgba(0,212,200,0.2); color: var(--cyan); }
+        .arch-layer.l2 { background: rgba(245,158,11,0.07); border-color: rgba(245,158,11,0.2); color: var(--amber); }
+        .arch-layer.l3 { background: rgba(139,92,246,0.07); border-color: rgba(139,92,246,0.2); color: #8b5cf6; }
+        .arch-layer.l4 { background: rgba(16,185,129,0.07); border-color: rgba(16,185,129,0.2); color: #10b981; }
+
+        .arch-arrow {
+            text-align: center;
+            color: var(--slate-2);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            margin-top: -0.25rem;
+        }
+
+        /* ── CTA SECTION ──────────────────────────────────────────────── */
+        .cta-section {
+            padding: 6rem 5%;
+            position: relative; z-index: 1;
+        }
+
+        .cta-box {
+            background: linear-gradient(135deg, rgba(0,212,200,0.07), rgba(6,182,212,0.04), rgba(99,102,241,0.06));
+            border: 1px solid rgba(0,212,200,0.18);
+            border-radius: var(--r-lg);
+            padding: 5rem 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 60%; height: 1px;
+            background: linear-gradient(to right, transparent, var(--cyan), transparent);
+        }
+
+        .cta-glow {
+            position: absolute;
+            top: -50%; left: 50%; transform: translateX(-50%);
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(0,212,200,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .cta-h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            color: var(--white);
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .cta-p {
+            color: var(--slate);
+            font-size: 1.05rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+
+        .cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; position: relative; }
+
+        /* ── FOOTER ───────────────────────────────────────────────────── */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 3.5rem 5%;
+            position: relative; z-index: 1;
+            background: rgba(6,10,18,0.6);
+        }
+
+        .footer-inner {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .footer-brand-name {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--white);
+            margin: 0.75rem 0 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .footer-brand-desc {
+            color: var(--slate-2);
+            font-size: 0.875rem;
+            line-height: 1.65;
+            max-width: 260px;
+        }
+
+        .footer-col h4 {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--slate);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 1.1rem;
+        }
+
+        .footer-col a {
+            display: block;
+            color: var(--slate-2);
+            text-decoration: none;
+            font-size: 0.875rem;
+            margin-bottom: 0.6rem;
+            transition: color 0.2s;
+        }
+
+        .footer-col a:hover { color: var(--cyan); }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border);
+            padding-top: 1.5rem;
+            display: flex; align-items: center; justify-content: space-between;
+            color: var(--slate-2);
+            font-size: 0.82rem;
+        }
+
+        .footer-bottom a { color: var(--cyan); text-decoration: none; }
+
+        /* ── MODAL ────────────────────────────────────────────────────── */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
+            display: none; align-items: center; justify-content: center;
+            z-index: 2000; padding: 1rem;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal-box {
+            background: var(--ink-2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--r-lg);
+            width: 100%; max-width: 440px;
+            position: relative;
+            animation: modalIn 0.28s cubic-bezier(0.22,1,0.36,1);
+            overflow: hidden;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.94) translateY(-15px); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        .modal-top {
+            height: 3px;
+            background: linear-gradient(90deg, var(--cyan), #3b82f6, #8b5cf6);
+        }
+
+        .modal-content-wrap { padding: 2rem; }
+
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.75rem;
+        }
+
+        .modal-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.5px;
+        }
+
+        .modal-close {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border);
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            color: var(--slate);
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover { background: rgba(255,255,255,0.12); color: var(--white); }
+
+        /* Form */
+        .form-group { margin-bottom: 1.1rem; }
+
+        .form-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--slate);
+            margin-bottom: 0.45rem;
+            letter-spacing: 0.02em;
+        }
+
+        .form-input-wrap { position: relative; }
+
+        .form-input-icon {
+            position: absolute; left: 0.875rem; top: 50%;
+            transform: translateY(-50%);
+            color: var(--slate-2); font-size: 0.85rem;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--r);
+            color: var(--white);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-input::placeholder { color: var(--slate-2); }
+
+        .form-input:focus {
+            border-color: rgba(0,212,200,0.5);
+            background: rgba(0,212,200,0.05);
+            box-shadow: 0 0 0 3px rgba(0,212,200,0.1);
+        }
+
+        .form-submit {
+            width: 100%;
+            background: var(--cyan);
+            color: var(--ink);
+            border: none;
+            padding: 0.85rem;
+            border-radius: var(--r);
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+            margin-top: 0.5rem;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }
+
+        .form-submit:hover {
+            background: #2ee8dc;
+            box-shadow: 0 8px 30px rgba(0,212,200,0.4);
+            transform: translateY(-2px);
+        }
+
+        .form-switch {
+            text-align: center;
+            margin-top: 1.25rem;
+            color: var(--slate-2);
+            font-size: 0.875rem;
+        }
+
+        .form-switch a {
+            color: var(--cyan);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .form-switch a:hover { text-decoration: underline; }
+
+        /* ── TOAST ────────────────────────────────────────────────────── */
+        .toast-container {
+            position: fixed; bottom: 1.5rem; right: 1.5rem;
+            z-index: 9999;
+            display: flex; flex-direction: column; gap: 0.5rem;
+        }
+
+        .toast {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.875rem 1.25rem;
+            background: var(--ink-2);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            font-size: 0.875rem;
+            min-width: 280px;
+            animation: toastIn 0.3s ease;
+            border-left: 3px solid var(--cyan);
+        }
+
+        .toast.success { border-left-color: #10b981; }
+        .toast.error   { border-left-color: #ef4444; }
+        .toast i { color: var(--cyan); }
+        .toast.success i { color: #10b981; }
+        .toast.error i   { color: #ef4444; }
+
+        @keyframes toastIn { from { opacity:0; transform:translateX(50px); } to { opacity:1; transform:none; } }
+
+        /* ── Loading overlay ──────────────────────────────────────────── */
+        #loadingOverlay {
+            position: fixed; inset: 0;
+            background: rgba(6,10,18,0.85);
+            backdrop-filter: blur(8px);
+            display: none; align-items: center; justify-content: center;
+            z-index: 9998; flex-direction: column; gap: 1rem; color: var(--white);
+        }
+
+        #loadingOverlay i { color: var(--cyan); }
+
+        /* ── Scroll animations ────────────────────────────────────────── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.4s; }
+        .reveal-delay-5 { transition-delay: 0.5s; }
+        .reveal-delay-6 { transition-delay: 0.6s; }
+        .reveal-delay-7 { transition-delay: 0.7s; }
+        .reveal-delay-8 { transition-delay: 0.8s; }
+
+        /* ── RESPONSIVE ───────────────────────────────────────────────── */
+        @media (max-width: 1024px) {
+            .hero { grid-template-columns: 1fr; gap: 3rem; padding: 4rem 5%; text-align: center; }
+            .hero-p { margin: 0 auto 2.5rem; }
+            .hero-btns { justify-content: center; }
+            .hero-stats { justify-content: center; }
+            .hero-visual { display: none; }
+            .workflow-grid { grid-template-columns: 1fr; gap: 3rem; }
+            .footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-center { display: none; }
+            .hamburger { display: block; }
+            .features-grid { grid-template-columns: 1fr; }
+            .hero-stats { gap: 2rem; }
+            .cta-box { padding: 3rem 1.5rem; }
+            .footer-inner { grid-template-columns: 1fr; }
+            .footer-bottom { flex-direction: column; gap: 0.5rem; text-align: center; }
+            .section { padding: 4rem 5%; }
+            .workflow-section { padding: 4rem 5%; }
+        }
+
+        /* Mobile nav */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: var(--nav-h); left: 0; right: 0;
+            background: rgba(6,10,18,0.97);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 5%;
+            z-index: 999;
+            backdrop-filter: blur(20px);
+        }
+
+        .mobile-menu.open { display: flex; flex-direction: column; gap: 0.5rem; }
+
+        .mobile-menu .nav-link {
+            padding: 0.75rem 1rem;
+            display: block;
+            border-radius: var(--r);
+        }
+
+        .mobile-menu .btn-ghost, .mobile-menu .btn-cta {
+            display: block;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+        /* ───── Blueprint line drawing ───── */
+
+        .draw-line{
+            stroke-dasharray: 800;
+            stroke-dashoffset: 800;
+            animation: drawLine 2.5s ease forwards;
+        }
+
+        .draw-delay-1{ animation-delay: .3s; }
+        .draw-delay-2{ animation-delay: .6s; }
+        .draw-delay-3{ animation-delay: .9s; }
+        .draw-delay-4{ animation-delay: 1.2s; }
+
+        @keyframes drawLine{
+            to{ stroke-dashoffset:0; }
+        }
+
+        /* ───── Room label fade animation ───── */
+
+        .blueprint-card text{
+            opacity:0;
+            animation: fadeText .8s ease forwards;
+            animation-delay:1.5s;
+        }
+
+        @keyframes fadeText{
+            to{opacity:1;}
+        }
+
+        /* ───── Blueprint scanning light ───── */
+
+        .blueprint-card::after{
+            content:"";
+            position:absolute;
+            top:0;
+            left:-100%;
+            width:60%;
+            height:100%;
+            background:linear-gradient(
+                90deg,
+                transparent,
+                rgba(0,212,200,0.08),
+                transparent
+            );
+            animation:scan 6s linear infinite;
+        }
+
+        @keyframes scan{
+            to{ left:120%; }
+        }
+        .auth-divider{
+            text-align:center;
+            margin:15px 0;
+            color:#888;
+            font-size:12px;
+        }
+        .google-btn{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:10px;
+            padding:12px;
+            background:#1f1f1f;
+            color:white;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+        }
+
+        .google-icon{
+            width:20px;
+            height:20px;
+        }
+       </style>
 </head>
 <body>
-    <div id="app">
-        <nav class="navbar">
-            <div class="nav-brand">
-                <i class="fas fa-home"></i>
-                <span>House Architect</span>
-            </div>
-            <div class="nav-links" id="navLinks">
-                <a href="#" class="nav-link active" data-page="home">Home</a>
-                <a href="#" onclick="scrollToFeatures()" class="nav-link" data-page="features">Features</a>
-            </div>
-            <div class="nav-auth" id="navAuth">
-                <button class="btn btn-outline" onclick="showLogin()">Login</button>
-                <button class="btn btn-primary" onclick="showRegister()">Sign Up Free</button>
-            </div>
-            <div class="nav-user" id="navUser" style="display: none;">
-                <a href="dashboard.html" class="btn btn-primary">Dashboard</a>
-                <div class="user-menu">
-                    <img src="" alt="User" id="userAvatar" class="avatar">
-                    <div class="dropdown-menu">
-                        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-                        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                    </div>
-                </div>
-            </div>
-        </nav>
 
-        <section class="hero" id="heroSection">
-            <div class="hero-content">
-                <h1>Design Your Dream Home</h1>
-                <p>Transform your house ideas into detailed 2D floor plans and stunning 3D models with our powerful architectural design tool.</p>
-                <div class="hero-buttons">
-                    <button class="btn btn-primary btn-lg" onclick="showRegister()">
-                        <i class="fas fa-rocket"></i> Get Started Free
-                    </button>
-                    <button class="btn btn-outline btn-lg" onclick="scrollToFeatures()">
-                        <i class="fas fa-play"></i> Learn More
-                    </button>
-                </div>
-                <div class="hero-stats">
-                    <div class="stat">
-                        <span class="stat-number">10,000+</span>
-                        <span class="stat-label">Designs Created</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-number">5,000+</span>
-                        <span class="stat-label">Happy Users</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-number">50+</span>
-                        <span class="stat-label">Countries</span>
-                    </div>
-                </div>
-            </div>
-            <div class="hero-visual">
-                <div class="preview-card">
-                    <div class="preview-placeholder">
-                        <i class="fas fa-drafting-compass"></i>
-                        <p>Interactive 3D & 2D Design</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
 
-        <section class="features" id="featuresSection">
-            <div class="section-header">
-                <h2>Powerful Features</h2>
-                <p>Everything you need to bring your architectural vision to life</p>
-            </div>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-drafting-compass"></i></div>
-                    <h3>2D Floor Plans</h3>
-                    <p>Create detailed floor plans with precise measurements, drag-and-drop rooms, and auto-scaling.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-cube"></i></div>
-                    <h3>3D Visualization</h3>
-                    <p>Transform your 2D plans into stunning interactive 3D models with realistic rendering.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-magic"></i></div>
-                    <h3>Auto Layout</h3>
-                    <p>Let our smart algorithm automatically arrange rooms for optimal space usage.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-file-export"></i></div>
-                    <h3>Export Options</h3>
-                    <p>Export your designs in multiple formats including JSON, OBJ, and GLTF.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-history"></i></div>
-                    <h3>Version History</h3>
-                    <p>Track changes and restore previous versions with automatic backups.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-calculator"></i></div>
-                    <h3>Cost Estimation</h3>
-                    <p>Get accurate cost estimates based on materials, area, and specifications.</p>
-                </div>
-            </div>
-        </section>
+<!-- ═══ NAVBAR ═══════════════════════════════════════════════════════════════ -->
+<nav class="navbar">
+    <a href="index.html" class="nav-brand">
+        <div class="nav-logo"><i class="fas fa-home"></i></div>
+        <span class="nav-brand-text">Smart<em> Arch</em></span>
+    </a>
 
-        <div class="modal" id="authModal">
-            <div class="modal-content">
-                <button class="modal-close" onclick="closeModal()">&times;</button>
-                <div id="loginForm" class="auth-form">
-                    <h2><i class="fas fa-home" style="color:#667eea;margin-right:0.5rem"></i>Welcome Back</h2>
-                    <form id="loginFormElement" onsubmit="handleLogin(event)">
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="loginEmail" required placeholder="your@email.com">
-                        </div>
-                        <div class="form-group">
-                            <label>Password</label>
-                            <input type="password" id="loginPassword" required placeholder="Your password">
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block">Login</button>
-                        <p class="auth-switch">Don't have an account? <a href="#" onclick="showRegister()">Sign Up Free</a></p>
-                    </form>
-                </div>
-                <div id="registerForm" class="auth-form" style="display: none;">
-                    <h2><i class="fas fa-home" style="color:#667eea;margin-right:0.5rem"></i>Create Account</h2>
-                    <form id="registerFormElement" onsubmit="handleRegister(event)">
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" id="registerName" required placeholder="John Doe">
-                        </div>
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="registerEmail" required placeholder="your@email.com">
-                        </div>
-                        <div class="form-group">
-                            <label>Password</label>
-                            <input type="password" id="registerPassword" required minlength="6" placeholder="Min 6 characters">
-                        </div>
-                        <div class="form-group">
-                            <label>Company (Optional)</label>
-                            <input type="text" id="registerCompany" placeholder="Your company name">
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
-                        <p class="auth-switch">Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
-                    </form>
+    <div class="nav-center">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#workflow" class="nav-link">How It Works</a>
+        <a href="about.html" class="nav-link">About</a>
+    </div>
+
+    <!-- Auth state: logged out -->
+    <div class="nav-right">
+        <div class="nav-auth" id="navAuth">
+            <button class="btn-ghost" onclick="showLogin()">Login</button>
+            <button class="btn-cta" onclick="showRegister()">
+                <i class="fas fa-rocket"></i> Get Started
+            </button>
+        </div>
+
+        <!-- Auth state: logged in -->
+        <div class="nav-user" id="navUser">
+            <a href="dashboard.html" class="btn-ghost">
+                <i class="fas fa-rocket"></i> Dashboard
+            </a>
+            <div class="user-menu-wrap">
+                <img src="" alt="User" id="userAvatar" class="user-avatar">
+                <div class="user-dropdown">
+                    <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+                    <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-brand">
-                <i class="fas fa-home"></i>
-                <span>House Architect</span>
-                <p>Design your dream home with powerful 2D and 3D modeling tools.</p>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+    </button>
+</nav>
+
+<!-- Mobile nav -->
+<div class="mobile-menu" id="mobileMenu">
+    <a href="#features" class="nav-link" onclick="closeMobileMenu()">Features</a>
+    <a href="#workflow" class="nav-link" onclick="closeMobileMenu()">How It Works</a>
+    <a href="about.html" class="nav-link">About</a>
+    <div id="mobileNavAuth">
+        <button class="btn-ghost" onclick="showLogin(); closeMobileMenu()" style="width:100%;margin-top:0.5rem">Login</button>
+        <button class="btn-cta" onclick="showRegister(); closeMobileMenu()" style="width:100%;margin-top:0.5rem;justify-content:center">Get Started</button>
+    </div>
+    <div id="mobileNavUser" style="display:none">
+        <a href="dashboard.html" class="btn-ghost" style="width:100%;margin-top:0.5rem;justify-content:center">Dashboard</a>
+        <button class="btn-ghost" onclick="logout()" style="width:100%;margin-top:0.5rem">Logout</button>
+    </div>
+</div>
+
+<!-- ═══ TICKER ════════════════════════════════════════════════════════════════ -->
+<div class="ticker-bar">
+    <div class="ticker-track">
+        <div class="ticker-item"><span class="ticker-dot">●</span> AI Floor Plan Generation</div>
+        <div class="ticker-item"><span class="ticker-dot">●</span> 3D Visualization Engine</div>
+        <div class="ticker-item"><span class="ticker-dot">●</span> Node.js + Express Backend</div>
+        <div class="ticker-item"><span class="ticker-dot">●</span> MongoDB Data Storage</div>
+        <div class="ticker-item"><span class="ticker-dot">●</span> JWT Authentication</div>
+        <div class="ticker-item"><span class="ticker-dot">●</span> Real-time Analytics</div>
+        <div class="ticker-item"><span class="ticker-dot">●</span> Project Collaboration</div>
+        <!-- duplicate for seamless loop -->
+        <div class="ticker-item"><span class="ticker-dot">●</span> AI Floor Plan Generation</div>
+        <div class="ticker-item"><span class="ticker-dot">●</span> 3D Visualization Engine</div>
+        <div class="ticker-item"><span class="ticker-dot">●</span> Node.js + Express Backend</div>
+        <div class="ticker-item"><span class="ticker-dot">●</span> MongoDB Data Storage</div>
+        <div class="ticker-item"><span class="ticker-dot">●</span> JWT Authentication</div>
+        <div class="ticker-item"><span class="ticker-dot">●</span> Real-time Analytics</div>
+        <div class="ticker-item"><span class="ticker-dot">●</span> Project Collaboration</div>
+    </div>
+</div>
+
+<!-- ═══ HERO ══════════════════════════════════════════════════════════════════ -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-eyebrow">
+            <span class="pulse-dot"></span>
+            AI-Powered Architecture Platform
+        </div>
+        <h1 class="hero-h1">
+            Design Homes<br>
+            <span class="gradient-text">Smarter</span> with AI
+        </h1>
+        <p class="hero-p">
+            Transform your vision into detailed 2D floor plans and immersive 3D models.
+            Powered by machine intelligence, built for modern architects and dreamers.
+        </p>
+        <div class="hero-btns">
+            <button class="btn-hero-primary" onclick="showRegister()">
+                <i class="fas fa-rocket"></i> Start Designing Free
+            </button>
+            <a href="#features" class="btn-hero-outline">
+                <i class="fas fa-play-circle"></i> Explore Features
+            </a>
+        </div>
+        <div class="hero-stats">
+            <div>
+                <span class="hero-stat-num">10K+</span>
+                <span class="hero-stat-label">Designs Created</span>
             </div>
-            <div class="footer-links">
-                <h4>Product</h4>
-                <a href="#">Features</a>
-                <a href="#">Pricing</a>
+            <div>
+                <span class="hero-stat-num">5K+</span>
+                <span class="hero-stat-label">Happy Users</span>
             </div>
-            <div class="footer-links">
-                <h4>Company</h4>
-                <a href="#">About</a>
-                <a href="#">Contact</a>
-            </div>
-            <div class="footer-links">
-                <h4>Legal</h4>
-                <a href="#">Privacy</a>
-                <a href="#">Terms</a>
+            <div>
+                <span class="hero-stat-num">50+</span>
+                <span class="hero-stat-label">Countries</span>
             </div>
         </div>
-        <div class="footer-bottom">
-            <p>&copy; 2024 House Architect. All rights reserved.</p>
+    </div>
+
+    <!-- Blueprint Visual -->
+    <div class="hero-visual">
+        <div class="blueprint-card">
+            <!-- SVG Floor Plan Blueprint -->
+            <svg viewBox="0 0 500 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="500" height="380" fill="rgba(0,212,200,0.03)"/>
+                <!-- Grid -->
+                <defs>
+                    <pattern id="g" width="25" height="25" patternUnits="userSpaceOnUse">
+                        <path d="M 25 0 L 0 0 0 25" fill="none" stroke="rgba(0,212,200,0.08)" stroke-width="0.5"/>
+                    </pattern>
+                </defs>
+                <rect width="500" height="380" fill="url(#g)"/>
+                <!-- Outer walls -->
+                <rect x="40" y="40" width="420" height="300" stroke="rgba(0,212,200,0.6)" stroke-width="2.5" fill="none" class="draw-line"/>
+                <!-- Interior walls -->
+                <!-- <line x1="220" y1="40" x2="220" y2="220" stroke="rgba(0,212,200,0.5)" stroke-width="1.5"/> -->
+                 <line x1="220" y1="40" x2="220" y2="220" stroke="rgba(0,212,200,0.5)" stroke-width="1.5" class="draw-line draw-delay-1"/>
+                <line x1="220" y1="220" x2="460" y2="220" stroke="rgba(0,212,200,0.5)" stroke-width="1.5" class="draw-line draw-delay-2"/>
+                <line x1="40" y1="180" x2="220" y2="180" stroke="rgba(0,212,200,0.5)" stroke-width="1.5" class="draw-line draw-delay-3"/>
+                <line x1="330" y1="40" x2="330" y2="220" stroke="rgba(0,212,200,0.4)" stroke-width="1.5" class="draw-line draw-delay-4"/>
+                <!-- Room labels -->
+                <text x="118" y="102" fill="rgba(0,212,200,0.7)" font-size="10" font-family="monospace" text-anchor="middle">LIVING ROOM</text>
+                <text x="118" y="114" fill="rgba(0,212,200,0.5)" font-size="8" font-family="monospace" text-anchor="middle">12.4 × 8.2 m</text>
+                <text x="118" y="206" fill="rgba(0,212,200,0.7)" font-size="10" font-family="monospace" text-anchor="middle">KITCHEN</text>
+                <text x="118" y="218" fill="rgba(0,212,200,0.5)" font-size="8" font-family="monospace" text-anchor="middle">6.2 × 5.0 m</text>
+                <text x="270" y="118" fill="rgba(0,212,200,0.7)" font-size="10" font-family="monospace" text-anchor="middle">BEDROOM 1</text>
+                <text x="270" y="130" fill="rgba(0,212,200,0.5)" font-size="8" font-family="monospace" text-anchor="middle">5.5 × 4.8 m</text>
+                <text x="393" y="118" fill="rgba(0,212,200,0.7)" font-size="10" font-family="monospace" text-anchor="middle">BEDROOM 2</text>
+                <text x="393" y="130" fill="rgba(0,212,200,0.5)" font-size="8" font-family="monospace" text-anchor="middle">4.2 × 3.8 m</text>
+                <text x="350" y="278" fill="rgba(0,212,200,0.7)" font-size="10" font-family="monospace" text-anchor="middle">BATHROOM</text>
+                <text x="130" y="295" fill="rgba(0,212,200,0.7)" font-size="10" font-family="monospace" text-anchor="middle">DINING</text>
+                <!-- Doors (arc) -->
+                <path d="M 210 180 Q 195 195 210 210" stroke="rgba(0,212,200,0.5)" stroke-width="1" fill="none" class="draw-line draw-delay-3"/>
+                <path d="M 220 60 Q 235 60 235 75" stroke="rgba(0,212,200,0.5)" stroke-width="1" fill="none" class="draw-line draw-delay-3"/>
+                <!-- Dimension lines -->
+                <line x1="40" y1="355" x2="460" y2="355" stroke="rgba(0,212,200,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+                <text x="250" y="370" fill="rgba(0,212,200,0.5)" font-size="9" font-family="monospace" text-anchor="middle">20.0 m</text>
+                <line x1="480" y1="40" x2="480" y2="340" stroke="rgba(0,212,200,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+                <text x="494" y="195" fill="rgba(0,212,200,0.5)" font-size="9" font-family="monospace" text-anchor="middle" writing-mode="vertical-rl">15.0 m</text>
+                <!-- Compass rose -->
+                <g transform="translate(455, 52)">
+                    <circle cx="0" cy="0" r="14" stroke="rgba(0,212,200,0.3)" stroke-width="1" fill="rgba(0,212,200,0.04)"/>
+                    <path d="M0,-10 L3,-3 L0,0 L-3,-3 Z" fill="rgba(0,212,200,0.8)"/>
+                    <path d="M0,10 L3,3 L0,0 L-3,3 Z" fill="rgba(0,212,200,0.3)"/>
+                    <text x="0" y="-14" fill="rgba(0,212,200,0.9)" font-size="7" font-family="monospace" text-anchor="middle">N</text>
+                </g>
+            </svg>
         </div>
-    </footer>
 
-    <div class="toast-container" id="toastContainer"></div>
+        <!-- Floating badges -->
+        <div class="float-badge float-badge-1">
+            <div class="badge-icon"><i class="fas fa-brain"></i></div>
+            AI Generated
+        </div>
+        <div class="float-badge float-badge-2">
+            <div class="badge-icon"><i class="fas fa-ruler-combined"></i></div>
+            Precise Measurements
+        </div>
+        <div class="float-badge float-badge-3">
+            <div class="badge-icon"><i class="fas fa-cube"></i></div>
+            3D Ready
+        </div>
+    </div>
+</section>
 
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
+<!-- ═══ FEATURES ══════════════════════════════════════════════════════════════ -->
+<section class="section" id="features">
+    <div class="section-header">
+        <div class="section-eyebrow">Platform Capabilities</div>
+        <h2 class="section-h2 reveal">Everything You Need to<br>Build Great Architecture</h2>
+        <p class="section-sub reveal reveal-delay-1">
+            A complete architectural design platform — from AI-generated floor plans to
+            project management, 3D visualization, and admin analytics.
+        </p>
+    </div>
+
+    <div class="features-grid">
+        <div class="feat-card reveal reveal-delay-1">
+            <div class="feat-icon c1"><i class="fas fa-brain"></i></div>
+            <div class="feat-tag">AI Engine</div>
+            <div class="feat-title">AI Floor Plan Generation</div>
+            <p class="feat-desc">Powered by Ollama (phi3:mini), our AI generates intelligent room layouts optimized for your space dimensions, building type, and floor count using a BSP layout algorithm.</p>
+        </div>
+
+        <div class="feat-card reveal reveal-delay-2">
+            <div class="feat-icon c2"><i class="fas fa-cube"></i></div>
+            <div class="feat-tag">Visualization</div>
+            <div class="feat-title">2D & 3D Model Rendering</div>
+            <p class="feat-desc">Instantly switch between precise 2D floor plan views and interactive 3D building models. Export designs in JSON, OBJ, and GLTF formats for use in other tools.</p>
+        </div>
+
+        <div class="feat-card reveal reveal-delay-3">
+            <div class="feat-icon c3"><i class="fas fa-folder-open"></i></div>
+            <div class="feat-tag">Project Hub</div>
+            <div class="feat-title">Full Project Management</div>
+            <p class="feat-desc">Create, save, and organize multiple architectural projects. Track status (draft, in progress, review, approved), add collaborators, and maintain full version history.</p>
+        </div>
+
+        <div class="feat-card reveal reveal-delay-4">
+            <div class="feat-icon c4"><i class="fas fa-shield-alt"></i></div>
+            <div class="feat-tag">Security</div>
+            <div class="feat-title">JWT Authentication & Roles</div>
+            <p class="feat-desc">Secure user registration and login with bcrypt password hashing and JWT tokens. Three role levels — user, architect, and admin — with route-level access control.</p>
+        </div>
+
+        <div class="feat-card reveal reveal-delay-5">
+            <div class="feat-icon c5"><i class="fas fa-tachometer-alt"></i></div>
+            <div class="feat-tag">Administration</div>
+            <div class="feat-title">Admin Dashboard & Analytics</div>
+            <p class="feat-desc">A full-featured admin panel with real-time stats, user/project management, growth charts, activity feeds, and top contributors — all protected by admin-only middleware.</p>
+        </div>
+
+        <div class="feat-card reveal reveal-delay-6">
+            <div class="feat-icon c6"><i class="fas fa-magic"></i></div>
+            <div class="feat-tag">Intelligence</div>
+            <div class="feat-title">Smart Auto Layout Engine</div>
+            <p class="feat-desc">Specify rooms by type and count; the BSP-based algorithm automatically arranges them for optimal space utilization, handling proportions, adjacency, and structural flow.</p>
+        </div>
+
+        <div class="feat-card reveal reveal-delay-7">
+            <div class="feat-icon c7"><i class="fas fa-upload"></i></div>
+            <div class="feat-tag">Input</div>
+            <div class="feat-title">Floorplan Image Analysis</div>
+            <p class="feat-desc">Upload an existing PNG/JPEG floor plan image; edge detection algorithms automatically extract room outlines and generate a structured digital floor plan from your sketch.</p>
+        </div>
+
+        <div class="feat-card reveal reveal-delay-8">
+            <div class="feat-icon c8"><i class="fas fa-calculator"></i></div>
+            <div class="feat-tag">Estimation</div>
+            <div class="feat-title">Cost & Build Estimation</div>
+            <p class="feat-desc">Automatically calculate total floor area, room count, estimated construction cost, and projected build time based on your design's dimensions and floor configuration.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ HOW IT WORKS ══════════════════════════════════════════════════════════ -->
+<section class="workflow-section" id="workflow">
+    <div style="max-width:1400px; margin:0 auto">
+        <div class="section-eyebrow reveal">System Workflow</div>
+        <h2 class="section-h2 reveal reveal-delay-1">From Idea to<br>3D Reality — in Minutes</h2>
+
+        <div class="workflow-grid">
+            <div class="steps">
+                <div class="step reveal reveal-delay-1">
+                    <div class="step-num">01</div>
+                    <div class="step-body">
+                        <h4>Register & Set Project Parameters</h4>
+                        <p>Create your account and define your project — name, building type (residential, commercial, industrial), dimensions, number of floors, and desired rooms.</p>
+                    </div>
+                </div>
+                <div class="step reveal reveal-delay-2">
+                    <div class="step-num">02</div>
+                    <div class="step-body">
+                        <h4>AI Generates Your Floor Plan</h4>
+                        <p>Submit your parameters to the AI backend. The phi3:mini model and BSP algorithm intelligently partition and arrange rooms, generating a complete, optimized layout.</p>
+                    </div>
+                </div>
+                <div class="step reveal reveal-delay-3">
+                    <div class="step-num">03</div>
+                    <div class="step-body">
+                        <h4>Visualize in 2D & 3D</h4>
+                        <p>Your floor plan renders instantly as a detailed 2D blueprint and a 3D walkthrough model. Adjust materials, specifications, and room positions interactively.</p>
+                    </div>
+                </div>
+                <div class="step reveal reveal-delay-4">
+                    <div class="step-num">04</div>
+                    <div class="step-body">
+                        <h4>Save, Collaborate & Export</h4>
+                        <p>Projects auto-save to MongoDB. Invite collaborators, track revision history, and export finalized designs in OBJ or GLTF for use in professional CAD tools.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Architecture Diagram -->
+            <div class="workflow-visual reveal reveal-delay-2">
+                <div class="arch-diagram">
+                    <div style="font-family:'Syne',sans-serif; font-size:0.75rem; font-weight:700; color:var(--slate-2); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:1.25rem;">
+                        System Architecture
+                    </div>
+                    <div class="arch-layer l1">
+                        <span class="arch-layer-icon"><i class="fas fa-desktop"></i></span>
+                        Frontend — HTML / CSS / JavaScript
+                    </div>
+                    <div class="arch-arrow"><i class="fas fa-arrows-alt-v"></i></div>
+                    <div class="arch-layer l2">
+                        <span class="arch-layer-icon"><i class="fas fa-server"></i></span>
+                        Main API — Node.js + Express (Port 5000)
+                    </div>
+                    <div class="arch-arrow"><i class="fas fa-arrows-alt-v"></i></div>
+                    <div class="arch-layer l3">
+                        <span class="arch-layer-icon"><i class="fas fa-robot"></i></span>
+                        AI Engine — Ollama phi3:mini (Port 3001)
+                    </div>
+                    <div class="arch-arrow"><i class="fas fa-arrows-alt-v"></i></div>
+                    <div class="arch-layer l4">
+                        <span class="arch-layer-icon"><i class="fas fa-database"></i></span>
+                        MongoDB — Projects & Users
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ CTA ════════════════════════════════════════════════════════════════════ -->
+<section class="cta-section">
+    <div class="cta-box reveal">
+        <div class="cta-glow"></div>
+        <h2 class="cta-h2">Ready to Design<br>Your Dream Home?</h2>
+        <p class="cta-p">Join thousands of architects and homeowners using AI to design faster, smarter, and better.</p>
+        <div class="cta-btns">
+            <button class="btn-hero-primary" onclick="showRegister()">
+                <i class="fas fa-rocket"></i> Create Free Account
+            </button>
+            <button class="btn-hero-outline" onclick="showLogin()">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ FOOTER ════════════════════════════════════════════════════════════════ -->
+<footer class="footer">
+    <div class="footer-inner">
+        <div>
+            <div class="nav-logo" style="width:40px;height:40px"><i class="fas fa-home"></i></div>
+            <div class="footer-brand-name">SmartArch</div>
+            <p class="footer-brand-desc">AI-powered architectural design platform for modern homes and professional projects.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Product</h4>
+            <a href="#features">Features</a>
+            <a href="#workflow">How It Works</a>
+            <a href="dashboard.html">Dashboard</a>
+        </div>
+        <div class="footer-col">
+            <h4>Company</h4>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <div class="footer-col">
+            <h4>Legal & Admin</h4>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html">Terms of Service</a>
+            <a href="admin-login.html" style="color:var(--cyan)"><i class="fas fa-shield-alt" style="margin-right:4px"></i>Admin Panel</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>&copy; 2025 SmartArch. All rights reserved.</span>
+        <span>Built with <span style="color:var(--cyan)">♥</span> using Node.js, MongoDB & AI</span>
+    </div>
+</footer>
+
+<!-- ═══ LOGIN MODAL ════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="authModal" onclick="handleModalOverlayClick(event)">
+    <div class="modal-box">
+        <div class="modal-top"></div>
+        <div class="modal-content-wrap">
+
+            <!-- LOGIN FORM -->
+            <div id="loginFormWrap">
+                <div class="modal-header">
+                    <div class="modal-title">Welcome Back</div>
+                    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="loginFormElement" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <div class="form-input-wrap">
+                            <span class="form-input-icon"><i class="fas fa-envelope"></i></span>
+                            <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div class="form-input-wrap">
+                            <span class="form-input-icon"><i class="fas fa-lock"></i></span>
+                            <input type="password" id="loginPassword" class="form-input" placeholder="Your password" required>
+                            </div>
+                            <div style="text-align:center;margin-top:6px">
+                        <a href="#" onclick="showForgotPassword()" style="font-size:13px;color:#00d4c8; text-decoration: none;">
+                            Forgot Password?
+                        </a>
+                    </div>
+                    </div>
+                 <button type="submit" class="form-submit">
+                   <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
+                    <div class="auth-divider">
+                    <span>OR</span></div>
+                <button type="button" onclick="loginWithGoogle()" class="form-submit" style="background:transparent;color:#fffdfd;border:1px solid #ddd">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg">Continue with Google
+                 </button>
+                
+                </form>
+                <p class="form-switch">Don't have an account? <a href="#" onclick="showRegister()">Sign up free</a></p>
+            </div>
+
+            <!-- REGISTER FORM -->
+            <div id="registerFormWrap" style="display:none">
+                <div class="modal-header">
+                    <div class="modal-title">Create Account</div>
+                    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="registerFormElement" onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <div class="form-input-wrap">
+                            <span class="form-input-icon"><i class="fas fa-user"></i></span>
+                            <input type="text" id="registerName" class="form-input" placeholder="John Doe" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <div class="form-input-wrap">
+                            <span class="form-input-icon"><i class="fas fa-envelope"></i></span>
+                            <input type="email" id="registerEmail" class="form-input" placeholder="your@email.com" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div class="form-input-wrap">
+                            <span class="form-input-icon"><i class="fas fa-lock"></i></span>
+                            <input type="password" id="registerPassword" class="form-input" placeholder="Min 6 characters" required minlength="6">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Company <span style="color:var(--slate-2)">(Optional)</span></label>
+                        <div class="form-input-wrap">
+                            <span class="form-input-icon"><i class="fas fa-building"></i></span>
+                            <input type="text" id="registerCompany" class="form-input" placeholder="Your company name">
+                        </div>
+                    </div>
+                    <button type="submit" class="form-submit">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                </form>
+                <p class="form-switch">Already have an account? <a href="#" onclick="showLogin()">Sign in</a></p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Loading -->
+<div id="loadingOverlay" style="display:none;flex-direction:column;gap:1rem">
+    <i class="fas fa-spinner fa-spin fa-2x"></i>
+    <span id="loadingMsg" style="color:var(--slate)">Loading...</span>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+    // ── Modal ──────────────────────────────────────────────────────────────────
+    function showLogin() {
+        document.getElementById('authModal').classList.add('open');
+        document.getElementById('loginFormWrap').style.display = 'block';
+        document.getElementById('registerFormWrap').style.display = 'none';
+    }
+
+    function showRegister() {
+        document.getElementById('authModal').classList.add('open');
+        document.getElementById('loginFormWrap').style.display = 'none';
+        document.getElementById('registerFormWrap').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('authModal').classList.remove('open');
+    }
+
+    function handleModalOverlayClick(e) {
+        if (e.target === document.getElementById('authModal')) closeModal();
+    }
+
+    // ── Mobile nav ─────────────────────────────────────────────────────────────
+    function toggleMobileMenu() {
+        document.getElementById('mobileMenu').classList.toggle('open');
+    }
+
+    function closeMobileMenu() {
+        document.getElementById('mobileMenu').classList.remove('open');
+    }
+
+    // ── Loading ────────────────────────────────────────────────────────────────
+    function showLoading(msg) {
+        document.getElementById('loadingMsg').textContent = msg || 'Loading...';
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+
+    function hideLoading() {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    // ── Toast ──────────────────────────────────────────────────────────────────
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+        toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${message}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(60px)';
+            toast.style.transition = 'all 0.3s';
+            setTimeout(() => toast.remove(), 350);
+        }, 3200);
+    }
+
+    // ── Auth UI ────────────────────────────────────────────────────────────────
+    function updateUIForLoggedInUser(user) {
+        document.getElementById('navAuth').style.display = 'none';
+        document.getElementById('navUser').style.display = 'flex';
+        document.getElementById('mobileNavAuth').style.display = 'none';
+        document.getElementById('mobileNavUser').style.display = 'flex';
+        document.getElementById('mobileNavUser').style.flexDirection = 'column';
+
+        const avatar = document.getElementById('userAvatar');
+        avatar.src = user.avatar ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=00d4c8&color=060a12&bold=true`;
+    }
+
+    // ── Scroll reveal ──────────────────────────────────────────────────────────
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
         });
+    }, { threshold: 0.12 });
 
-        function scrollToFeatures() {
-            document.getElementById('featuresSection').scrollIntoView({ behavior: 'smooth' });
-        }
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-        function showLogin() {
-            document.getElementById('authModal').style.display = 'flex';
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('registerForm').style.display = 'none';
-        }
+    // ── Init ───────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        checkAuth();
 
-        function showRegister() {
-            document.getElementById('authModal').style.display = 'flex';
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('registerForm').style.display = 'block';
-        }
-
-        function closeModal() {
-            document.getElementById('authModal').style.display = 'none';
-        }
-
-        document.getElementById('authModal').addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
+        // Smooth anchor scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', e => {
+                const target = document.querySelector(a.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
         });
-    </script>
+    });
+</script>
 </body>
 </html>
