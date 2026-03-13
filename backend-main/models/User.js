@@ -1,6 +1,7 @@
 // backend/models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -19,7 +20,7 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: [true, 'Please provide a password'],
-        minlength: [6, 'Password must be at least 6 characters'],
+        minlength: [8, 'Password must be at least 8 characters'],
         select: false
     },
     role: {
@@ -50,6 +51,17 @@ userSchema.pre('save', async function(next) {
 
 userSchema.methods.matchPassword = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Generate and hash a password reset token
+userSchema.methods.getResetPasswordToken = function() {
+    // Generate random 32-byte hex token (sent in email, not stored)
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    // Store hashed version in DB
+    this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    // Expire in 30 minutes
+    this.resetPasswordExpire = Date.now() + 30 * 60 * 1000;
+    return resetToken;
 };
 
 module.exports = mongoose.model('User', userSchema);

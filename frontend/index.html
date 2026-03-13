@@ -1136,7 +1136,9 @@
                 <img src="" alt="User" id="userAvatar" class="user-avatar">
                 <div class="user-dropdown">
                     <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+                    <a href="dashboard.html#settingsSection"><i class="fas fa-cog"></i>Settings</a>
                     <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    
                 </div>
             </div>
         </div>
@@ -1328,12 +1330,12 @@
             <p class="feat-desc">Secure user registration and login with bcrypt password hashing and JWT tokens. Three role levels — user, architect, and admin — with route-level access control.</p>
         </div>
 
-        <div class="feat-card reveal reveal-delay-5">
+        <!-- <div class="feat-card reveal reveal-delay-5">
             <div class="feat-icon c5"><i class="fas fa-tachometer-alt"></i></div>
             <div class="feat-tag">Administration</div>
             <div class="feat-title">Admin Dashboard & Analytics</div>
             <p class="feat-desc">A full-featured admin panel with real-time stats, user/project management, growth charts, activity feeds, and top contributors — all protected by admin-only middleware.</p>
-        </div>
+        </div> -->
 
         <div class="feat-card reveal reveal-delay-6">
             <div class="feat-icon c6"><i class="fas fa-magic"></i></div>
@@ -1546,7 +1548,29 @@
                         <label class="form-label">Password</label>
                         <div class="form-input-wrap">
                             <span class="form-input-icon"><i class="fas fa-lock"></i></span>
-                            <input type="password" id="registerPassword" class="form-input" placeholder="Min 6 characters" required minlength="6">
+                            <input type="password" id="registerPassword" class="form-input"
+                                placeholder="R7#X!3mK@9pV4" required minlength="8"
+                                oninput="checkRegisterStrength(this.value)">
+                            <button type="button" onclick="toggleRegisterPw(this)"
+                                style="position:absolute;right:0.875rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--slate-2);cursor:pointer;font-size:0.85rem;">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div id="strengthWrap" style="margin-top:0.6rem;display:none;">
+                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:5px;">
+                                <div id="rbar1" style="height:4px;border-radius:99px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
+                                <div id="rbar2" style="height:4px;border-radius:99px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
+                                <div id="rbar3" style="height:4px;border-radius:99px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
+                                <div id="rbar4" style="height:4px;border-radius:99px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
+                            </div>
+                            <div id="rStrengthLabel" style="font-size:0.75rem;font-weight:600;color:var(--slate-2);display:flex;align-items:center;gap:5px;margin-bottom:4px;">Enter a password</div>
+                            <div style="display:flex;flex-direction:column;gap:3px;">
+                                <div id="rrule-len"   style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> Min 8 characters</div>
+                                <div id="rrule-upper" style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 uppercase (A-Z)</div>
+                                <div id="rrule-lower" style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 lowercase (a-z)</div>
+                                <div id="rrule-num"   style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 number (0-9)</div>
+                                <div id="rrule-sym"   style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 special char (@#!$%...)</div>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -1561,6 +1585,33 @@
                     </button>
                 </form>
                 <p class="form-switch">Already have an account? <a href="#" onclick="showLogin()">Sign in</a></p>
+            </div>
+
+            <!-- FORGOT PASSWORD PANEL -->
+            <div id="forgotFormWrap" style="display:none">
+                <div class="modal-header">
+                    <div class="modal-title">Forgot Password</div>
+                    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+                </div>
+                <p style="color:var(--slate);font-size:0.875rem;margin-bottom:1.25rem;line-height:1.6;">
+                    Enter your registered email address and we will send you a password reset link.
+                </p>
+                <form id="forgotFormElement" onsubmit="handleForgotPassword(event)">
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <div class="form-input-wrap">
+                            <span class="form-input-icon"><i class="fas fa-envelope"></i></span>
+                            <input type="email" id="forgotEmail" class="form-input"
+                                placeholder="your@email.com" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="form-submit" id="forgotSubmitBtn">
+                        <i class="fas fa-paper-plane"></i> Send Reset Link
+                    </button>
+                </form>
+                <p class="form-switch" style="margin-top:1rem;">
+                    Remembered it? <a href="#" onclick="showLogin()">Back to Login</a>
+                </p>
             </div>
 
         </div>
@@ -1583,16 +1634,113 @@
         document.getElementById('authModal').classList.add('open');
         document.getElementById('loginFormWrap').style.display = 'block';
         document.getElementById('registerFormWrap').style.display = 'none';
+        document.getElementById('forgotFormWrap').style.display = 'none';
     }
 
     function showRegister() {
         document.getElementById('authModal').classList.add('open');
         document.getElementById('loginFormWrap').style.display = 'none';
         document.getElementById('registerFormWrap').style.display = 'block';
+        document.getElementById('forgotFormWrap').style.display = 'none';
+    }
+
+    function showForgotPassword() {
+        document.getElementById('authModal').classList.add('open');
+        document.getElementById('loginFormWrap').style.display = 'none';
+        document.getElementById('registerFormWrap').style.display = 'none';
+        document.getElementById('forgotFormWrap').style.display = 'block';
     }
 
     function closeModal() {
         document.getElementById('authModal').classList.remove('open');
+    }
+
+    // ── Forgot Password Handler ────────────────────────────────────────────
+    async function handleForgotPassword(event) {
+        event.preventDefault();
+        const email = document.getElementById('forgotEmail').value.trim();
+        const btn   = document.getElementById('forgotSubmitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+        try {
+            const res  = await fetch('http://localhost:5000/api/auth/forgot-password', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ email })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Request failed');
+
+            showToast('Reset link sent! Check your email inbox.', 'success');
+            document.getElementById('forgotFormElement').reset();
+            setTimeout(closeModal, 2500);
+        } catch (err) {
+            showToast(err.message || 'Could not send reset email', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
+        }
+    }
+
+    // ── Password Strength (Register form) ─────────────────────────────────
+    function checkRegisterStrength(value) {
+        const wrap = document.getElementById('strengthWrap');
+        if (!wrap) return;
+        wrap.style.display = value.length > 0 ? 'block' : 'none';
+
+        const rules = {
+            len:   value.length >= 8,
+            upper: /[A-Z]/.test(value),
+            lower: /[a-z]/.test(value),
+            num:   /[0-9]/.test(value),
+            sym:   /[^A-Za-z0-9]/.test(value)
+        };
+
+        Object.keys(rules).forEach(key => {
+            const el = document.getElementById('rrule-' + key);
+            if (!el) return;
+            const icon = el.querySelector('i');
+            if (rules[key]) {
+                el.style.color = '#10b981';
+                if (icon) { icon.className = 'fas fa-check-circle'; icon.style.fontSize = '0.55rem'; }
+            } else {
+                el.style.color = 'var(--slate-2)';
+                if (icon) { icon.className = 'fas fa-circle'; icon.style.fontSize = '0.55rem'; }
+            }
+        });
+
+        const score = Object.values(rules).filter(Boolean).length;
+        const bars  = ['rbar1','rbar2','rbar3','rbar4'];
+        const label = document.getElementById('rStrengthLabel');
+
+        bars.forEach(id => {
+            const b = document.getElementById(id);
+            if (b) b.style.background = 'rgba(255,255,255,0.1)';
+        });
+
+        let color, text, count;
+        if (score <= 2)      { color = '#ef4444'; text = '● Weak';   count = 1; }
+        else if (score <= 4) { color = '#f59e0b'; text = '● Medium'; count = 2; }
+        else                 { color = '#10b981'; text = '● Strong'; count = 4; }
+
+        for (let i = 0; i < count; i++) {
+            const b = document.getElementById(bars[i]);
+            if (b) b.style.background = color;
+        }
+        if (label) { label.textContent = text; label.style.color = color; }
+    }
+
+    function toggleRegisterPw(btn) {
+        const input = document.getElementById('registerPassword');
+        const icon  = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'fas fa-eye';
+        }
     }
 
     function handleModalOverlayClick(e) {

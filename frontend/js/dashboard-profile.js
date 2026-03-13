@@ -1,0 +1,222 @@
+// dashboard-profile.js — Profile picture upload & sync for SmartArch
+// Works alongside existing auth.js / dashboard.js without touching them.
+
+// ── Profile Picture IDs present in dashboard.html ──────────────
+const AVATAR_IDS = ['sidebarAvatar', 'headerAvatar', 'settingsProfilePic'];
+const STORAGE_KEY = 'user_avatar';
+
+// ── On load: restore saved profile picture ─────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+    restoreProfilePicture();
+    initSettingsNav();
+    loadPreferences();
+    
+});
+
+// ── Restore profile picture from localStorage ──────────────────
+function restoreProfilePicture() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+        setAllAvatars(saved);
+    } else {
+        // Fall back to user data
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user.avatar) {
+                    setAllAvatars(user.avatar);
+                } else {
+                    const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=00d4c8&color=060a12&bold=true&size=128`;
+                    setAllAvatars(fallback);
+                }
+            } catch (e) { /* ignore */ }
+        }
+    }
+}
+
+function setAllAvatars(src) {
+    AVATAR_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.src = src;
+    });
+}
+
+// ── Handle file upload ─────────────────────────────────────────
+function handleProfilePicUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate type
+    if (!file.type.startsWith('image/')) {
+        showToast('Please select a valid image file.', 'error');
+        return;
+    }
+
+    // Validate size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('Image must be less than 5MB.', 'error');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const dataUrl = e.target.result;
+
+        // Save to localStorage
+        localStorage.setItem(STORAGE_KEY, dataUrl);
+
+        // Update all avatar elements
+        setAllAvatars(dataUrl);
+
+        // Persist in user object stored in localStorage
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                user.avatar = dataUrl;
+                localStorage.setItem('user', JSON.stringify(user));
+            } catch (e) { /* ignore */ }
+        }
+
+        // Push to backend (fire-and-forget — doesn't break anything if it fails)
+        pushAvatarToBackend(dataUrl);
+
+        showToast('Profile picture updated!', 'success');
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input so same file can be re-selected
+    event.target.value = '';
+}
+
+// ── Remove profile picture ─────────────────────────────────────
+function removeProfilePic() {
+    localStorage.removeItem(STORAGE_KEY);
+
+    const userStr = localStorage.getItem('user');
+    let fallback = 'https://ui-avatars.com/api/?name=U&background=00d4c8&color=060a12&bold=true&size=128';
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            user.avatar = '';
+            localStorage.setItem('user', JSON.stringify(user));
+            fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=00d4c8&color=060a12&bold=true&size=128`;
+        } catch (e) { /* ignore */ }
+    }
+
+    setAllAvatars(fallback);
+    showToast('Profile picture removed.', 'info');
+}
+
+// ── Push avatar to backend (non-blocking) ─────────────────────
+async function pushAvatarToBackend(avatarDataUrl) {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        await fetch('http://localhost:5000/api/auth/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ avatar: avatarDataUrl })
+        });
+    } catch (e) {
+        // Silent fail — local storage is the source of truth
+    }
+}
+
+// ── Settings sub-navigation ────────────────────────────────────
+function initSettingsNav() {
+    document.querySelectorAll('.settings-nav-item').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.settings-nav-item').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const panel = this.dataset.panel;
+            document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+            const el = document.getElementById('panel-' + panel);
+            if (el) el.classList.add('active');
+        });
+    });
+}
+
+// ── Settings navigation helper (from header avatar click) ──────
+function switchToSettings() {
+    // Click the settings nav item in sidebar
+    const btn = document.querySelector('[data-section="settings"]');
+    if (btn) btn.click();
+}
+
+// ── Save preferences to localStorage ──────────────────────────
+function savePreference(key, value) {
+    const prefs = JSON.parse(localStorage.getItem('user_prefs') || '{}');
+    prefs[key] = value;
+    localStorage.setItem('user_prefs', JSON.stringify(prefs));
+    showToast('Preference saved.', 'success');
+}
+
+// ── Load and apply preferences ─────────────────────────────────
+function loadPreferences() {
+    const prefs = JSON.parse(localStorage.getItem('user_prefs') || '{}');
+    const el = id => document.getElementById(id);
+
+    if (el('autoSaveToggle'))   el('autoSaveToggle').checked   = prefs.autoSave   !== false;
+    if (el('emailNotifToggle')) el('emailNotifToggle').checked  = prefs.emailNotif === true;
+    if (el('defaultViewToggle'))el('defaultViewToggle').checked = prefs.defaultView === true;
+    if (el('defaultUnit') && prefs.unit) el('defaultUnit').value = prefs.unit;
+}
+
+// ── Change password helper ─────────────────────────────────────
+async function updatePassword(event) {
+    event.preventDefault();
+    const current = document.getElementById('currentPassword').value;
+    const next    = document.getElementById('newPassword').value;
+    const confirm = document.getElementById('confirmPassword').value;
+
+    if (!current || !next || !confirm) {
+        showToast('Please fill in all password fields.', 'error');
+        return;
+    }
+    if (next !== confirm) {
+        showToast('New passwords do not match.', 'error');
+        return;
+    }
+    if (next.length < 8) {
+        showToast('New password must be at least 8 characters.', 'error');
+        return;
+    }
+
+    try {
+        showLoading('Updating password...');
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:5000/api/auth/update-password', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ currentPassword: current, newPassword: next })
+        });
+        const data = await res.json();
+        hideLoading();
+        if (!res.ok) throw new Error(data.message || 'Failed to update password');
+        if (data.token) {
+            localStorage.setItem('token', data.token);
+            if (window.api) window.api.setToken(data.token);
+        }
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value     = '';
+        document.getElementById('confirmPassword').value = '';
+        showToast('Password updated successfully!', 'success');
+    } catch (err) {
+        hideLoading();
+        showToast(err.message || 'Failed to update password', 'error');
+    }
+}
+
+window.handleProfilePicUpload = handleProfilePicUpload;
+window.removeProfilePic       = removeProfilePic;
+window.switchToSettings       = switchToSettings;
+window.savePreference         = savePreference;
+window.updatePassword         = updatePassword;

@@ -326,6 +326,7 @@ function setTool(tool){
 }
 
 function setView(view){
+ 
   // Redirect old 3d view calls to interior/3dmodel sub-view
   if(view==='3d'){setView('interior');setTimeout(()=>setInteriorSubView('3dmodel'),80);return;}
   currentView=view;
@@ -335,6 +336,7 @@ function setView(view){
   el('zoomControls').style.display='none';el('snapControls').style.display='none';el('snapSize').style.display='none';
   if(el('openTopToggle'))el('openTopToggle').style.display='none';
   if(el('wireframeToggleBtn'))el('wireframeToggleBtn').style.display='none';
+  if(el('wireframeBtn2'))el('wireframeBtn2').style.display='none';
   if(el('fpCameraBtn'))el('fpCameraBtn').style.display='none';
   if(el('interiorSubTabs'))el('interiorSubTabs').style.display='none';
   if(el('interiorControls'))el('interiorControls').style.display='none';
@@ -348,6 +350,7 @@ function setView(view){
     if(el('interiorSubTabs'))el('interiorSubTabs').style.display='flex';
     if(el('interiorControls'))el('interiorControls').style.display='block';
     // Always show wireframe + walk in 3D view
+    if(el('wireframeBtn2'))el('wireframeBtn2').style.display='inline-flex';
     if(el('wireframeToggleBtn'))el('wireframeToggleBtn').style.display='inline-flex';
     if(el('fpCameraBtn'))el('fpCameraBtn').style.display='inline-flex';
     if(typeof initInteriorView==='function')initInteriorView(projectData);
@@ -957,23 +960,35 @@ function addStaircase(scene,W,D,baseY,floorH,style,cx,cz){
 }
 
 // ── Wireframe Toggle ─────────────────────────────────────────
-let _wireframeActive=false;
+let _wireframeActive = false;
+
 function toggleWireframe(){
-  _wireframeActive=!_wireframeActive;
-  const btn=el('wireframeToggleBtn');
-  if(btn)btn.classList.toggle('active',_wireframeActive);
-  // Work on interior.js scene via window._3dScene or THREE scene ref
-  const sceneRef=window._3dScene||window._interiorScene;
+
+  _wireframeActive = !_wireframeActive;
+
+  // update BOTH possible buttons
+  const btn1 = document.getElementById('wireframeBtn2');
+  const btn2 = document.getElementById('wireframeToggleBtn');
+
+  if(btn1) btn1.classList.toggle('active', _wireframeActive);
+  if(btn2) btn2.classList.toggle('active', _wireframeActive);
+
+  // access 3D scene
+  const sceneRef = window._3dScene || window._interiorScene;
+
   if(sceneRef){
     sceneRef.traverse(obj=>{
-      if(obj.isMesh&&obj.material){
-        const mats=Array.isArray(obj.material)?obj.material:[obj.material];
-        mats.forEach(m=>{m.wireframe=_wireframeActive;});
+      if(obj.isMesh && obj.material){
+        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+        mats.forEach(m=>{
+          m.wireframe = _wireframeActive;
+        });
       }
     });
   }
 }
-window.toggleWireframe=toggleWireframe;
+
+window.toggleWireframe = toggleWireframe;
 
 // ── First-Person Camera ──────────────────────────────────────
 let _fpActive=false,_fpControls=null;
