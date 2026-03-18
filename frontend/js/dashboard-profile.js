@@ -3,7 +3,17 @@
 
 // ── Profile Picture IDs present in dashboard.html ──────────────
 const AVATAR_IDS = ['sidebarAvatar', 'headerAvatar', 'settingsProfilePic'];
-const STORAGE_KEY = 'user_avatar';
+
+// Returns a per-user storage key so each user's avatar is stored independently.
+function getAvatarStorageKey() {
+    try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const uid = user.id || user._id || 'guest';
+        return 'user_avatar_' + uid;
+    } catch (e) {
+        return 'user_avatar_guest';
+    }
+}
 
 // ── On load: restore saved profile picture ─────────────────────
 document.addEventListener('DOMContentLoaded', function () {
@@ -15,21 +25,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // ── Restore profile picture from localStorage ──────────────────
 function restoreProfilePicture() {
+    const STORAGE_KEY = getAvatarStorageKey();
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
         setAllAvatars(saved);
     } else {
-        // Fall back to user data
+        // Fall back to user data from backend (avatar field only — no generated fallback)
         const userStr = localStorage.getItem('user');
         if (userStr) {
             try {
                 const user = JSON.parse(userStr);
                 if (user.avatar) {
                     setAllAvatars(user.avatar);
-                } else {
-                    const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=00d4c8&color=060a12&bold=true&size=128`;
-                    setAllAvatars(fallback);
                 }
+                // No avatar at all → leave the default initials/placeholder shown by HTML
             } catch (e) { /* ignore */ }
         }
     }
@@ -62,8 +71,9 @@ function handleProfilePicUpload(event) {
     const reader = new FileReader();
     reader.onload = function (e) {
         const dataUrl = e.target.result;
+        const STORAGE_KEY = getAvatarStorageKey();
 
-        // Save to localStorage
+        // Save to localStorage under per-user key
         localStorage.setItem(STORAGE_KEY, dataUrl);
 
         // Update all avatar elements
@@ -92,20 +102,23 @@ function handleProfilePicUpload(event) {
 
 // ── Remove profile picture ─────────────────────────────────────
 function removeProfilePic() {
+    const STORAGE_KEY = getAvatarStorageKey();
     localStorage.removeItem(STORAGE_KEY);
 
     const userStr = localStorage.getItem('user');
-    let fallback = 'https://ui-avatars.com/api/?name=U&background=00d4c8&color=060a12&bold=true&size=128';
     if (userStr) {
         try {
             const user = JSON.parse(userStr);
             user.avatar = '';
             localStorage.setItem('user', JSON.stringify(user));
-            fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=00d4c8&color=060a12&bold=true&size=128`;
         } catch (e) { /* ignore */ }
     }
 
-    setAllAvatars(fallback);
+    // Clear src on all avatar elements — the HTML/CSS initials placeholder will show instead
+    AVATAR_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.src = '';
+    });
     showToast('Profile picture removed.', 'info');
 }
 
@@ -190,7 +203,7 @@ async function updatePassword(event) {
     try {
         showLoading('Updating password...');
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/auth/update-password', {
+        const res = await fetch('http://localhost:5000/api/auth/password', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -220,3 +233,5 @@ window.removeProfilePic       = removeProfilePic;
 window.switchToSettings       = switchToSettings;
 window.savePreference         = savePreference;
 window.updatePassword         = updatePassword;
+
+

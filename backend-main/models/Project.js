@@ -5,7 +5,7 @@ const roomSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
     type: {
         type: String,
-        enum: ['living', 'bedroom', 'bathroom', 'kitchen', 'dining', 'office', 'garage', 'storage', 'other'],
+        enum: ['living', 'bedroom', 'bathroom', 'kitchen', 'dining', 'office', 'garage', 'storage', 'staircase', 'other'],
         default: 'other'
     },
     width: { type: Number, required: true, min: 0 },
@@ -20,6 +20,16 @@ const roomSchema = new mongoose.Schema({
         type: { type: String, enum: ['window', 'door', 'closet', 'fixture', 'appliance'] },
         position: { x: Number, y: Number, z: Number },
         size: { width: Number, height: Number }
+    }],
+    doors: [{
+        wall:  { type: String, enum: ['top', 'bottom', 'left', 'right'] },
+        pos:   { type: Number, default: 0.5 },
+        width: { type: Number, default: 0.9 }
+    }],
+    windows: [{
+        wall:  { type: String, enum: ['top', 'bottom', 'left', 'right'] },
+        pos:   { type: Number, default: 0.5 },
+        width: { type: Number, default: 1.0 }
     }]
 });
 

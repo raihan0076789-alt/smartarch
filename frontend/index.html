@@ -7,6 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
    
     <style>
         /* ── Reset & Root ─────────────────────────────────────────────── */
@@ -1097,6 +1099,78 @@
             width:20px;
             height:20px;
         }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+            }
+
+            .input-field {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            }
+
+            .hint {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            }
+
+            .tips-btn {
+            background: none;
+            border: none;
+            color: #a4a5a6;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 8px;
+            font-size: 12px;
+            margin-left: 280px;
+            margin-top: 0;
+            }
+
+            .tips-popup {
+            display: none;
+            position: absolute;
+            top: 70px;
+            left: 0;
+            width: 300px;
+            background:rgb(20, 19, 51);
+            color: #eae2e2;
+            border: 1px solid #030303;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10;
+            }
+
+            .tips-popup h3 {
+            margin-top: 0;
+            font-size: 16px;
+            }
+
+            .tips-popup h4 {
+            margin-bottom: 5px;
+            font-size: 14px;
+            }
+
+            .tips-popup ul {
+            padding-left: 18px;
+            margin: 0;
+            }
+
+            .close-btn {
+            background: #e80c08;
+            color: #f6f3f3;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            margin-left: 200px;
+            }
        </style>
 </head>
 <body>
@@ -1136,9 +1210,9 @@
                 <img src="" alt="User" id="userAvatar" class="user-avatar">
                 <div class="user-dropdown">
                     <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
-                    <a href="dashboard.html#settingsSection"><i class="fas fa-cog"></i>Settings</a>
+                    <a href="dashboard.html#settingsSection" onclick="openSettings()"><i class="fas fa-cog"></i>Settings</a>
                     <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                    
+                  
                 </div>
             </div>
         </div>
@@ -1458,7 +1532,7 @@
             <h4>Product</h4>
             <a href="#features">Features</a>
             <a href="#workflow">How It Works</a>
-            <a href="dashboard.html">Dashboard</a>
+           
         </div>
         <div class="footer-col">
             <h4>Company</h4>
@@ -1563,17 +1637,31 @@
                                 <div id="rbar3" style="height:4px;border-radius:99px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
                                 <div id="rbar4" style="height:4px;border-radius:99px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
                             </div>
-                            <div id="rStrengthLabel" style="font-size:0.75rem;font-weight:600;color:var(--slate-2);display:flex;align-items:center;gap:5px;margin-bottom:4px;">Enter a password</div>
-                            <div style="display:flex;flex-direction:column;gap:3px;">
+                             <div id="rStrengthLabel" style="font-size:0.75rem;font-weight:600;color:var(--slate-2);display:flex;align-items:center;gap:5px;margin-bottom:4px;">Enter a password</div>
+                              <button type="button" class="tips-btn" onclick="toggleTips()">Password tips <i class="fas fa-info-circle"></i></button>
+                              <!-- Password Tips Popup -->
+                                <div id="passwordTips" class="tips-popup">
+                                <h4>Password tips</h4>
+                                
+                                <div style="display:flex;flex-direction:column;gap:3px;">
                                 <div id="rrule-len"   style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> Min 8 characters</div>
                                 <div id="rrule-upper" style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 uppercase (A-Z)</div>
                                 <div id="rrule-lower" style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 lowercase (a-z)</div>
                                 <div id="rrule-num"   style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 number (0-9)</div>
                                 <div id="rrule-sym"   style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 special char (@#!$%...)</div>
-                            </div>
+                                </div>
+                                <h5>What to avoid</h5>
+
+                                <ul>
+                                    <li style="font-size:0.72rem;color:var(--slate-2);align-items:center;gap:5px;">Common passwords, words and names</li>
+                                    <li style="font-size:0.72rem;color:var(--slate-2);align-items:center;gap:5px;">Recent dates or dates associated with you</li>
+                                    <li style="font-size:0.72rem;color:var(--slate-2);align-items:center;gap:5px;">Simple patterns and repeated text</li>
+                                </ul>
+                                <button class="close-btn" onclick="toggleTips()">Close</button>
+                                </div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" >
                         <label class="form-label">Company <span style="color:var(--slate-2)">(Optional)</span></label>
                         <div class="form-input-wrap">
                             <span class="form-input-icon"><i class="fas fa-building"></i></span>
@@ -1628,7 +1716,12 @@
 
 <script src="js/api.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/dashboard-profile.js"></script>
 <script>
+    function toggleTips() {
+        const tips = document.getElementById("passwordTips");
+        tips.style.display = tips.style.display === "block" ? "none" : "block";
+    }
     // ── Modal ──────────────────────────────────────────────────────────────────
     function showLogin() {
         document.getElementById('authModal').classList.add('open');
@@ -1781,7 +1874,7 @@
             setTimeout(() => toast.remove(), 350);
         }, 3200);
     }
-
+   
     // ── Auth UI ────────────────────────────────────────────────────────────────
     function updateUIForLoggedInUser(user) {
         document.getElementById('navAuth').style.display = 'none';

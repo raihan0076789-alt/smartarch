@@ -155,7 +155,7 @@
       ...Array(g('tmplOffice')).fill({ type: 'office', ...sizing.office }),
       ...Array(g('tmplGarage')).fill({ type: 'garage', ...sizing.garage }),
       ...Array(g('tmplBalcony')).fill({ type: 'other', ...sizing.balcony }),
-      ...(gc('tmplStairs') ? [{ type: 'other', ...sizing.stairs }] : [])
+      ...(gc('tmplStairs') ? [{ type: 'staircase', ...sizing.stairs }] : [])
     ];
 
     const totalRooms = rooms.length;
@@ -294,11 +294,11 @@
     // Stairs on each floor except top
     if (counts.stairs) {
       for (let fi = 0; fi < numFloors - 1; fi++) {
-        addRoom(fi, 'other', 'Stairs', sizing.stairs.w, sizing.stairs.d);
+        addRoom(fi, 'staircase', 'Staircase', sizing.stairs.w, sizing.stairs.d);
       }
       // Landing on upper floors
       for (let fi = 1; fi < numFloors; fi++) {
-        addRoom(fi, 'other', 'Landing', sizing.stairs.w, sizing.stairs.d);
+        addRoom(fi, 'staircase', 'Landing', sizing.stairs.w, sizing.stairs.d);
       }
     }
 
@@ -366,7 +366,9 @@
         depth: snapN(d),
         x: Math.max(0, Math.min(W - w, pos.x)),
         z: Math.max(0, Math.min(D - d, pos.z)),
-        height: floorH
+        height: floorH,
+        doors: [],
+        windows: []
       };
       placed.push(r);
     });

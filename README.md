@@ -7,36 +7,118 @@ A complete house architecture design tool with AI chat, 3D visualization, multi-
 ## 📁 Project Structure
 
 ```
-house-architect-pro/
-├── frontend/               # Static HTML/CSS/JS frontend
-│   ├── index.html          # Login/Landing page
-│   ├── dashboard.html      # Project dashboard
-│   ├── architect.html      # Main design studio
-│   ├── css/
-│   │   ├── styles.css
-│   │   ├── architect.css   # Main studio styles + chat styles
-│   │   └── dashboard.css
-│   └── js/
-│       ├── api.js          # API client (connects to port 5000)
-│       ├── auth.js         # Auth helpers
-│       ├── architect.js    # Main studio logic (FIXED)
-│       ├── interior.js     # Interior view
-│       └── templates.js    # House templates
+house-architect-pro-v2
 │
-├── backend-main/           # Main backend: Auth + Projects (Port 5000)
-│   ├── server.js
+├── frontend
+│   │
+│   ├── css
+│   │   ├── admin.css
+│   │   ├── architect.css
+│   │   ├── dashboard.css
+│   │   └── styles.css
+│   │
+│   ├── js
+│   │   ├── admin.js
+│   │   ├── api.js
+│   │   ├── architect.js
+│   │   ├── auth.js
+│   │   ├── dashboard-charts.js
+│   │   ├── dashboard-profile.js
+│   │   ├── dashboard.js
+│   │   ├── interior.js
+│   │   └── templates.js
+│   │
+│   ├── about.html
+│   ├── admin-login.html
+│   ├── admin.html
+│   ├── architect.html
+│   ├── contact.html
+│   ├── dashboard.html
+│   ├── index.html
+│   ├── privacy.html
+│   ├── reset-password.html
+│   └── terms.html
+│
+├── backend-main
+│   │
+│   ├── config
+│   │   └── db.js
+│   │
+│   ├── controllers
+│   │   ├── adminController.js
+│   │   ├── authController.js
+│   │   ├── modelController.js
+│   │   └── projectController.js
+│   │
+│   ├── middleware
+│   │   ├── adminAuth.js
+│   │   ├── auth.js
+│   │   └── validation.js
+│   │
+│   ├── models
+│   │   ├── ModelVersion.js
+│   │   ├── Project.js
+│   │   └── User.js
+│   │
+│   ├── routes
+│   │   ├── adminRoutes.js
+│   │   ├── authRoutes.js
+│   │   ├── modelRoutes.js
+│   │   └── projectRoutes.js
+│   │
+│   ├── utils
+│   │   ├── modelGenerator.js
+│   │   └── sendEmail.js
+│   │
 │   ├── .env
-│   ├── config/db.js        # MongoDB connection
-│   ├── models/             # User, Project schemas
-│   ├── routes/             # Auth, Projects, Models routes
-│   └── controllers/
+│   ├── package-lock.json
+│   ├── package.json
+│   └── server.js
 │
-└── backend-ai/             # AI Backend: Ollama integration (Port 3001)
-    ├── server.js
-    ├── .env
-    ├── services/architectureService.js  # Ollama calls
-    └── routes/architectureRoutes.js     # Chat + Architecture endpoints
-```
+├── backend-ai
+│   │
+│   ├── controllers
+│   │   └── architectureController.js
+│   │
+│   ├── logs
+│   │
+│   ├── middleware
+│   │   ├── errorHandler.js
+│   │   ├── rateLimiter.js
+│   │   ├── requestLogger.js
+│   │   └── validators.js
+│   │
+│   ├── routes
+│   │   └── architectureRoutes.js
+│   │
+│   ├── services
+│   │   └── architectureService.js
+│   │
+│   ├── tests
+│   │   └── api.test.js
+│   │
+│   ├── utils
+│   │   ├── errors.js
+│   │   └── logger.js
+│   │
+│   ├── .env
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── API_DOCUMENTATION.md
+│   ├── DEPLOYMENT.md
+│   ├── docker-compose.yml
+│   ├── Dockerfile
+│   ├── FRONTEND_README.md
+│   ├── IMPROVEMENTS.md
+│   ├── OLLAMA_SETUP.md
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── QUICKSTART.md
+│   ├── README.md
+│   └── server.js
+│
+├── package.json
+└── README.md
 
 ---
 

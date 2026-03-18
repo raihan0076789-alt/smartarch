@@ -163,10 +163,28 @@ function getDoorWindowAt(mx,my){
   return null;
 }
 
+// ── Measure tool state ───────────────────────────────────────
+let _measureStart=null,_measureEnd=null,_measureActive=false,_measureComplete=false;
+
 function handleMouseDown(e){
   if(currentView!=='2d')return;
   const rect=e.target.getBoundingClientRect();
   const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+  if(currentTool==='measure'){
+    if(_measureComplete){
+      // A completed measurement is on screen — next click starts a fresh one
+      _measureStart=toWorld(mx,my);_measureEnd=null;_measureActive=true;_measureComplete=false;
+    } else if(!_measureActive||!_measureStart){
+      _measureStart=toWorld(mx,my);_measureEnd=null;_measureActive=true;_measureComplete=false;
+    } else {
+      _measureEnd=toWorld(mx,my);_measureActive=false;_measureComplete=true;
+      const dx=_measureEnd.x-_measureStart.x,dy=_measureEnd.y-_measureStart.y;
+      const dist=Math.sqrt(dx*dx+dy*dy).toFixed(2);
+      showToast(`Distance: ${dist} m`,'info');
+      drawFloorPlan();
+    }
+    return;
+  }
   if(currentTool==='select'){
     const handle=getHandleAt(mx,my);
     if(handle){isResizing=true;resizeHandle=handle;dragStart={x:mx,y:my,origRoom:{...selectedRoom}};return;}
@@ -208,6 +226,10 @@ function handleMouseMove(e){
   const rect=e.target.getBoundingClientRect();
   const mx=e.clientX-rect.left,my=e.clientY-rect.top;
   const canvas=el('floorplanCanvas');
+  // Live measure preview (only while actively placing second point)
+  if(currentTool==='measure'&&_measureActive&&!_measureComplete&&_measureStart){
+    _measureEnd=toWorld(mx,my);drawFloorPlan();return;
+  }
   if(isDraggingElement){
     const floor=projectData.floors[activeFloorIdx];
     const{type,roomIdx,elIdx}=isDraggingElement;
@@ -260,11 +282,33 @@ function addRoomAt(px,py){
   const w=toWorld(px,py);
   const types=['living','bedroom','bathroom','kitchen','dining','office'];
   const type=types[Math.floor(Math.random()*types.length)];
-  const room={name:type.charAt(0).toUpperCase()+type.slice(1),type,width:4,depth:4,
-    x:snap(Math.max(0,Math.min(projectData.totalWidth-4,w.x-2))),
-    z:snap(Math.max(0,Math.min(projectData.totalDepth-4,w.y-2))),
-    height:projectData.floors[activeFloorIdx]?.height||2.7,doors:[],windows:[]};
-  projectData.floors[activeFloorIdx].rooms.push(room);
+  const rw=4,rd=4;
+  const floor=projectData.floors[activeFloorIdx];
+  // Try to place at click position first, then search nearby if overlapping
+  let rx=snap(Math.max(0,Math.min(projectData.totalWidth-rw,w.x-rw/2)));
+  let rz=snap(Math.max(0,Math.min(projectData.totalDepth-rd,w.y-rd/2)));
+  const overlaps=(x,z)=>floor.rooms.some(r=>x<r.x+r.width+0.3&&x+rw>r.x-0.3&&z<r.z+r.depth+0.3&&z+rd>r.z-0.3);
+  if(overlaps(rx,rz)){
+    let placed=false;
+    for(let tries=0;tries<60&&!placed;tries++){
+      const tx=snap(Math.random()*Math.max(0,projectData.totalWidth-rw));
+      const tz=snap(Math.random()*Math.max(0,projectData.totalDepth-rd));
+      if(!overlaps(tx,tz)){rx=tx;rz=tz;placed=true;}
+    }
+    if(!placed){
+      // nudge in steps until a free spot is found
+      outer:for(let dz=0;dz<=projectData.totalDepth;dz+=rd+0.5){
+        for(let dx=0;dx<=projectData.totalWidth;dx+=rw+0.5){
+          const tx=snap(Math.min(projectData.totalWidth-rw,dx));
+          const tz=snap(Math.min(projectData.totalDepth-rd,dz));
+          if(!overlaps(tx,tz)){rx=tx;rz=tz;placed=true;break outer;}
+        }
+      }
+    }
+  }
+  const room={name:type.charAt(0).toUpperCase()+type.slice(1),type,width:rw,depth:rd,
+    x:rx,z:rz,height:floor?.height||2.7,doors:[],windows:[]};
+  floor.rooms.push(room);
   selectedRoom=room;renderRooms();showRoomProperties(room);updateInfoPanel();drawFloorPlan();markUnsaved();
 }
 
@@ -318,10 +362,12 @@ function clearRoomWindows(){if(!selectedRoom)return;selectedRoom.windows=[];draw
 
 function setTool(tool){
   currentTool=tool;
+  if(tool!=='measure'){_measureStart=null;_measureEnd=null;_measureActive=false;_measureComplete=false;}
   document.querySelectorAll('.tool-btn').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));
   const c=el('floorplanCanvas');
   if(tool==='door'||tool==='window'){c.style.cursor='cell';showToast(`Click near a room wall to place a ${tool}. Drag placed elements to reposition.`,'info');}
   else if(tool==='staircase'){c.style.cursor='crosshair';showToast('Click anywhere to place a staircase. Drag to move after placing.','info');}
+  else if(tool==='measure'){c.style.cursor='crosshair';showToast('Click two points to measure distance between them.','info');}
   else c.style.cursor=tool==='select'?'default':'crosshair';
 }
 
@@ -453,6 +499,30 @@ function drawFloorPlan(){
   ctx.textAlign='left';ctx.fillStyle=dimColor;ctx.font='10px monospace';ctx.textBaseline='bottom';
   ctx.fillText(`Scale: 1m=${scale.toFixed(0)}px  |  Zoom: ${Math.round(zoomLevel*100)}%`,off.x,canvas.height-8);
   drawCompass(ctx,canvas.width-40,canvas.height-40,22,isDark);
+  // Draw measure tool overlay
+  if(currentTool==='measure'){
+    if(_measureStart){
+      const sp=toCanvas(_measureStart.x,_measureStart.y);
+      ctx.beginPath();ctx.arc(sp.x,sp.y,6,0,Math.PI*2);ctx.fillStyle='#f0c040';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+      if(_measureActive&&!_measureComplete){
+        ctx.fillStyle='#f0c040';ctx.font='bold 11px sans-serif';ctx.textAlign='left';ctx.textBaseline='top';
+        ctx.fillText('Click second point to measure',sp.x+10,sp.y-14);
+      }
+    }
+    if(_measureStart&&_measureEnd){
+      const sp=toCanvas(_measureStart.x,_measureStart.y),ep=toCanvas(_measureEnd.x,_measureEnd.y);
+      ctx.beginPath();ctx.moveTo(sp.x,sp.y);ctx.lineTo(ep.x,ep.y);ctx.strokeStyle='#f0c040';ctx.lineWidth=2;ctx.setLineDash([6,3]);ctx.stroke();ctx.setLineDash([]);
+      ctx.beginPath();ctx.arc(ep.x,ep.y,6,0,Math.PI*2);ctx.fillStyle='#f0c040';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+      const dx=_measureEnd.x-_measureStart.x,dy=_measureEnd.y-_measureStart.y,dist=Math.sqrt(dx*dx+dy*dy).toFixed(2);
+      const mx2=(sp.x+ep.x)/2,my2=(sp.y+ep.y)/2;
+      ctx.fillStyle='#f0c040';ctx.strokeStyle='#000';ctx.lineWidth=3;ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.strokeText(`${dist} m`,mx2,my2-12);ctx.fillText(`${dist} m`,mx2,my2-12);
+      if(_measureComplete){
+        ctx.fillStyle='rgba(240,192,64,0.7)';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText('Click to measure again',mx2,my2+6);
+      }
+    }
+  }
 }
 
 function drawRoomElements(ctx,room,rx,ry,rw,rh,scale,isDark){

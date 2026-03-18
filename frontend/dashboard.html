@@ -107,6 +107,7 @@
                     <img src="" alt="Profile" id="headerAvatar">
                 </button>
             </div>
+        
         </header>
 
         <div class="content-area">
@@ -296,6 +297,7 @@
                     <div class="settings-panels">
 
                         <!-- Profile Panel -->
+                         
                         <div class="settings-panel active" id="panel-profile">
                             <div class="settings-card">
                                 <div class="settings-card-header">
@@ -572,5 +574,17 @@
 <script src="js/dashboard.js"></script>
 <script src="js/dashboard-charts.js"></script>
 <script src="js/dashboard-profile.js"></script>
+<script>
+   
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.location.hash === "#settingsSection") {
+        const btn = document.querySelector('[data-section="settings"]');
+        if (btn) btn.click();
+    }
+});
+</script>
 </body>
 </html>
+
+
+
