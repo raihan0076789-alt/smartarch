@@ -2,7 +2,7 @@
 // Works alongside existing auth.js / dashboard.js without touching them.
 
 // ── Profile Picture IDs present in dashboard.html ──────────────
-const AVATAR_IDS = ['sidebarAvatar', 'headerAvatar', 'settingsProfilePic'];
+const AVATAR_IDS = ['sidebarAvatar', 'headerAvatar', 'settingsProfilePic', 'overviewProfilePic'];
 
 // Returns a per-user storage key so each user's avatar is stored independently.
 function getAvatarStorageKey() {
@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
     restoreProfilePicture();
     initSettingsNav();
     loadPreferences();
+    populateProfileOverview();
     
 });
 
@@ -140,6 +141,41 @@ async function pushAvatarToBackend(avatarDataUrl) {
     }
 }
 
+
+// ── Profile sub-tab switching (Overview / Edit Profile) ────────
+function switchProfileTab(tabName, clickedBtn) {
+    // Update tab button states
+    document.querySelectorAll('.profile-tab').forEach(btn => btn.classList.remove('active'));
+    clickedBtn.classList.add('active');
+
+    // Show matching content panel
+    document.querySelectorAll('.profile-content').forEach(panel => panel.classList.remove('active'));
+    const target = document.getElementById('profile-tab-' + tabName);
+    if (target) target.classList.add('active');
+
+    // Populate overview data on switch
+    if (tabName === 'overview') populateProfileOverview();
+}
+
+// ── Populate Overview tab with current user data ───────────────
+function populateProfileOverview() {
+    try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const el = id => document.getElementById(id);
+
+        if (el('overviewName'))    el('overviewName').textContent    = user.name    || '—';
+        if (el('overviewEmail'))   el('overviewEmail').textContent   = user.email   || '—';
+        if (el('overviewPhone'))   el('overviewPhone').textContent   = user.phone   || '—';
+        if (el('overviewCompany')) el('overviewCompany').textContent = user.company || '—';
+
+        // Mirror avatar into overview pic
+        const STORAGE_KEY = getAvatarStorageKey();
+        const saved = localStorage.getItem(STORAGE_KEY);
+        const src = saved || user.avatar || '';
+        if (el('overviewProfilePic')) el('overviewProfilePic').src = src;
+    } catch (e) { /* ignore */ }
+}
+
 // ── Settings sub-navigation ────────────────────────────────────
 function initSettingsNav() {
     document.querySelectorAll('.settings-nav-item').forEach(btn => {
@@ -229,9 +265,9 @@ async function updatePassword(event) {
 }
 
 window.handleProfilePicUpload = handleProfilePicUpload;
+window.switchProfileTab       = switchProfileTab;
+window.populateProfileOverview = populateProfileOverview;
 window.removeProfilePic       = removeProfilePic;
 window.switchToSettings       = switchToSettings;
 window.savePreference         = savePreference;
 window.updatePassword         = updatePassword;
-
-

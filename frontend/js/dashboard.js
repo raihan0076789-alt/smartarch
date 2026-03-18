@@ -336,6 +336,8 @@ async function loadUserProfile() {
         if (el('profileEmail'))   el('profileEmail').value   = user.email   || '';
         if (el('profileCompany')) el('profileCompany').value = user.company || '';
         if (el('profilePhone'))   el('profilePhone').value   = user.phone   || '';
+        // Sync overview tab
+        if (window.populateProfileOverview) populateProfileOverview();
     } catch (error) {
         console.error('Failed to load profile:', error);
     }
@@ -374,4 +376,3 @@ async function updateProfile(event) {
 document.addEventListener('click', function (e) {
     if (e.target.classList.contains('modal')) e.target.style.display = 'none';
 });
-

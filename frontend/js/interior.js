@@ -971,6 +971,9 @@
     }
 
     function updateCameraPosition() {
+        // ── FP mode: orbit suppressed, FP controller owns camera ──
+        if (window._fpMode) return;
+
         theta  += (targetTheta  - theta)  * 0.07;
         phi    += (targetPhi    - phi)    * 0.07;
         radius += (targetRadius - radius) * 0.07;

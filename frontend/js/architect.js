@@ -1060,89 +1060,294 @@ function toggleWireframe(){
 
 window.toggleWireframe = toggleWireframe;
 
-// ── First-Person Camera ──────────────────────────────────────
-let _fpActive=false,_fpControls=null;
+// ══════════════════════════════════════════════════════════════
+//  FIRST-PERSON GHOST WALK  (full rewrite)
+//  • True human eye height (1.65 m above floor)
+//  • Ghost movement — passes through walls freely
+//  • Multi-floor navigation: Q/E or PgUp/PgDn
+//  • Pointer-lock for immersive mouse look (fallback: hold RMB)
+//  • On-screen HUD: floor name + room name + controls hint
+//  • interior.js orbit suppressed via window._fpMode flag
+// ══════════════════════════════════════════════════════════════
+const FP_EYE_HEIGHT = 1.65;   // metres above current floor base
+const FP_SPEED      = 0.08;   // movement units per frame
+const FP_SPRINT     = 0.20;   // sprint (Shift held)
+const FP_PITCH_LIM  = 1.35;   // ~77° up/down clamp
+
+let _fpActive = false, _fpControls = null;
+
 function toggleFirstPerson(){
   if(typeof THREE==='undefined')return;
-  _fpActive=!_fpActive;
-  const btn=el('fpCameraBtn');
-  if(btn)btn.classList.toggle('active',_fpActive);
+  _fpActive = !_fpActive;
+  ['fpCameraBtn','fpBtn2'].forEach(id=>{const b=el(id);if(b)b.classList.toggle('active',_fpActive);});
+
+  // Show / hide crosshair and orbit hint
+  const xhair = document.getElementById('fpCrosshair');
+  const hint  = document.getElementById('interiorOrbitHint');
+  if(xhair) xhair.style.display = _fpActive ? 'block' : 'none';
+  if(hint)  hint.style.display  = _fpActive ? 'none'  : '';
+
   if(_fpActive){
-    activateFirstPerson();
-    showToast('Walk mode: WASD/arrows to move, drag to look. Click Walk again to exit.','info');
-  }else{
+    // Make sure we are in interior view so the interior scene/camera exist
+    if(currentView!=='interior'){
+      setView('interior');
+      setTimeout(activateFirstPerson, 350);  // wait for interior.js to init
+    } else {
+      activateFirstPerson();
+    }
+  } else {
     deactivateFirstPerson();
   }
 }
-window.toggleFirstPerson=toggleFirstPerson;
+window.toggleFirstPerson = toggleFirstPerson;
 
+// ── Build or update FP HUD overlay ──────────────────────────
+function _fpGetOrCreateHUD(){
+  let hud = document.getElementById('_fpHUD');
+  if(!hud){
+    hud = document.createElement('div');
+    hud.id = '_fpHUD';
+    hud.style.cssText = [
+      'position:absolute','top:12px','left:50%','transform:translateX(-50%)',
+      'background:rgba(5,8,18,0.78)','color:#c8d8f0','font:600 13px/1.5 monospace',
+      'padding:7px 18px','border-radius:10px','border:1px solid rgba(91,124,250,0.35)',
+      'pointer-events:none','z-index:9999','text-align:center','backdrop-filter:blur(4px)',
+      'min-width:260px','letter-spacing:.03em','transition:opacity .3s'
+    ].join(';');
+    const cont = document.getElementById('interiorContainer') || document.body;
+    cont.style.position = 'relative';
+    cont.appendChild(hud);
+  }
+  return hud;
+}
+
+function _fpUpdateHUD(state){
+  const hud = _fpGetOrCreateHUD();
+  const pd  = window.projectData;
+  if(!pd){ hud.innerHTML=''; return; }
+
+  const floors = pd.floors || [];
+  const fi     = Math.max(0, Math.min(state.floorIdx, floors.length-1));
+  const floor  = floors[fi] || {};
+  const floorName = floor.name || `Floor ${fi+1}`;
+
+  // Detect which room the camera is roughly in
+  const cam = window._interiorCamera;
+  let roomName = '';
+  if(cam && floor.rooms){
+    const ox = -pd.totalWidth/2, oz = -pd.totalDepth/2;
+    const lx = cam.position.x - ox, lz = cam.position.z - oz;
+    const hit = floor.rooms.find(r=>lx>=r.x&&lx<=r.x+r.width&&lz>=r.z&&lz<=r.z+r.depth);
+    if(hit) roomName = hit.name || hit.type || '';
+  }
+
+  const lockTip = document.pointerLockElement ? 'Move mouse to look · Esc to exit' : 'Click canvas to lock mouse · RMB-drag to look';
+  hud.innerHTML =
+    `<span style="color:#5b7cfa"><i class="fas fa-person-walking"></i> Walk Mode</span> &nbsp;|&nbsp; `+
+    `<span style="color:#7ec8e3">${floorName}</span>`+
+    (roomName ? ` &nbsp;·&nbsp; <span style="color:#aaa">${roomName}</span>` : '')+
+    `<br><small style="opacity:.65;font-size:10px">WASD move · Q/E floor · Shift sprint · ${lockTip}</small>`;
+}
+
+// ── Main activation ──────────────────────────────────────────
 function activateFirstPerson(){
-  // Use interior view's camera and renderer
-  const cam=window._interiorCamera||window._3dCamera;
-  const domEl=(window._interiorRenderer||window._3dRenderer)?.domElement;
-  if(!cam||!domEl)return;
-  const{totalWidth:W,totalDepth:D,floors}=projectData;
-  const floorH=floors[0]?.height||2.7;
-  cam.position.set(0,floorH*0.55,D/4);
-  cam.lookAt(0,floorH*0.55,0);
-  // Disable interior.js orbit
-  if(window._interiorOrbitEnabled!==undefined)window._interiorOrbitEnabled=false;
-  const state={moveF:false,moveB:false,moveL:false,moveR:false,looking:false,lx:0,ly:0,yaw:0,pitch:0};
-  const keyDown=e=>{
-    if(e.key==='w'||e.key==='ArrowUp')state.moveF=true;
-    if(e.key==='s'||e.key==='ArrowDown')state.moveB=true;
-    if(e.key==='a'||e.key==='ArrowLeft')state.moveL=true;
-    if(e.key==='d'||e.key==='ArrowRight')state.moveR=true;
-    if(e.key==='Escape'){_fpActive=false;deactivateFirstPerson();const b=el('fpCameraBtn');if(b)b.classList.remove('active');}
+  const cam   = window._interiorCamera || window._3dCamera;
+  const domEl = (window._interiorRenderer || window._3dRenderer)?.domElement;
+  if(!cam || !domEl){ showToast('Switch to Interior view first, then press Walk.','info'); _fpActive=false; return; }
+
+  const pd     = window.projectData;
+  const floors = pd.floors || [{height:2.7,rooms:[]}];
+
+  // Build cumulative floor base Y positions (same as interior.js: baseY starts at 0.22)
+  const SLAB = 0.22;
+  const floorBases = [];
+  let yAcc = SLAB;
+  floors.forEach(f=>{ floorBases.push(yAcc); yAcc += (f.height||2.7); });
+
+  // State object — all mutable FP state lives here
+  const state = {
+    floorIdx : 0,
+    yaw      : 0,
+    pitch    : 0,
+    moveF    : false, moveB: false, moveL: false, moveR: false,
+    moveUp   : false, moveDn: false,   // Q / E
+    sprint   : false,
+    // RMB drag fallback (when pointer lock not supported/denied)
+    rmbDown  : false, rmbLX: 0, rmbLY: 0,
   };
-  const keyUp=e=>{
-    if(e.key==='w'||e.key==='ArrowUp')state.moveF=false;
-    if(e.key==='s'||e.key==='ArrowDown')state.moveB=false;
-    if(e.key==='a'||e.key==='ArrowLeft')state.moveL=false;
-    if(e.key==='d'||e.key==='ArrowRight')state.moveR=false;
+
+  // Place camera at centre of building, eye height above ground floor
+  cam.position.set(0, floorBases[0] + FP_EYE_HEIGHT, (pd.totalDepth||15)/4);
+  cam.rotation.order = 'YXZ';
+  cam.rotation.set(0, 0, 0);
+
+  // Tell interior.js to stop moving the camera
+  window._fpMode = true;
+
+  // ── Pointer lock (click canvas to engage) ──
+  const reqLock = ()=>{ try{ domEl.requestPointerLock(); }catch(e){} };
+  domEl.addEventListener('click', reqLock);
+
+  const onPLChange = ()=>{
+    // Nothing extra needed; mouse move handler checks document.pointerLockElement
   };
-  const mouseDown=e=>{state.looking=true;state.lx=e.clientX;state.ly=e.clientY;};
-  const mouseMove=e=>{
-    if(!state.looking)return;
-    state.yaw-=(e.clientX-state.lx)*0.003;
-    state.pitch=Math.max(-0.8,Math.min(0.8,state.pitch-(e.clientY-state.ly)*0.003));
-    state.lx=e.clientX;state.ly=e.clientY;
-    cam.rotation.order='YXZ';cam.rotation.y=state.yaw;cam.rotation.x=state.pitch;
+  document.addEventListener('pointerlockchange', onPLChange);
+
+  // ── Mouse move (pointer lock OR RMB drag) ──
+  const onMouseMove = e=>{
+    let dx=0, dy=0;
+    if(document.pointerLockElement === domEl){
+      dx = e.movementX; dy = e.movementY;
+    } else if(state.rmbDown){
+      dx = e.clientX - state.rmbLX; dy = e.clientY - state.rmbLY;
+      state.rmbLX = e.clientX; state.rmbLY = e.clientY;
+    } else return;
+    state.yaw   -= dx * 0.0025;
+    state.pitch  = Math.max(-FP_PITCH_LIM, Math.min(FP_PITCH_LIM, state.pitch - dy * 0.0025));
+    cam.rotation.y = state.yaw;
+    cam.rotation.x = state.pitch;
+    _fpUpdateHUD(state);
   };
-  const mouseUp=()=>state.looking=false;
-  const speed=0.06;
-  const fpUpdate=()=>{
-    if(!_fpActive)return;
-    const dir=new THREE.Vector3();
-    if(state.moveF)dir.z-=speed;if(state.moveB)dir.z+=speed;
-    if(state.moveL)dir.x-=speed;if(state.moveR)dir.x+=speed;
-    dir.applyEuler(new THREE.Euler(0,state.yaw,0));
-    cam.position.add(dir);
-    const HW=W/2-0.5,HD=D/2-0.5;
-    cam.position.x=Math.max(-HW,Math.min(HW,cam.position.x));
-    cam.position.z=Math.max(-HD,Math.min(HD,cam.position.z));
-    cam.position.y=Math.max(0.5,Math.min(floorH*0.8,cam.position.y));
-    _fpControls._raf=requestAnimationFrame(fpUpdate);
+
+  const onMouseDown = e=>{ if(e.button===2){ state.rmbDown=true; state.rmbLX=e.clientX; state.rmbLY=e.clientY; } };
+  const onMouseUp   = e=>{ if(e.button===2) state.rmbDown=false; };
+  const onCtxMenu   = e=>e.preventDefault();
+
+  // ── Keyboard ──
+  const onKeyDown = e=>{
+    switch(e.key){
+      case 'w': case 'W': case 'ArrowUp':    state.moveF=true; break;
+      case 's': case 'S': case 'ArrowDown':  state.moveB=true; break;
+      case 'a': case 'A': case 'ArrowLeft':  state.moveL=true; break;
+      case 'd': case 'D': case 'ArrowRight': state.moveR=true; break;
+      case 'q': case 'Q': case 'PageUp':     state.moveUp=true;  break;
+      case 'e': case 'E': case 'PageDown':   state.moveDn=true;  break;
+      case 'Shift': state.sprint=true; break;
+      case 'Escape':
+        _fpActive=false;
+        ['fpCameraBtn','fpBtn2'].forEach(id=>{const b=el(id);if(b)b.classList.remove('active');});
+        deactivateFirstPerson();
+        break;
+    }
   };
-  document.addEventListener('keydown',keyDown);
-  document.addEventListener('keyup',keyUp);
-  domEl.addEventListener('mousedown',mouseDown);
-  domEl.addEventListener('mousemove',mouseMove);
-  domEl.addEventListener('mouseup',mouseUp);
-  _fpControls={keyDown,keyUp,mouseDown,mouseMove,mouseUp,_raf:requestAnimationFrame(fpUpdate),_domEl:domEl};
+  const onKeyUp = e=>{
+    switch(e.key){
+      case 'w': case 'W': case 'ArrowUp':    state.moveF=false; break;
+      case 's': case 'S': case 'ArrowDown':  state.moveB=false; break;
+      case 'a': case 'A': case 'ArrowLeft':  state.moveL=false; break;
+      case 'd': case 'D': case 'ArrowRight': state.moveR=false; break;
+      case 'q': case 'Q': case 'PageUp':     state.moveUp=false; break;
+      case 'e': case 'E': case 'PageDown':   state.moveDn=false; break;
+      case 'Shift': state.sprint=false; break;
+    }
+  };
+
+  // ── Per-frame update (ghost movement) ──
+  const fpUpdate = ()=>{
+    if(!_fpActive) return;
+
+    const spd = state.sprint ? FP_SPRINT : FP_SPEED;
+
+    // Horizontal movement — ghost ignores walls
+    const dir = new THREE.Vector3();
+    if(state.moveF) dir.z -= spd;
+    if(state.moveB) dir.z += spd;
+    if(state.moveL) dir.x -= spd;
+    if(state.moveR) dir.x += spd;
+    dir.applyEuler(new THREE.Euler(0, state.yaw, 0));
+    cam.position.x += dir.x;
+    cam.position.z += dir.z;
+
+    // Floor navigation: Q goes up one floor, E goes down
+    const totalFloors = floors.length;
+    if(state.moveUp && !state._lastUp){
+      state.floorIdx = Math.min(totalFloors-1, state.floorIdx+1);
+      state._lastUp = true;
+      _fpSnapToFloor(cam, state, floorBases, floors);
+    }
+    if(!state.moveUp) state._lastUp = false;
+    if(state.moveDn && !state._lastDn){
+      state.floorIdx = Math.max(0, state.floorIdx-1);
+      state._lastDn = true;
+      _fpSnapToFloor(cam, state, floorBases, floors);
+    }
+    if(!state.moveDn) state._lastDn = false;
+
+    // Lock eye height to current floor (human eye level = floor base + 1.65 m)
+    const targetEyeY = floorBases[state.floorIdx] + FP_EYE_HEIGHT;
+    cam.position.y += (targetEyeY - cam.position.y) * 0.18; // smooth snap
+
+    // Soft boundary — ghost can peek slightly outside building but not fly away
+    const halfW = (pd.totalWidth  || 20) / 2 + 2;
+    const halfD = (pd.totalDepth  || 15) / 2 + 2;
+    cam.position.x = Math.max(-halfW, Math.min(halfW, cam.position.x));
+    cam.position.z = Math.max(-halfD, Math.min(halfD, cam.position.z));
+
+    _fpUpdateHUD(state);
+    _fpControls._raf = requestAnimationFrame(fpUpdate);
+  };
+
+  // Register listeners
+  document.addEventListener('keydown',   onKeyDown);
+  document.addEventListener('keyup',     onKeyUp);
+  domEl.addEventListener('mousemove',    onMouseMove);
+  domEl.addEventListener('mousedown',    onMouseDown);
+  domEl.addEventListener('mouseup',      onMouseUp);
+  domEl.addEventListener('contextmenu',  onCtxMenu);
+
+  _fpControls = {
+    onKeyDown, onKeyUp, onMouseMove, onMouseDown, onMouseUp, onCtxMenu,
+    onPLChange, reqLock,
+    _domEl : domEl,
+    _raf   : requestAnimationFrame(fpUpdate),
+  };
+
+  _fpUpdateHUD(state);
+  showToast('🚶‍♂️ Walk Mode — WASD move · Q/E floor · Shift sprint · click canvas to lock mouse · Esc exit', 'info');
+}
+
+// Snap camera Y to a new floor's eye height
+function _fpSnapToFloor(cam, state, floorBases, floors){
+  const fi   = state.floorIdx;
+  const base = floorBases[fi] || 0;
+  cam.position.y = base + FP_EYE_HEIGHT;
 }
 
 function deactivateFirstPerson(){
-  if(!_fpControls)return;
+  // Release pointer lock
+  try{ if(document.pointerLockElement) document.exitPointerLock(); }catch(e){}
+
+  if(!_fpControls) return;
   cancelAnimationFrame(_fpControls._raf);
-  document.removeEventListener('keydown',_fpControls.keyDown);
-  document.removeEventListener('keyup',_fpControls.keyUp);
-  const domEl=_fpControls._domEl;
-  domEl.removeEventListener('mousedown',_fpControls.mouseDown);
-  domEl.removeEventListener('mousemove',_fpControls.mouseMove);
-  domEl.removeEventListener('mouseup',_fpControls.mouseUp);
-  _fpControls=null;
-  if(window._interiorOrbitEnabled!==undefined)window._interiorOrbitEnabled=true;
+
+  document.removeEventListener('keydown',          _fpControls.onKeyDown);
+  document.removeEventListener('keyup',            _fpControls.onKeyUp);
+  document.removeEventListener('pointerlockchange',_fpControls.onPLChange);
+
+  const domEl = _fpControls._domEl;
+  if(domEl){
+    domEl.removeEventListener('click',       _fpControls.reqLock);
+    domEl.removeEventListener('mousemove',   _fpControls.onMouseMove);
+    domEl.removeEventListener('mousedown',   _fpControls.onMouseDown);
+    domEl.removeEventListener('mouseup',     _fpControls.onMouseUp);
+    domEl.removeEventListener('contextmenu', _fpControls.onCtxMenu);
+  }
+  _fpControls = null;
+
+  // Hand camera back to interior.js orbit
+  window._fpMode = false;
+
+  // Remove HUD
+  const hud = document.getElementById('_fpHUD');
+  if(hud) hud.remove();
+
+  // Restore orbit hint, hide crosshair
+  const xhair = document.getElementById('fpCrosshair');
+  const hint  = document.getElementById('interiorOrbitHint');
+  if(xhair) xhair.style.display = 'none';
+  if(hint)  hint.style.display  = '';
+
+  showToast('Walk mode exited — orbit restored.', 'info');
 }
 
 // ── Ollama Chat ──────────────────────────────────────────────

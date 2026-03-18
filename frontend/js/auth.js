@@ -31,7 +31,15 @@ async function handleRegister(event) {
     const name     = document.getElementById('registerName').value;
     const email    = document.getElementById('registerEmail').value;
     const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
     const company  = document.getElementById('registerCompany') ? document.getElementById('registerCompany').value : '';
+
+
+    // 🔴 Confirm Password Check
+    if (password !== confirmPassword) {
+        showToast('Passwords do not match', 'error');
+        return;
+    }
 
     // ── Client-side password strength validation ──────────────────────────
     const pwRules = [
@@ -48,7 +56,7 @@ async function handleRegister(event) {
             return;
         }
     }
-    // ─────────────────────────────────────────────────────────────────────
+      // ────────────────────────────────────────────────────────────────────
 
     try {
         showLoading('Creating account...');
