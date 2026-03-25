@@ -599,7 +599,7 @@ class FloorplanImageParser {
 }
 
 // ─────────────────────────────────────────────
-//  AI CHAT WRAPPER  (Ollama — preserved from original)
+//  AI CHAT WRAPPER  (Ollama)
 // ─────────────────────────────────────────────
 class OllamaChat {
   constructor() {
@@ -609,30 +609,45 @@ class OllamaChat {
     logger.info(`OllamaChat initialised — host: ${this.host}, model: ${this.model}`);
   }
 
-  async chat(systemPrompt, userMessage, requestId) {
+  /**
+   * @param {string}   systemPrompt  Rich project-aware system context
+   * @param {string}   userMessage   Current user message
+   * @param {string}   requestId     For logging
+   * @param {Array}    history       Optional prior turns [{role,content}]
+   */
+  async chat(systemPrompt, userMessage, requestId, history = []) {
     try {
-      logger.info(`[${requestId}] Ollama chat → model: ${this.model}`);
+      logger.info(`[${requestId}] Ollama chat → model: ${this.model}, history: ${history.length} turns`);
+
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...history.slice(-6),   // keep last 6 turns (3 exchanges) to stay within context window
+        { role: 'user',   content: userMessage },
+      ];
+
       const res = await this.ollama.chat({
-        model:    this.model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user',   content: userMessage  },
-        ],
+        model:   this.model,
+        messages,
         stream:  false,
-        options: { temperature: 0.7, top_p: 0.9, num_predict: 4096 },
+        options: {
+          temperature:  0.72,   // slightly creative but grounded
+          top_p:        0.90,
+          top_k:        40,
+          num_predict:  1024,   // enough for detailed suggestions without runaway responses
+          repeat_penalty: 1.1,  // discourages repetitive phrasing
+          stop: ['<|end|>', '<|user|>', '[INST]'],  // phi3 / mistral stop tokens
+        },
       });
 
       if (!res?.message?.content) throw new ApiError('Empty Ollama response', 500);
-      logger.info(`[${requestId}] Ollama response OK`);
-      return res.message.content;
+      logger.info(`[${requestId}] Ollama OK — ${res.message.content.length} chars`);
+      return res.message.content.trim();
     } catch (err) {
       logger.error(`[${requestId}] Ollama error:`, err);
-      if (err.code === 'ECONNREFUSED') {
-        throw new ApiError(`Cannot connect to Ollama at ${this.host}`, 503);
-      }
-      if (err.message?.includes('not found')) {
+      if (err.code === 'ECONNREFUSED')
+        throw new ApiError(`Cannot connect to Ollama at ${this.host}. Make sure Ollama is running.`, 503);
+      if (err.message?.includes('not found'))
         throw new ApiError(`Model '${this.model}' not found — run: ollama pull ${this.model}`, 404);
-      }
       throw new ApiError(`Ollama: ${err.message}`, err.statusCode || 500);
     }
   }
@@ -690,10 +705,14 @@ class ArchitectureService {
   // ── AI Chat (Ollama) ─────────────────────────
 
   /**
-   * Thin proxy kept for the /chat route in architectureRoutes.js.
+   * Thin proxy for /chat and /suggest routes.
+   * @param {string} systemPrompt
+   * @param {string} userMessage
+   * @param {string} requestId
+   * @param {Array}  history  Optional [{role,content}] conversation turns
    */
-  async callLlamaAPI(systemPrompt, userMessage, requestId) {
-    return this.ollamaChat.chat(systemPrompt, userMessage, requestId);
+  async callLlamaAPI(systemPrompt, userMessage, requestId, history = []) {
+    return this.ollamaChat.chat(systemPrompt, userMessage, requestId, history);
   }
 }
 

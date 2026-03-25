@@ -372,7 +372,14 @@ function setTool(tool){
 }
 
 function setView(view){
- 
+ const controls = document.getElementById('topbar3DControls');
+  if(controls){
+      if(view === 'interior'){
+          controls.classList.add('show');
+      } else {
+          controls.classList.remove('show');
+      }
+  }
   // Redirect old 3d view calls to interior/3dmodel sub-view
   if(view==='3d'){setView('interior');setTimeout(()=>setInteriorSubView('3dmodel'),80);return;}
   currentView=view;
@@ -725,14 +732,170 @@ async function saveProject(){
   }catch(e){hideLoading();showToast('Save failed','error');console.error(e);}
 }
 
-async function exportProject(){
-  const data=JSON.stringify(projectData,null,2);
-  const blob=new Blob([data],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=`${projectData.name||'project'}.json`;
-  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-  showToast('Project exported as JSON!','success');
+// ── Export Dropdown ────────────────────────────────────────────
+function toggleExportDropdown(e){
+  e.stopPropagation();
+  const dd=el('exportDropdown'),wrap=el('exportDropdownWrap');
+  const open=dd.classList.contains('open');
+  dd.classList.toggle('open',!open);
+  wrap.classList.toggle('open',!open);
 }
+document.addEventListener('click',()=>{
+  const dd=el('exportDropdown'),wrap=el('exportDropdownWrap');
+  if(dd)dd.classList.remove('open');
+  if(wrap)wrap.classList.remove('open');
+});
+
+// ── Shared helpers ─────────────────────────────────────────────
+function _triggerDownload(url,filename){
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function _safeName(){ return (projectData.name||'project').replace(/[^a-z0-9_\-\s]/gi,'_').trim(); }
+async function _backendExport(path,name,ext,mime,toast){
+  try{
+    showLoading(`Generating ${ext.toUpperCase()} file…`);
+    const resp=await fetch(`http://localhost:3001/api/architecture/export/${path}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(projectData)});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.message||`${ext} export failed`);}
+    const blob=await resp.blob();
+    _triggerDownload(URL.createObjectURL(blob),`${name}.${ext}`);
+    showToast(toast,'success');
+  }catch(e){
+    console.error(e);
+    showToast(`${ext.toUpperCase()} export failed — is the AI backend running on port 3001?`,'error');
+  }finally{ hideLoading(); }
+}
+
+// ── Core export dispatcher ─────────────────────────────────────
+async function exportProject(format='json'){
+  el('exportDropdown')?.classList.remove('open');
+  el('exportDropdownWrap')?.classList.remove('open');
+  const name=_safeName();
+
+  switch(format){
+    case 'json':{
+      const blob=new Blob([JSON.stringify(projectData,null,2)],{type:'application/json'});
+      _triggerDownload(URL.createObjectURL(blob),`${name}.json`);
+      showToast('Project exported as JSON!','success');
+      break;
+    }
+    case 'svg':{
+      const blob=new Blob([_generateSVG()],{type:'image/svg+xml'});
+      _triggerDownload(URL.createObjectURL(blob),`${name}.svg`);
+      showToast('Floor plan exported as SVG!','success');
+      break;
+    }
+    case 'cad':
+      await _backendExport('cad',name,'dxf','application/octet-stream','Floor plan exported as DXF!');
+      break;
+    case 'obj':
+      await _exportOBJ(name);
+      break;
+    case 'stl':
+      await _backendExport('stl',name,'stl','application/octet-stream','3D model exported as STL!');
+      break;
+    case 'gltf':
+      await _backendExport('gltf',name,'glb','model/gltf-binary','3D model exported as GLB!');
+      break;
+    default:
+      showToast(`Unknown export format: ${format}`,'error');
+  }
+}
+
+// OBJ export: backend returns { obj, mtl, filename } — download both files
+async function _exportOBJ(name){
+  try{
+    showLoading('Generating OBJ model…');
+    const resp=await fetch('http://localhost:3001/api/architecture/export/obj',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(projectData)});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.message||'OBJ export failed');}
+    const data=await resp.json();
+    const base=data.filename||name;
+    // Download .obj
+    _triggerDownload(URL.createObjectURL(new Blob([data.obj],{type:'text/plain'})),`${base}.obj`);
+    // Download .mtl after a brief delay so both save dialogs don't overlap
+    setTimeout(()=>{
+      _triggerDownload(URL.createObjectURL(new Blob([data.mtl],{type:'text/plain'})),`${base}.mtl`);
+    },400);
+    showToast('3D model exported as OBJ + MTL!','success');
+  }catch(e){
+    console.error(e);
+    showToast('OBJ export failed — is the AI backend running on port 3001?','error');
+  }finally{ hideLoading(); }
+}
+
+// ── SVG floor-plan generator (client-side) ───────────────────
+function _generateSVG(){
+  const SCALE=20,PAD=50;
+  const W=projectData.totalWidth*SCALE+PAD*2;
+  const H=projectData.totalDepth*SCALE+PAD*2;
+  const floor=projectData.floors[activeFloorIdx]||{rooms:[]};
+  const style=projectData.style||'modern';
+  const isDark=style==='modern'||style==='luxury';
+  const bg=isDark?'#141824':'#e8ecf1';
+  const boundaryStroke=style==='luxury'?'#c9a84c':'#5b7cfa';
+
+  let entities='';
+
+  // Boundary
+  entities+=`<rect x="${PAD}" y="${PAD}" width="${projectData.totalWidth*SCALE}" height="${projectData.totalDepth*SCALE}" fill="none" stroke="${boundaryStroke}" stroke-width="2.5"/>`;
+
+  // Dimension labels
+  const dimCol=isDark?'rgba(255,255,255,0.45)':'rgba(0,0,0,0.5)';
+  entities+=`<text x="${PAD+projectData.totalWidth*SCALE/2}" y="${PAD-12}" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="${dimCol}">${projectData.totalWidth}m</text>`;
+  entities+=`<text x="${PAD-14}" y="${PAD+projectData.totalDepth*SCALE/2}" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="${dimCol}" transform="rotate(-90,${PAD-14},${PAD+projectData.totalDepth*SCALE/2})">${projectData.totalDepth}m</text>`;
+
+  // Rooms
+  (floor.rooms||[]).forEach(room=>{
+    const rc=ROOM_COLORS[room.type]||ROOM_COLORS.other;
+    const rx=PAD+room.x*SCALE, ry=PAD+room.z*SCALE;
+    const rw=room.width*SCALE, rh=room.depth*SCALE;
+    entities+=`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${rc.bg}" stroke="${rc.border}" stroke-width="1.5"/>`;
+    if(rw>30&&rh>22){
+      const textCol=isDark?'#e2e8f0':'#1a1a2e';
+      entities+=`<text x="${rx+rw/2}" y="${ry+rh/2-5}" text-anchor="middle" font-family="Inter,sans-serif" font-size="${Math.min(11,rw/(room.name.length*0.6))}" fill="${textCol}" font-weight="600">${room.name}</text>`;
+      entities+=`<text x="${rx+rw/2}" y="${ry+rh/2+9}" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" fill="${dimCol}">${room.width}x${room.depth}m</text>`;
+    }
+    // Doors
+    (room.doors||[]).forEach(door=>{
+      const dw=Math.max(14,(door.width||0.9)*SCALE),pos=door.pos??0.5;
+      let dx,dy,isH;
+      if(door.wall==='top'||door.wall==='bottom'){
+        dx=rx+pos*rw;dy=door.wall==='top'?ry:ry+rh;isH=true;
+      } else {
+        dx=door.wall==='left'?rx:rx+rw;dy=ry+pos*rh;isH=false;
+      }
+      if(isH){entities+=`<line x1="${dx-dw/2}" y1="${dy}" x2="${dx+dw/2}" y2="${dy}" stroke="#ff8c00" stroke-width="2.5"/>`;}
+      else{entities+=`<line x1="${dx}" y1="${dy-dw/2}" x2="${dx}" y2="${dy+dw/2}" stroke="#ff8c00" stroke-width="2.5"/>`;}
+    });
+    // Windows
+    (room.windows||[]).forEach(win=>{
+      const ww=Math.max(12,(win.width||1.0)*SCALE),pos=win.pos??0.5;
+      let wx,wy,isH;
+      if(win.wall==='top'||win.wall==='bottom'){
+        wx=rx+pos*rw;wy=win.wall==='top'?ry:ry+rh;isH=true;
+      } else {
+        wx=win.wall==='left'?rx:rx+rw;wy=ry+pos*rh;isH=false;
+      }
+      if(isH){entities+=`<line x1="${wx-ww/2}" y1="${wy}" x2="${wx+ww/2}" y2="${wy}" stroke="#56ccf2" stroke-width="3"/>`;}
+      else{entities+=`<line x1="${wx}" y1="${wy-ww/2}" x2="${wx}" y2="${wy+ww/2}" stroke="#56ccf2" stroke-width="3"/>`;}
+    });
+  });
+
+  const titleCol=isDark?'rgba(255,255,255,0.6)':'rgba(0,0,0,0.5)';
+  const floorName=floor.name||`Floor ${activeFloorIdx+1}`;
+  const title=`${projectData.name}  ·  ${floorName}`;
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H+30}" viewBox="0 0 ${W} ${H+30}">
+  <rect width="${W}" height="${H+30}" fill="${bg}"/>
+  <text x="${W/2}" y="22" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="${titleCol}" font-weight="600">${title}</text>
+  <g transform="translate(0,6)">${entities}</g>
+</svg>`;
+}
+
 
 function autoLayout(){
   const floor=projectData.floors[activeFloorIdx];floor.rooms=[];
@@ -1039,9 +1202,11 @@ function toggleWireframe(){
   // update BOTH possible buttons
   const btn1 = document.getElementById('wireframeBtn2');
   const btn2 = document.getElementById('wireframeToggleBtn');
+  const btn3 = document.getElementById('wireframeTopBtn'); 
 
   if(btn1) btn1.classList.toggle('active', _wireframeActive);
   if(btn2) btn2.classList.toggle('active', _wireframeActive);
+  if(btn3) btn3.classList.toggle('active', _wireframeActive);
 
   // access 3D scene
   const sceneRef = window._3dScene || window._interiorScene;
@@ -1079,7 +1244,7 @@ let _fpActive = false, _fpControls = null;
 function toggleFirstPerson(){
   if(typeof THREE==='undefined')return;
   _fpActive = !_fpActive;
-  ['fpCameraBtn','fpBtn2'].forEach(id=>{const b=el(id);if(b)b.classList.toggle('active',_fpActive);});
+  ['fpCameraBtn','fpBtn2','walkTopBtn'].forEach(id=>{const b=el(id);if(b)b.classList.toggle('active',_fpActive);});
 
   // Show / hide crosshair and orbit hint
   const xhair = document.getElementById('fpCrosshair');
@@ -1351,34 +1516,144 @@ function deactivateFirstPerson(){
 }
 
 // ── Ollama Chat ──────────────────────────────────────────────
+// ── AI Chat — state ───────────────────────────────────────────
+// Keeps the last N turns so Ollama has conversational context
+const _chatHistory = [];   // [{role:'user'|'assistant', content:string}]
+const MAX_HISTORY  = 6;    // 3 user/assistant pairs
+
 function initOllamaChat(){
-  const input=el('ollamaChatInput'),send=el('ollamaChatSend');
+  const input=el('ollamaChatInput'), send=el('ollamaChatSend');
   if(!input||!send)return;
-  send.addEventListener('click',sendOllamaMessage);
-  input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendOllamaMessage();}});
+  send.addEventListener('click', sendOllamaMessage);
+  input.addEventListener('keydown', e=>{
+    if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendOllamaMessage(); }
+  });
 }
 
+// ── Clear conversation ─────────────────────────────────────────
+function clearChat(){
+  _chatHistory.length=0;
+  const msgs=el('ollamaChatMessages');
+  if(!msgs)return;
+  msgs.innerHTML=`<div class="chat-msg ai">
+    <div class="chat-bubble chat-welcome">
+      <span class="chat-welcome-icon">&#127968;</span>
+      <span>Conversation cleared. Tap a chip above for suggestions, or ask anything about your project.</span>
+    </div>
+  </div>`;
+}
+
+// ── Append a bubble to the chat ────────────────────────────────
+function _chatAppend(role, html, extraClass=''){
+  const msgs=el('ollamaChatMessages');
+  if(!msgs)return;
+  const div=document.createElement('div');
+  div.className=`chat-msg ${role}`;
+  div.innerHTML=`<div class="chat-bubble ${extraClass}">${html}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+  return div;
+}
+
+// ── Typing indicator ───────────────────────────────────────────
+function _chatTyping(){
+  const id='typing_'+Date.now();
+  const msgs=el('ollamaChatMessages');
+  if(!msgs)return id;
+  const div=document.createElement('div');
+  div.className='chat-msg ai'; div.id=id;
+  div.innerHTML='<div class="chat-bubble typing"><span></span><span></span><span></span></div>';
+  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight;
+  return id;
+}
+
+// ── Format AI reply: convert **bold**, numbered lists ──────────
+function _formatReply(text){
+  return escapeHtml(text)
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^(\d+)\.\s+/gm,'<br><strong style="color:#7ec8e3">$1.</strong> ')
+    .replace(/^[-•]\s+/gm,'<br>• ')
+    .replace(/\n{2,}/g,'<br><br>')
+    .replace(/\n/g,'<br>')
+    .replace(/^<br>/,'');
+}
+
+// ── Send a user message ────────────────────────────────────────
 async function sendOllamaMessage(){
-  const input=el('ollamaChatInput'),messages=el('ollamaChatMessages');
-  if(!input||!messages)return;
-  const text=input.value.trim();if(!text)return;
+  const input=el('ollamaChatInput');
+  if(!input)return;
+  const text=input.value.trim();
+  if(!text)return;
   input.value='';
-  messages.innerHTML+=`<div class="chat-msg user"><div class="chat-bubble">${escapeHtml(text)}</div></div>`;
-  messages.scrollTop=messages.scrollHeight;
-  const typingId='typing_'+Date.now();
-  messages.innerHTML+=`<div class="chat-msg ai" id="${typingId}"><div class="chat-bubble typing"><span></span><span></span><span></span></div></div>`;
-  messages.scrollTop=messages.scrollHeight;
-  const context=projectData?`[Context: ${projectData.name}, ${projectData.totalWidth}x${projectData.totalDepth}m, ${projectData.floors.length} floor(s), ${projectData.floors.reduce((a,f)=>a+f.rooms.length,0)} rooms, style: ${projectData.style}] `:'';
+
+  _chatAppend('user', escapeHtml(text));
+  const typingId=_chatTyping();
+
   try{
-    const resp=await fetch(`${AI_BACKEND_URL}/api/architecture/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:context+text})});
-    const data=await resp.json();const reply=data.data?.reply||data.error||'No response.';
+    const resp=await fetch(`${AI_BACKEND_URL}/api/architecture/chat`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        message:    text,
+        projectData: projectData||null,
+        history:    [..._chatHistory],
+      }),
+    });
+    const data=await resp.json();
+    const reply=data.data?.reply||data.error||'No response.';
     document.getElementById(typingId)?.remove();
-    messages.innerHTML+=`<div class="chat-msg ai"><div class="chat-bubble">${escapeHtml(reply)}</div></div>`;
+    _chatAppend('ai', _formatReply(reply));
+
+    // Store in history for context on next turn
+    _chatHistory.push({role:'user',    content:text});
+    _chatHistory.push({role:'assistant',content:reply});
+    if(_chatHistory.length>MAX_HISTORY*2) _chatHistory.splice(0,2);
   }catch(err){
     document.getElementById(typingId)?.remove();
-    messages.innerHTML+=`<div class="chat-msg ai"><div class="chat-bubble error">AI backend offline. Start the AI server on port 3001.</div></div>`;
+    _chatAppend('ai','AI backend offline. Start the AI server on port 3001.','error');
   }
-  messages.scrollTop=messages.scrollHeight;
+}
+
+// ── Request a proactive suggestion ────────────────────────────
+async function requestSuggestion(type){
+  if(!projectData){ showToast('Load or create a project first','error'); return; }
+
+  const chipClass={interior:'chip-interior',exterior:'chip-exterior',layout:'chip-layout',materials:'chip-materials'}[type];
+  const chip=document.querySelector(`.${chipClass}`);
+
+  // Show which chip is active
+  document.querySelectorAll('.chat-chip').forEach(c=>c.classList.remove('active','loading'));
+  if(chip){ chip.classList.add('active','loading'); }
+
+  const labels={interior:'🛋️ Interior Suggestions',exterior:'🏠 Exterior Suggestions',layout:'📐 Layout Review',materials:'🪵 Materials & Finishes'};
+  _chatAppend('user', escapeHtml(labels[type]||type));
+  const typingId=_chatTyping();
+
+  try{
+    const resp=await fetch(`${AI_BACKEND_URL}/api/architecture/suggest`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ type, projectData }),
+    });
+    const data=await resp.json();
+    const reply=data.data?.reply||data.error||'No suggestions returned.';
+    document.getElementById(typingId)?.remove();
+
+    // Render as suggestion card
+    const html=`<div class="chat-suggestion-label"><i class="fas fa-lightbulb"></i> ${labels[type]||type}</div>${_formatReply(reply)}`;
+    _chatAppend('ai', html, 'chat-suggestion-card');
+
+    // Also add to history so follow-up questions reference it
+    _chatHistory.push({role:'user',      content:`Give me ${type} suggestions for this project.`});
+    _chatHistory.push({role:'assistant', content:reply});
+    if(_chatHistory.length>MAX_HISTORY*2) _chatHistory.splice(0,2);
+  }catch(err){
+    document.getElementById(typingId)?.remove();
+    _chatAppend('ai','AI backend offline. Start the AI server on port 3001.','error');
+  }finally{
+    if(chip){ chip.classList.remove('loading'); }
+  }
 }
 
 function escapeHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
@@ -1491,7 +1766,8 @@ Object.assign(window,{
   clearRoomDoors,clearRoomWindows,
   toggleWireframe,toggleFirstPerson,
   placeStaircaseAt,
-  undo,redo,viewFloor,updateFloorIsoButtons
+  undo,redo,viewFloor,updateFloorIsoButtons,
+  requestSuggestion, clearChat,
 });
 
 // expose functions globally for HTML

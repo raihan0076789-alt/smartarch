@@ -25,7 +25,7 @@ exports.register = async (req, res) => {
         res.status(201).json({
             success: true,
             token,
-            user: { id: user._id, name: user.name, email: user.email, role: user.role, company: user.company, preferences: user.preferences }
+            user: { id: user._id, name: user.name, email: user.email, role: user.role, company: user.company, phone: user.phone, avatar: user.avatar, preferences: user.preferences }
         });
     } catch (error) {
         console.error(error);
@@ -56,7 +56,7 @@ exports.login = async (req, res) => {
         res.json({
             success: true,
             token,
-            user: { id: user._id, name: user.name, email: user.email, role: user.role, company: user.company, preferences: user.preferences }
+            user: { id: user._id, name: user.name, email: user.email, role: user.role, company: user.company, phone: user.phone, avatar: user.avatar, preferences: user.preferences }
         });
     } catch (error) {
         console.error(error);

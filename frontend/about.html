@@ -545,6 +545,7 @@
             .highlights-grid { grid-template-columns: 1fr; }
         }
         /* Avatar menu */
+      /* Avatar menu */
         .user-menu-wrap { position: relative; }
         .user-avatar {
             width: 36px; height: 36px;
@@ -616,10 +617,11 @@
                 <img src="" alt="User" id="userAvatar" class="user-avatar">
                 <div class="user-dropdown">
                     <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
-                    <a href="dashboard.html#settingsSection"><i class="fas fa-cog"></i>Settings</a>
+                    <a href="dashboard.html#settingsSection" onclick="openSettings()"><i class="fas fa-cog"></i>Settings</a>
                     <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                    
+                  
                 </div>
+            </div>
     </div>
 
 </div>
@@ -846,14 +848,6 @@
                 </div>
                 <div class="feat-row-badge badge-security">Security</div>
             </div>
-            <!-- <div class="feat-row">
-                <div class="feat-row-icon" style="background:rgba(16,185,129,0.12);color:var(--green)"><i class="fas fa-tachometer-alt"></i></div>
-                <div class="feat-row-body">
-                    <div class="feat-row-title">Admin Dashboard & Analytics</div>
-                    <div class="feat-row-desc">Full admin panel with live stats, 30-day growth charts, user/project management tables, suspend/activate controls, activity feed, and top contributors leaderboard.</div>
-                </div>
-                <div class="feat-row-badge badge-admin">Admin</div>
-            </div> -->
             <div class="feat-row">
                 <div class="feat-row-icon" style="background:rgba(245,158,11,0.12);color:var(--amber)"><i class="fas fa-calculator"></i></div>
                 <div class="feat-row-body">
@@ -998,14 +992,21 @@
         </div>
     </div>
 
-    <!-- CTA -->
-    <div class="cta-band reveal">
-        <h2>Try SmartArch</h2>
-        <p>Experience AI-powered architectural design — free to start, no credit card required.</p>
-        <a href="index.html" class="btn-hero-primary"><i class="fas fa-rocket"></i> Get Started Free</a>
-        <a href="dashboard.html" class="btn-hero-outline"><i class="fas fa-th-large"></i> Open Dashboard</a>
-    </div>
 
+<div class="cta-band reveal">
+    <h2>Try SmartArch</h2>
+    <p>Experience AI-powered architectural design — free to start, no credit card required.</p>
+
+    <!-- Guest -->
+    <a href="index.html" id="ctaGuest" class="btn-hero-primary">
+        <i class="fas fa-rocket"></i> Get Started Free
+    </a>
+
+    <!-- Logged in -->
+    <a href="dashboard.html" id="ctaUser" class="btn-hero-primary" style="display:none;">
+        <i class="fas fa-drafting-compass"></i> Start Creating New Project
+    </a>
+</div>
 </div>
 
 <!-- FOOTER -->
@@ -1034,7 +1035,6 @@
             <h4>Legal &amp; Admin</h4>
             <a href="privacy.html">Privacy Policy</a>
             <a href="terms.html">Terms of Service</a>
-            <a href="admin-login.html" class="admin-link"><i class="fas fa-shield-alt" style="margin-right:4px"></i>Admin Panel</a>
         </div>
     </div>
     <div class="footer-bottom">
@@ -1043,7 +1043,9 @@
         <span>Built with <span style="color:var(--cyan)">♥</span> using Node.js, MongoDB & AI</span>
     </div>
 </footer>
-
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/dashboard-profile.js"></script>
 
 <script>
     const observer = new IntersectionObserver((entries) => {
@@ -1058,20 +1060,30 @@
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
 function checkAuth(){
-
     const token = localStorage.getItem("token");
 
-    if(token){
-        document.getElementById("navGuest").style.display = "none";
-        document.getElementById("navUser").style.display = "block";
-        
-    }else{
-        document.getElementById("navGuest").style.display = "block";
-        document.getElementById("navUser").style.display = "none";
-        
-        
-    }
+    const navGuest = document.getElementById("navGuest");
+    const navUser  = document.getElementById("navUser");
 
+    const ctaGuest = document.getElementById("ctaGuest");
+    const ctaUser  = document.getElementById("ctaUser");
+
+    if(token){
+        navGuest.style.display = "none";
+        navUser.style.display = "block";
+
+        // CTA toggle
+        if(ctaGuest) ctaGuest.style.display = "none";
+        if(ctaUser) ctaUser.style.display = "inline-flex";
+
+    }else{
+        navGuest.style.display = "block";
+        navUser.style.display = "none";
+
+        // CTA toggle
+        if(ctaGuest) ctaGuest.style.display = "inline-flex";
+        if(ctaUser) ctaUser.style.display = "none";
+    }
 }
 
 document.addEventListener("DOMContentLoaded", checkAuth);
@@ -1080,3 +1092,5 @@ document.addEventListener("DOMContentLoaded", checkAuth);
 </script>
 </body>
 </html>
+
+

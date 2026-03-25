@@ -1,69 +1,59 @@
 /**
  * architectureRoutes.js
- * Routes for building layout generation, image parsing, and AI chat.
+ * Routes for layout generation, image parsing, AI chat, and all export formats.
  */
 
-import express                          from 'express';
-import multer                           from 'multer';          // npm i multer
+import express from 'express';
+import multer  from 'multer';
 import {
   generateFloorplan,
   uploadFloorplanImage,
   chatWithArchitect,
-}                                       from '../controllers/architectureController.js';
+  suggestDesign,
+  exportCAD,
+  exportOBJ,
+  exportSTL,
+  exportGLTF,
+} from '../controllers/architectureController.js';
 
 const router = express.Router();
 
-// ── Multer — memory storage (buffer passed to canvas) ──────────────
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits:  { fileSize: 10 * 1024 * 1024 },   // 10 MB cap
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-    if (allowed.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only PNG / JPEG / WEBP images are accepted'), false);
-    }
+    const ok = ['image/png','image/jpeg','image/jpg','image/webp'].includes(file.mimetype);
+    ok ? cb(null,true) : cb(new Error('Only PNG/JPEG/WEBP images accepted'), false);
   },
 });
 
-// ── Floorplan routes ────────────────────────────────────────────────
-
-/**
- * POST /api/architecture/floorplan/generate
- * Generate a building layout programmatically via the BSP engine.
- *
- * Body (JSON):
- *   buildingType  string   'residential' | 'office' | 'commercial'  (default: residential)
- *   floors        number   1–6                                       (default: 1)
- *   totalArea     number   Total floor area m²                       (default: 100)
- *   rooms         Array    [{ type: string, count: number }]         (optional)
- *
- * Response:
- *   { success, requestId, floorplan: { floors: [...] }, timestamp }
- */
-router.post('/floorplan/generate', generateFloorplan);
-
-/**
- * POST /api/architecture/floorplan/upload-image
- * Parse an uploaded floorplan image and return a floorplan JSON.
- *
- * Multipart form:
- *   file          File     PNG / JPEG / WEBP image
- *   scaleFactor   number   Pixels per metre (default: 20)
- *
- * Response:
- *   { success, requestId, floorplan: { floors: [...] }, timestamp }
- */
+// ── Floorplan ──────────────────────────────────────────────────────
+router.post('/floorplan/generate',                   generateFloorplan);
 router.post('/floorplan/upload-image', upload.single('file'), uploadFloorplanImage);
 
-// ── AI Chat route (Ollama proxy — behaviour unchanged) ──────────────
+// ── AI Chat ────────────────────────────────────────────────────────
+router.post('/chat', chatWithArchitect);
 
 /**
- * POST /api/architecture/chat
- * Body: { message: string }
- * Response: { success, requestId, data: { reply }, timestamp }
+ * POST /api/architecture/suggest
+ * Body: { type: 'interior'|'exterior'|'layout'|'materials', projectData }
+ * Returns proactive AI design suggestions grounded in the current project.
  */
-router.post('/chat', chatWithArchitect);
+router.post('/suggest', suggestDesign);
+
+// ── Export ─────────────────────────────────────────────────────────
+/**
+ * POST /api/architecture/export/cad   → .dxf  (2D floor plan, AutoCAD)
+ * POST /api/architecture/export/obj   → JSON { obj, mtl, filename }
+ * POST /api/architecture/export/stl   → .stl  (binary, 3D printing)
+ * POST /api/architecture/export/gltf  → .glb  (binary glTF 2.0)
+ *
+ * All export routes accept: Content-Type: application/json
+ * Body: full SmartArch projectData object
+ */
+router.post('/export/cad',  exportCAD);
+router.post('/export/obj',  exportOBJ);
+router.post('/export/stl',  exportSTL);
+router.post('/export/gltf', exportGLTF);
 
 export default router;

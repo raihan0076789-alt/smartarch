@@ -104,6 +104,24 @@ exports.updateProject = async (req, res) => {
         req.body.lastModifiedBy = req.user.id;
         req.body.version = project.version + 1;
 
+        // Recalculate metadata here because findByIdAndUpdate bypasses the pre('save') hook.
+        // Without this, totalRooms (and other metadata) would never update when floors/rooms change.
+        if (req.body.floors !== undefined) {
+            const floors = req.body.floors;
+            const totalWidth = req.body.totalWidth !== undefined ? req.body.totalWidth : project.totalWidth;
+            const totalDepth = req.body.totalDepth !== undefined ? req.body.totalDepth : project.totalDepth;
+            const totalArea = totalWidth * totalDepth;
+            const totalRooms = floors.reduce((sum, floor) => sum + (Array.isArray(floor.rooms) ? floor.rooms.length : 0), 0);
+            const totalFloors = floors.length;
+            req.body.metadata = {
+                totalArea,
+                totalRooms,
+                totalFloors,
+                estimatedCost: totalArea * 1500,
+                constructionTime: totalFloors * 4
+            };
+        }
+
         project = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
 
         await ModelVersion.create({

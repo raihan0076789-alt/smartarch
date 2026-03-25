@@ -3,49 +3,1334 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login — House Architect</title>
-    <link rel="stylesheet" href="css/admin.css">
+    <title>Admin Login — SmartArch</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+   <style>
+    *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    :root {
+        --ink:       #060a12;
+        --ink-2:     #0d1424;
+        --cyan:      #00d4c8;
+        --cyan-2:    #06b6d4;
+        --violet:    #8b5cf6;
+        --blue:      #3b82f6;
+        --slate:     #94a3b8;
+        --slate-2:   #64748b;
+        --white:     #f1f5f9;
+        --border:    rgba(255,255,255,0.08);
+        --card-bg:   rgba(255,255,255,0.04);
+        --danger:    #ef4444;
+        --success:   #10b981;
+        --r:         14px;
+        --r-lg:      28px;
+        --shadow:    0 30px 80px rgba(0,0,0,0.45);
+    }
+
+    html, body {
+        min-height: 100%;
+    }
+
+    body {
+        font-family: 'Outfit', sans-serif;
+        background:
+            radial-gradient(circle at top left, rgba(139,92,246,0.18), transparent 35%),
+            radial-gradient(circle at bottom right, rgba(0,212,200,0.16), transparent 35%),
+            linear-gradient(135deg, #0a0f1c 0%, #11162a 45%, #18132b 100%);
+        color: var(--white);
+        overflow-x: hidden;
+        position: relative;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+            linear-gradient(rgba(0,212,200,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,212,200,0.03) 1px, transparent 1px);
+        background-size: 72px 72px;
+        z-index: 0;
+    }
+
+    .ambient {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(120px);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .a1 {
+        width: 420px;
+        height: 420px;
+        top: -100px;
+        left: -80px;
+        background: rgba(139,92,246,0.18);
+    }
+
+    .a2 {
+        width: 460px;
+        height: 460px;
+        right: -100px;
+        bottom: -100px;
+        background: rgba(0,212,200,0.16);
+    }
+
+    /* ── LAYOUT ──────────────────────────────────────────────────────── */
+    .admin-page {
+        min-height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .login-shell {
+        width: 100%;
+        max-width: 1400px;
+        border-radius: 30px;
+        padding: 10px;
+        background:  radial-gradient(circle at 25% 20%, rgba(255,255,255,0.12), transparent 20%),
+                     radial-gradient(circle at 75% 80%, rgba(255,255,255,0.08), transparent 18%),
+                     linear-gradient(135deg, #27193e 0%, #28255f 42%, #263f43 100%);
+        box-shadow: var(--shadow);
+    }
+
+    .login-shell::before {
+        background:
+            linear-gradient(135deg, rgba(255,255,255,0.08), transparent 40%),
+            linear-gradient(to top, rgba(255,105,180,0.18), transparent 35%);
+    }
+
+    .login-card {
+        display: grid;
+        grid-template-columns: 750px 1fr;
+        min-height: 550px;
+        background: rgba(12, 18, 33, 0.86);
+        backdrop-filter: blur(24px);
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .login-panel {
+        background: rgba(255,255,255,0.06);
+        padding: 3.25rem 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        order: 2;
+    }
+
+    .login-panel::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom right, rgba(255,255,255,0.06), transparent 45%);
+        pointer-events: none;
+    }
+
+    /* ── TYPOGRAPHY & BRANDING ───────────────────────────────────────── */
+    .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 2rem;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+    }
+
+    .brand-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--cyan), var(--blue));
+        color: #fff;
+        font-size: 1.1rem;
+        box-shadow: 0 10px 30px rgba(0,212,200,0.28);
+        margin-left: 163px;
+    }
+
+    .brand-text {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 1.2rem;
+        color: var(--white);
+        letter-spacing: -0.4px;
+    }
+
+    .brand-text em {
+        font-style: normal;
+        color: var(--cyan);
+    }
+
+    .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        width: fit-content;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 1.6px;
+        font-weight: 700;
+        color: var(--cyan);
+        background: rgba(0,212,200,0.08);
+        border: 1px solid rgba(0,212,200,0.18);
+        padding: 6px 14px;
+        border-radius: 999px;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+        margin-left: 200px;
+    }
+
+    .login-title {
+        font-family: 'Syne', sans-serif;
+        font-size: clamp(2rem, 4vw, 2.65rem);
+        line-height: 1.08;
+        letter-spacing: -1.5px;
+        margin-bottom: 0.85rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .login-title span {
+        background: linear-gradient(120deg, var(--cyan), var(--cyan-2), var(--violet));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .login-sub {
+        color: var(--slate);
+        font-size: 0.98rem;
+        line-height: 1.75;
+        margin-bottom: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .login-error {
+        display: none;
+        margin-bottom: 1rem;
+        padding: 0.9rem 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(239,68,68,0.25);
+        background: rgba(239,68,68,0.08);
+        color: #fca5a5;
+        font-size: 0.9rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ── FORMS & INPUTS (CLEANED UP) ─────────────────────────────────── */
+    .login-form {
+        position: relative;
+        z-index: 1;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--white);
+        margin-bottom: 0.6rem;
+    }
+
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Left Icon targeting */
+    .input-wrapper > i:first-child,
+    .input-wrapper > .input-icon {
+        position: absolute;
+        left: 1.2rem;
+        color: var(--cyan);
+        font-size: 1.05rem;
+        pointer-events: none;
+        z-index: 2; /* Keeps icon visible over autofill */
+    }
+
+    /* Base Input styling */
+    .input-wrapper input {
+        width: 100%;
+        height: 54px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.09);
+        background: rgba(255,255,255,0.05);
+        color: var(--white);
+        font-size: 0.95rem;
+        font-family: 'Outfit', sans-serif;
+        padding: 0 1rem 0 3.2rem; /* Normal padding (room for left icon only) */
+        outline: none;
+        transition: all 0.25s ease;
+    }
+
+    /* Make room on the right ONLY when the toggle button exists */
+    .input-wrapper.input-wrapper--toggle input,
+    .input-wrapper:has(.pass-toggle) input {
+        padding-right: 3.2rem; 
+    }
+
+    .input-wrapper input::placeholder {
+        color: var(--slate-2);
+    }
+
+    .input-wrapper input:focus {
+        border-color: rgba(0,212,200,0.45);
+        box-shadow: 0 0 0 4px rgba(0,212,200,0.08);
+        background: rgba(255,255,255,0.07);
+    }
+
+    /* AUTOFILL OVERRIDE (Fixes the white background issue) */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus, 
+    input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 50px #181d2c inset !important;
+        -webkit-text-fill-color: var(--white) !important;
+        transition: background-color 5000s ease-in-out 0s;
+        caret-color: var(--white);
+    }
+
+    /* Password Eye Toggle */
+    .pass-toggle, .toggle-pass {
+        position: absolute;
+        right: 0.6rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        border: 0;
+        background: transparent;
+        color: var(--slate-2);
+        cursor: pointer;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        transition: all 0.2s;
+        z-index: 2; /* Keeps button clickable over autofill */
+    }
+
+    .pass-toggle i, .toggle-pass i { 
+        line-height: 1; 
+    }
+
+    .pass-toggle:hover, .toggle-pass:hover {
+        color: var(--white);
+        background: rgba(255,255,255,0.06);
+    }
+
+    .input-wrapper:focus-within .pass-toggle,
+    .input-wrapper:focus-within .toggle-pass {
+        color: var(--cyan);
+    }
+
+    /* ── FORM ACTIONS & BUTTONS ──────────────────────────────────────── */
+    .form-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin: 0.75rem 0 1.4rem;
+    }
+
+    .remember {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        color: var(--slate);
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+
+    .remember input {
+        accent-color: var(--cyan);
+        cursor: pointer;
+    }
+
+    .forgot-link {
+        color: var(--slate);
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: color 0.2s;
+    }
+
+    .forgot-link:hover {
+        color: var(--cyan);
+    }
+
+    .login-btn {
+        width: 100%;
+        height: 54px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--cyan), var(--cyan-2));
+        color: #061018;
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.65rem;
+        transition: transform 0.2s, box-shadow 0.25s, filter 0.25s;
+    }
+
+    .login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 40px rgba(0,212,200,0.32);
+        filter: brightness(1.03);
+    }
+
+    .login-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .panel-footer {
+        margin-top: 1.4rem;
+        text-align: center;
+        color: var(--slate-2);
+        font-size: 0.82rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .panel-footer a {
+        color: var(--cyan);
+        text-decoration: none;
+    }
+
+    /* ── VISUAL RIGHT PANEL ──────────────────────────────────────────── */
+    .visual-panel {
+        position: relative;
+        overflow: hidden;
+        background:
+            radial-gradient(circle at 25% 20%, rgba(255,255,255,0.12), transparent 20%),
+            radial-gradient(circle at 75% 80%, rgba(255,255,255,0.08), transparent 18%),
+            linear-gradient(135deg, #27193e 0%, #28255f 42%, #263f43 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        order: 1;
+    }
+
+    .visual-panel::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(135deg, rgba(255,255,255,0.08), transparent 40%),
+            linear-gradient(to top, rgba(255,105,180,0.18), transparent 35%);
+        pointer-events: none;
+    }
+
+    .visual-content {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 480px;
+    }
+
+    .admin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255,255,255,0.14);
+        border: 1px solid rgba(255,255,255,0.18);
+        color: #fff;
+        padding: 7px 14px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        margin-bottom: 1.2rem;
+        backdrop-filter: blur(14px);
+    }
+
+    .visual-heading {
+        font-family: 'Syne', sans-serif;
+        font-size: clamp(2rem, 4vw, 3rem);
+        line-height: 1.05;
+        letter-spacing: -1.8px;
+        color: #fff;
+        margin-bottom: 1rem;
+    }
+
+    .visual-heading span {
+        color: #dffefe;
+    }
+
+    .visual-text {
+        color: rgba(255,255,255,0.84);
+        font-size: 1rem;
+        line-height: 1.8;
+        max-width: 420px;
+        margin-bottom: 2rem;
+    }
+
+    .info-cards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .info-card {
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.16);
+        border-radius: 18px;
+        padding: 1rem;
+        backdrop-filter: blur(14px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.14);
+    }
+
+    .info-card i {
+        font-size: 1.05rem;
+        margin-bottom: 0.7rem;
+        color: #fff;
+    }
+
+    .info-card h3 {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.95rem;
+        margin-bottom: 0.35rem;
+        color: #fff;
+    }
+
+    .info-card p {
+        font-size: 0.82rem;
+        line-height: 1.6;
+        color: rgba(255,255,255,0.78);
+    }
+
+    .floating-card {
+        position: absolute;
+        right: 10px;
+        bottom: 5px;
+        background: rgba(10, 15, 28, 0.72);
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 18px;
+        padding: 1rem 1.1rem;
+        backdrop-filter: blur(18px);
+        box-shadow: 0 14px 40px rgba(0,0,0,0.24);
+        z-index: 2;
+        min-width: 220px;
+    }
+
+    .floating-card .small {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.76rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .floating-card .big {
+        color: #fff;
+        font-family: 'Syne', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .back-link {
+        position: absolute;
+        top: 22px;
+        left: 24px;
+        z-index: 3;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        color: rgba(255,255,255,0.85);
+        background: rgba(12,18,33,0.35);
+        border: 1px solid rgba(255,255,255,0.14);
+        padding: 10px 14px;
+        border-radius: 999px;
+        font-size: 0.86rem;
+        backdrop-filter: blur(12px);
+        transition: all 0.25s;
+    }
+
+    .back-link:hover {
+        background: rgba(12,18,33,0.5);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────────────────────────── */
+    @media (max-width: 980px) {
+        .login-card { grid-template-columns: 1fr; }
+        .visual-panel { min-height: 420px; order: -1; }
+        .floating-card { right: 20px; bottom: 20px; }
+    }
+
+    @media (max-width: 640px) {
+        .admin-page { padding: 1rem; }
+        .login-shell { padding: 7px; border-radius: 22px; }
+        .login-panel, .visual-panel { padding: 2rem 1.25rem; }
+        .info-cards { grid-template-columns: 1fr; }
+        .form-row { flex-direction: column; align-items: flex-start; }
+        .back-link { top: 14px; left: 14px; padding: 9px 12px; font-size: 0.8rem; }
+    }
+
+    /* ── MODAL STYLES ────────────────────────────────────────────────── */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.7);
+        backdrop-filter: blur(4px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal.active { display: flex; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    .modal-content {
+        background: var(--ink-2);
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        padding: 2.5rem;
+        max-width: 450px;
+        width: 90%;
+        box-shadow: 0 25px 100px rgba(0,0,0,0.5);
+        animation: slideUp 0.3s ease;
+        position: relative;
+    }
+
+    .modal-header { margin-bottom: 1.5rem; }
+
+    .modal-close {
+        position: absolute;
+        top: 1.25rem; right: 1.25rem;
+        background: transparent;
+        border: none;
+        color: var(--slate);
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-close:hover {
+        color: var(--white);
+        transform: rotate(90deg);
+    }
+
+    .modal-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--white);
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
+    }
+
+    .modal-subtitle { color: var(--slate); font-size: 0.9rem; line-height: 1.6; }
+    .modal-body { margin-bottom: 1.5rem; }
+    .modal-form { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .modal-error {
+        background: rgba(239,68,68,0.1);
+        border: 1px solid rgba(239,68,68,0.3);
+        color: #fca5a5;
+        padding: 0.875rem;
+        border-radius: var(--r);
+        font-size: 0.85rem;
+        line-height: 1.5;
+        display: none;
+        margin-bottom: 1rem;
+    }
+
+    .modal-error.show { display: block; }
+
+    .modal-success {
+        background: rgba(16,185,129,0.1);
+        border: 1px solid rgba(16,185,129,0.3);
+        color: #86efac;
+        padding: 1rem;
+        border-radius: var(--r);
+        font-size: 0.9rem;
+        line-height: 1.6;
+        display: none;
+        margin-bottom: 1rem;
+    }
+
+    .modal-success.show { display: block; }
+
+    .modal-tabs {
+        display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .modal-tab {
+        background: transparent; border: none;
+        color: var(--slate); padding: 0.75rem 1.25rem;
+        font-size: 0.9rem; font-weight: 600; cursor: pointer;
+        border-bottom: 2px solid transparent; transition: all 0.2s;
+        position: relative; bottom: -1px;
+    }
+
+    .modal-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+    .modal-tab:hover { color: var(--white); }
+
+    .modal-tab-content { display: none; }
+    .modal-tab-content.active { display: block; animation: fadeIn 0.2s ease; }
+
+    .modal-info-box {
+        background: rgba(0,212,200,0.05);
+        border: 1px solid rgba(0,212,200,0.15);
+        border-radius: var(--r);
+        padding: 1rem; margin-bottom: 1.5rem;
+        display: flex; gap: 1rem;
+    }
+
+    .modal-info-icon {
+        width: 40px; height: 40px; border-radius: 10px;
+        background: rgba(0,212,200,0.1); display: flex;
+        align-items: center; justify-content: center;
+        color: var(--cyan); flex-shrink: 0; font-size: 1.1rem;
+    }
+
+    .modal-info-text { display: flex; flex-direction: column; gap: 0.3rem; }
+    .modal-info-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; color: var(--white); }
+    .modal-info-desc { color: var(--slate); font-size: 0.8rem; line-height: 1.5; }
+
+    .modal-buttons { display: flex; gap: 0.75rem; }
+
+    .btn-modal {
+        flex: 1; padding: 0.9rem 1.5rem; background: transparent;
+        color: var(--slate); border: 1.5px solid rgba(255,255,255,0.15);
+        border-radius: 10px; font-family: 'Outfit', sans-serif;
+        font-size: 0.9rem; font-weight: 600; cursor: pointer;
+        transition: all 0.25s ease; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .btn-modal:hover { color: var(--white); border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
+    .btn-modal-primary { background: var(--cyan); color: var(--ink); border: none; }
+    .btn-modal-primary:hover { background: #2ee8dc; box-shadow: 0 8px 24px rgba(0,212,200,0.3); }
+    .btn-modal-primary.loading { pointer-events: none; opacity: 0.8; }
+
+    /* Help Center Styles */
+    .help-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+    
+    .help-item {
+        background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+        border-radius: var(--r); padding: 1.25rem; cursor: pointer;
+        transition: all 0.2s; display: flex; gap: 1rem;
+    }
+    
+    .help-item:hover {
+        border-color: rgba(0,212,200,0.2); background: rgba(0,212,200,0.04);
+        transform: translateX(4px);
+    }
+    
+    .help-item-icon {
+        width: 36px; height: 36px; border-radius: 8px; background: rgba(0,212,200,0.1);
+        display: flex; align-items: center; justify-content: center;
+        color: var(--cyan); flex-shrink: 0; font-size: 1rem;
+    }
+    
+    .help-item-content { flex: 1; }
+    .help-item-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; color: var(--white); margin-bottom: 0.2rem; }
+    .help-item-desc { color: var(--slate-2); font-size: 0.8rem; line-height: 1.5; }
+    .help-item-arrow { color: var(--cyan); font-size: 1.1rem; display: flex; align-items: center; }
+
+    /* Contact Info */
+    .contact-info { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+    .contact-item { display: flex; gap: 1rem; }
+    
+    .contact-icon {
+        width: 40px; height: 40px; border-radius: 10px; background: rgba(0,212,200,0.1);
+        display: flex; align-items: center; justify-content: center;
+        color: var(--cyan); flex-shrink: 0; font-size: 1.1rem;
+    }
+    
+    .contact-content { flex: 1; }
+    .contact-label { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--white); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .contact-value { color: var(--cyan); font-size: 0.9rem; text-decoration: none; transition: all 0.2s; }
+    .contact-value:hover { color: #2ee8dc; text-decoration: underline; }
+</style>
 </head>
 <body>
-    <div class="admin-login-page">
-        <div class="login-card">
-            <div class="login-header">
-                <div class="login-icon">
-                    <i class="fas fa-shield-alt"></i>
+
+    <div class="ambient a1"></div>
+    <div class="ambient a2"></div>
+
+    <main class="admin-page">
+        <div class="login-shell">
+            <div class="login-card">
+
+                <!-- LEFT: FORM -->
+                <section class="login-panel">
+                    <a href="index.html" class="brand">
+                        <div class="brand-icon"><i class="fas fa-home"></i></div>
+                        <div class="brand-text">Smart<em>Arch</em></div>
+                    </a>
+
+                    <div class="eyebrow" >
+                        <i class="fas fa-shield-alt"></i>
+                        Admin Access
+                    </div>
+
+                    <h1 class="login-title" align="center">
+                        Welcome to the <span>Admin Portal</span>
+                    </h1>
+
+                    <p class="login-sub" align="center">
+                        Sign in to manage users, monitor projects, review platform activity,
+                        and maintain the SmartArch management system securely.
+                    </p>
+
+                    <div class="login-error" id="loginError"></div>
+
+                    <form class="login-form" id="adminLoginForm">
+                        <div class="form-group">
+                            <label for="adminEmail">Email Address</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-envelope"></i>
+                                <input
+                                    type="email"
+                                    id="adminEmail"
+                                    placeholder="admin@smartarch.com"
+                                    required
+                                    autocomplete="email"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="adminPassword">Password</label>
+                            <div class="input-wrapper input-wrapper--toggle">
+                            <i class="fas fa-lock input-icon"></i>
+
+                            <input
+                                type="password"
+                                id="adminPassword"
+                                class="form-input"
+                                placeholder="••••••••"
+                                required
+                                autocomplete="current-password"
+                            >
+
+                            <button type="button" class="pass-toggle" id="togglePassword" aria-label="Show password">
+                                <i class="far fa-eye"></i>
+                            </button>
+                            </div>
+                             </div>                       
+
+                        <div class="form-row">
+                            <label class="remember">
+                                <input type="checkbox" id="rememberAdmin">
+                                <span>Keep me signed in</span>
+                            </label>
+
+                           <div class="forgot-password">
+                            <a href="#" class="forgot-link" id="forgotPasswordLink">Need help signing in?</a>
+                        </div>
+                        </div>
+
+                        <button type="submit" class="login-btn" id="loginBtn">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Sign In to Admin
+                        </button>
+                    </form>
+
+                    <div class="panel-footer">
+                        Back to <a href="index.html">main website</a> · Secure access for authorized administrators only
+                    </div>
+                </section>
+
+                <!-- RIGHT: VISUAL -->
+                <section class="visual-panel">
+                    
+
+                    <div class="visual-content">
+                        <div class="admin-badge">
+                            <i class="fas fa-crown"></i>
+                            SmartArch Control Center
+                        </div>
+
+                        <h2 class="visual-heading">
+                            Manage the future of <span>AI architecture</span>
+                        </h2>
+
+                        <p class="visual-text">
+                            Access administrative tools for user management, analytics, security oversight,
+                            and project monitoring — all inside the SmartArch ecosystem.
+                        </p>
+
+                        <div class="info-cards">
+                            <div class="info-card">
+                                <i class="fas fa-users-cog"></i>
+                                <h3>User Control</h3>
+                                <p>Manage accounts, roles, access levels, and platform moderation tools.</p>
+                            </div>
+
+                            <div class="info-card">
+                                <i class="fas fa-chart-line"></i>
+                                <h3>Platform Insights</h3>
+                                <p>Review analytics, project activity, usage trends, and growth metrics.</p>
+                            </div>
+
+                            <div class="info-card">
+                                <i class="fas fa-folder-tree"></i>
+                                <h3>Project Oversight</h3>
+                                <p>Track architectural projects, statuses, submissions, and collaboration activity.</p>
+                            </div>
+
+                            <div class="info-card">
+                                <i class="fas fa-shield-halved"></i>
+                                <h3>Security First</h3>
+                                <p>Protected routes, role-based access, and secure admin authentication flow.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="floating-card">
+                        <div class="small">Authorized Access</div>
+                        <div class="big">Admin Management System</div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </main>
+<!-- FORGOT PASSWORD & HELP MODAL -->
+<div class="modal" id="helpModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeHelpModal()">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <div class="modal-header">
+            <h2 class="modal-title">Need Help?</h2>
+            <p class="modal-subtitle">Choose how we can assist you</p>
+        </div>
+
+        <div class="modal-tabs">
+            <button class="modal-tab active" onclick="switchTab('reset')">
+                <i class="fas fa-redo"></i> Reset Password
+            </button>
+            <button class="modal-tab" onclick="switchTab('support')">
+                <i class="fas fa-headset"></i> Support
+            </button>
+            <button class="modal-tab" onclick="switchTab('faq')">
+                <i class="fas fa-question-circle"></i> FAQ
+            </button>
+        </div>
+
+        <!-- TAB 1: PASSWORD RESET -->
+        <div class="modal-tab-content active" id="resetTab">
+            <div class="modal-error" id="resetError"></div>
+            <div class="modal-success" id="resetSuccess"></div>
+
+            <div class="modal-info-box">
+                <div class="modal-info-icon">
+                    <i class="fas fa-lock"></i>
                 </div>
-                <h1>Admin Portal</h1>
-                <p>House Architect Management System</p>
+                <div class="modal-info-text">
+                    <div class="modal-info-title">Password Reset</div>
+                    <div class="modal-info-desc">Enter your email to receive reset instructions</div>
+                </div>
             </div>
 
-            <div class="login-error" id="loginError"></div>
-
-            <form class="login-form" id="adminLoginForm">
+            <form class="modal-form" id="resetForm">
                 <div class="form-group">
-                    <label for="adminEmail">Email Address</label>
+                    <label class="form-label" for="resetEmail">Admin Email</label>
                     <div class="input-wrapper">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" id="adminEmail" placeholder="admin@example.com" required autocomplete="email">
+                        <input
+                            type="email"
+                            id="resetEmail"
+                            class="form-input"
+                            placeholder="admin@smartarch.com"
+                            required
+                        >
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="adminPassword">Password</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="adminPassword" placeholder="Your admin password" required autocomplete="current-password">
-                    </div>
-                </div>
-                <button type="submit" class="login-btn" id="loginBtn">
-                    <i class="fas fa-sign-in-alt"></i> Sign In to Admin
-                </button>
-            </form>
 
-            <a href="index.html" class="back-link">
-                <i class="fas fa-arrow-left"></i> Back to main site
-            </a>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-modal" onclick="closeHelpModal()">Cancel</button>
+                    <button type="submit" class="btn-modal btn-modal-primary" id="resetBtn">Send Reset Link</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TAB 2: SUPPORT -->
+        <div class="modal-tab-content" id="supportTab">
+            <div class="modal-info-box">
+                <div class="modal-info-icon">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <div class="modal-info-text">
+                    <div class="modal-info-title">Get Support</div>
+                    <div class="modal-info-desc">Our support team is ready to help</div>
+                </div>
+            </div>
+
+            <div class="contact-info">
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="contact-content">
+                        <div class="contact-label">Email Support</div>
+                        <a href="mailto:support@smartarch.com" class="contact-value">support@smartarch.com</a>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="contact-content">
+                        <div class="contact-label">Phone Support</div>
+                        <a href="tel:+1234567890" class="contact-value">+1 (234) 567-890</a>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="contact-content">
+                        <div class="contact-label">Live Chat</div>
+                        <a href="#" onclick="openLiveChat()" class="contact-value">Start Chat Now</a>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="contact-content">
+                        <div class="contact-label">Support Hours</div>
+                        <div class="contact-value">24/7 Available</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-buttons" style="margin-top: 1.5rem;">
+                <button type="button" class="btn-modal" onclick="closeHelpModal()">Close</button>
+            </div>
+        </div>
+
+        <!-- TAB 3: FAQ -->
+        <div class="modal-tab-content" id="faqTab">
+            <div class="help-grid">
+                <div class="help-item" onclick="expandFaq(0)">
+                    <div class="help-item-icon">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <div class="help-item-content">
+                        <div class="help-item-title">How do I reset my password?</div>
+                        <div class="help-item-desc">Click "Need help" and select password reset</div>
+                    </div>
+                    <div class="help-item-arrow">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+
+                <div class="help-item" onclick="expandFaq(1)">
+                    <div class="help-item-icon">
+                        <i class="fas fa-user-lock"></i>
+                    </div>
+                    <div class="help-item-content">
+                        <div class="help-item-title">Account locked?</div>
+                        <div class="help-item-desc">Contact support for account recovery</div>
+                    </div>
+                    <div class="help-item-arrow">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+
+                <div class="help-item" onclick="expandFaq(2)">
+                    <div class="help-item-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="help-item-content">
+                        <div class="help-item-title">Security best practices</div>
+                        <div class="help-item-desc">Learn how to keep your admin account secure</div>
+                    </div>
+                    <div class="help-item-arrow">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+
+                <div class="help-item" onclick="expandFaq(3)">
+                    <div class="help-item-icon">
+                        <i class="fas fa-laptop"></i>
+                    </div>
+                    <div class="help-item-content">
+                        <div class="help-item-title">Browser compatibility</div>
+                        <div class="help-item-desc">Check supported browsers and requirements</div>
+                    </div>
+                    <div class="help-item-arrow">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-buttons" style="margin-top: 1.5rem;">
+                <button type="button" class="btn-modal" onclick="closeHelpModal()">Close</button>
+                <a href="https://docs.smartarch.com/admin" target="_blank" class="btn-modal btn-modal-primary">
+                    View Full Docs
+                </a>
+            </div>
         </div>
     </div>
-
+</div>
     <script src="js/admin.js"></script>
+
+   <script>
+    // ── HELP MODAL FUNCTIONS ──────────────────────────────────────
+    const helpModal = document.getElementById('helpModal');
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+
+    // Open modal
+    forgotPasswordLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        helpModal.classList.add('active');
+    });
+
+    // Close modal
+    function closeHelpModal() {
+        helpModal.classList.remove('active');
+        clearForms();
+    }
+
+    // Close when clicking outside
+    helpModal.addEventListener('click', (e) => {
+        if (e.target === helpModal) {
+            closeHelpModal();
+        }
+    });
+
+    // Close with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && helpModal.classList.contains('active')) {
+            closeHelpModal();
+        }
+    });
+
+    // ── TAB SWITCHING ─────────────────────────────────────────────
+    function switchTab(tabName) {
+        // Hide all tabs
+        document.querySelectorAll('.modal-tab-content').forEach(tab => {
+            tab.classList.remove('active');
+        });
+
+        // Remove active from all tab buttons
+        document.querySelectorAll('.modal-tab').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // Show selected tab
+        document.getElementById(tabName + 'Tab').classList.add('active');
+
+        // Add active to clicked button
+        event.target.closest('.modal-tab').classList.add('active');
+    }
+
+    // ── PASSWORD RESET FORM ───────────────────────────────────────
+    const resetForm = document.getElementById('resetForm');
+    const resetEmail = document.getElementById('resetEmail');
+    const resetBtn = document.getElementById('resetBtn');
+    const resetError = document.getElementById('resetError');
+    const resetSuccess = document.getElementById('resetSuccess');
+
+    resetForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        resetError.classList.remove('show');
+        resetSuccess.classList.remove('show');
+
+        const email = resetEmail.value.trim();
+
+        if (!email) {
+            showResetError('Please enter your email address');
+            return;
+        }
+
+        resetBtn.classList.add('loading');
+        resetBtn.innerHTML = '<span class="spinner"></span> Sending...';
+        resetBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showResetSuccess(
+                    'Reset link sent! Check your email at ' + email + ' for instructions.'
+                );
+                resetEmail.value = '';
+
+                // Auto close after 3 seconds
+                setTimeout(() => {
+                    closeHelpModal();
+                }, 3000);
+            } else {
+                showResetError(data.message || 'Failed to send reset link');
+            }
+        } catch (error) {
+            showResetError('Connection error. Please try again.');
+            console.error(error);
+        } finally {
+            resetBtn.classList.remove('loading');
+            resetBtn.innerHTML = 'Send Reset Link';
+            resetBtn.disabled = false;
+        }
+    });
+
+    function showResetError(message) {
+        resetError.textContent = message;
+        resetError.classList.add('show');
+    }
+
+    function showResetSuccess(message) {
+        resetSuccess.innerHTML = '<i class="fas fa-check-circle"></i> ' + message;
+        resetSuccess.classList.add('show');
+    }
+
+    // ── LIVE CHAT ─────────────────────────────────────────────────
+    function openLiveChat() {
+        // Integrate with your chat service (e.g., Intercom, Zendesk, etc.)
+        alert('Live chat is loading...\n\nIn production, this would open your chat widget.');
+        // Example:
+        // window.open('https://chat.smartarch.com', '_blank');
+    }
+
+    // ── FAQ EXPANSION ─────────────────────────────────────────────
+    function expandFaq(index) {
+        alert(`FAQ Item ${index + 1} tapped\n\nExpand with detailed answer here.`);
+    }
+
+    // ── CLEAR FORMS ───────────────────────────────────────────────
+    function clearForms() {
+        resetForm.reset();
+        resetError.classList.remove('show');
+        resetSuccess.classList.remove('show');
+    }
+
+    // ── MAIN LOGIN FORM ───────────────────────────────────────────
+    const form = document.getElementById('adminLoginForm');
+    const emailInput = document.getElementById('adminEmail');
+    const passwordInput = document.getElementById('adminPassword');
+    const loginBtn = document.getElementById('loginBtn');
+    const errorDiv = document.getElementById('loginError');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorDiv.classList.remove('show');
+
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!email || !password) {
+            showError('Please fill in all fields');
+            return;
+        }
+
+        loginBtn.classList.add('loading');
+        loginBtn.innerHTML = '<span class="spinner"></span> Signing in...';
+        loginBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/auth/admin-login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                window.location.href = 'admin-dashboard.html';
+            } else {
+                showError(data.message || 'Login failed. Please check your credentials.');
+            }
+        } catch (error) {
+            showError('Connection error. Please try again.');
+            console.error(error);
+        } finally {
+            loginBtn.classList.remove('loading');
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In to Admin Portal';
+            loginBtn.disabled = false;
+        }
+    });
+
+    function showError(message) {
+        errorDiv.textContent = message;
+        errorDiv.classList.add('show');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Clear error on input
+    emailInput.addEventListener('focus', () => errorDiv.classList.remove('show'));
+    passwordInput.addEventListener('focus', () => errorDiv.classList.remove('show'));
+</script>
+<script>
+  const passInput = document.getElementById('adminPassword');
+  const toggleBtn = document.getElementById('togglePassword');
+
+  if (passInput && toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      const isHidden = passInput.type === 'password';
+      passInput.type = isHidden ? 'text' : 'password';
+
+      const icon = toggleBtn.querySelector('i');
+      icon.classList.toggle('fa-eye', !isHidden);
+      icon.classList.toggle('fa-eye-slash', isHidden);
+
+      toggleBtn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+    });
+  }
+</script>
 </body>
 </html>

@@ -168,6 +168,14 @@ function populateProfileOverview() {
         if (el('overviewPhone'))   el('overviewPhone').textContent   = user.phone   || '—';
         if (el('overviewCompany')) el('overviewCompany').textContent = user.company || '—';
 
+         // ✅ ADD THIS (Total Projects from dashboard.js)
+        if (el('overviewTotalProjects')) {
+            const total = (window.projects && Array.isArray(window.projects)) 
+                ? window.projects.length 
+                : 0;
+            el('overviewTotalProjects').textContent = total;
+        }
+
         // Mirror avatar into overview pic
         const STORAGE_KEY = getAvatarStorageKey();
         const saved = localStorage.getItem(STORAGE_KEY);

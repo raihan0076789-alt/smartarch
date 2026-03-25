@@ -3,6 +3,8 @@
 let projects = [];
 let currentFilter = 'all';
 let deleteProjectId = null;
+// Password validation refs
+let newPasswordEl, confirmPasswordEl;
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -11,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loadUserInfo();
     loadProjects();
     setupNavigation();
+   
 
     // open section from URL
     setTimeout(() => {
@@ -26,9 +29,10 @@ function loadUserInfo() {
         const el = document.getElementById('userName');
         if (el) el.textContent = user.name;
 
-        // Determine avatar: check localStorage key first (set by dashboard-profile.js),
+        // Determine avatar: check per-user localStorage key first (same key used by dashboard-profile.js),
         // then fall back to user.avatar, then ui-avatars
-        const savedPic = localStorage.getItem('user_avatar');
+        const uid = user.id || user._id || 'guest';
+        const savedPic = localStorage.getItem('user_avatar_' + uid);
         const avatarSrc = savedPic || user.avatar ||
             `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=00d4c8&color=060a12&bold=true&size=128`;
 
@@ -68,7 +72,15 @@ function setupNavigation() {
                 // Small delay to let section become visible before drawing charts
                 setTimeout(() => { if (typeof refreshCharts === 'function') refreshCharts(); }, 60);
             }
-            if (section === 'settings') loadUserProfile();
+           if (section === 'settings') {
+                loadUserProfile();
+
+                // 🔥 ADD THIS (with delay)
+                setTimeout(() => {
+                    initPasswordValidation();
+                }, 100);
+            }
+
         });
     });
 }
@@ -376,3 +388,28 @@ async function updateProfile(event) {
 document.addEventListener('click', function (e) {
     if (e.target.classList.contains('modal')) e.target.style.display = 'none';
 });
+
+function initPasswordValidation() {
+    newPasswordEl = document.getElementById("newPassword");
+    confirmPasswordEl = document.getElementById("confirmPassword");
+
+    if (!newPasswordEl || !confirmPasswordEl) return;
+
+    function checkMatch() {
+        const newVal = newPasswordEl.value;
+        const confirmVal = confirmPasswordEl.value;
+
+        confirmPasswordEl.classList.remove("input-success", "input-error");
+
+        if (confirmVal === "") return;
+
+        if (newVal === confirmVal) {
+            confirmPasswordEl.classList.add("input-success"); // ✅ green
+        } else {
+            confirmPasswordEl.classList.add("input-error"); // ❌ red
+        }
+    }
+
+    newPasswordEl.addEventListener("input", checkMatch);
+    confirmPasswordEl.addEventListener("input", checkMatch);
+}

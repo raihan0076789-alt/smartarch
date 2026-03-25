@@ -46,6 +46,70 @@
 
     /* ── Floor view label in 3D toolbar ── */
     .floor-view-label{font-size:0.7rem;color:#6678a0;font-weight:600;letter-spacing:.04em;margin-right:2px;}
+
+    
+/* Tooltip base */
+.chat-chip {
+  position: relative; /* required for tooltip positioning */
+}
+
+/* Tooltip text */
+.chat-chip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+
+  background: rgba(15, 15, 20, 0.95);
+  color: #fff;
+  padding: 5px 10px;
+  font-size: 11px;
+  border-radius: 6px;
+
+  white-space: pre-line;  /* CHANGE this */
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+/* Tooltip arrow */
+.chat-chip::before {
+  content: "";
+  position: absolute;
+  bottom: 115%;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(15, 15, 20, 0.95) transparent transparent transparent;
+
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+/* Show tooltip on hover */
+.chat-chip:hover::after,
+.chat-chip:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+#topbar3DControls {
+  display: none;
+  align-items: center;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: all 0.2s ease;
+}
+
+#topbar3DControls.show {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0);
+}
     </style>
 </head>
 <body>
@@ -78,7 +142,39 @@
         </div>
         <div class="nav-right">
             <!-- <button class="nav-btn outline" onclick="window._tmpl && window._tmpl.open()" title="House Templates"><i class="fas fa-layer-group"></i> Templates</button> -->
-            <button class="nav-btn outline" onclick="exportProject()"><i class="fas fa-file-export"></i> Export</button>
+            <div class="export-dropdown-wrap" id="exportDropdownWrap">
+                <button class="nav-btn outline" onclick="toggleExportDropdown(event)">
+                    <i class="fas fa-file-export"></i> Export <i class="fas fa-chevron-down export-chevron"></i>
+                </button>
+                <div class="export-dropdown" id="exportDropdown">
+                    <div class="export-group-label">2D Plans</div>
+                    <button class="export-option" onclick="exportProject('json')">
+                        <i class="fas fa-code"></i>
+                        <span><strong>JSON</strong><small>Full project data</small></span>
+                    </button>
+                    <button class="export-option" onclick="exportProject('svg')">
+                        <i class="fas fa-draw-polygon"></i>
+                        <span><strong>SVG</strong><small>Vector floor plan</small></span>
+                    </button>
+                    <button class="export-option" onclick="exportProject('cad')">
+                        <i class="fas fa-drafting-compass"></i>
+                        <span><strong>CAD (DXF)</strong><small>AutoCAD / 2D drawing</small></span>
+                    </button>
+                    <div class="export-group-label">3D Models</div>
+                    <button class="export-option" onclick="exportProject('obj')">
+                        <i class="fas fa-cube"></i>
+                        <span><strong>OBJ</strong><small>Universal 3D mesh</small></span>
+                    </button>
+                    <button class="export-option" onclick="exportProject('stl')">
+                        <i class="fas fa-print"></i>
+                        <span><strong>STL</strong><small>3D printing ready</small></span>
+                    </button>
+                    <button class="export-option" onclick="exportProject('gltf')">
+                        <i class="fas fa-globe"></i>
+                        <span><strong>glTF / GLB</strong><small>Web &amp; game engines</small></span>
+                    </button>
+                </div>
+            </div>
             <button class="nav-btn primary"  onclick="saveProject()"><i class="fas fa-save"></i> Save</button>
         </div>
     </nav>
@@ -224,6 +320,17 @@
                 <div class="view-tabs">
                     <button class="view-tab active" id="btn2d"       onclick="setView('2d')"><i class="fas fa-vector-square"></i> 2D Plan</button>
                     <button class="view-tab interior-tab" id="btnInterior" onclick="setView('interior')"><i class="fas fa-cube"></i> 3D View</button>
+
+                     <!-- NEW: 3D controls -->
+                        <div id="topbar3DControls" style="display:none;gap:6px;margin-left:8px;">
+                            <button id="wireframeTopBtn" class="toolbar-toggle-btn" onclick="toggleWireframe()">
+                                <i class="fas fa-border-all"></i> Wireframe
+                            </button>
+
+                            <button id="walkTopBtn" class="toolbar-toggle-btn" onclick="toggleFirstPerson()">
+                                <i class="fas fa-walking"></i> Walk
+                            </button>
+                        </div>
                     </div>
 
                 <!-- Mid: zoom + snap (2D only) -->
@@ -259,24 +366,6 @@
                     <label class="snap-toggle" id="openTopToggle" style="display:none;">
                         <input type="checkbox" id="openTopMode2" checked onchange="document.getElementById('openTopMode').checked=this.checked;refresh3D();"> Open Top
                     </label>
-
-                    <!-- Wireframe toggle button (3D only) -->
-                    <!-- <button id="wireframeToggleBtn"
-                            class="zoom-btn"
-                            style="display:none;padding:0 0.65rem;height:28px;font-size:0.72rem;font-weight:600;white-space:nowrap;gap:0.3rem;"
-                            onclick="toggleWireframe()"
-                            title="Toggle Wireframe">
-                        <i class="fas fa-border-all"></i> Wireframe
-                    </button> -->
-
-                    <!-- First-person walk button (3D only) -->
-                    <!-- <button id="fpCameraBtn"
-                            class="zoom-btn"
-                            style="display:none;padding:0 0.65rem;height:28px;font-size:0.72rem;font-weight:600;white-space:nowrap;gap:0.3rem;"
-                            onclick="toggleFirstPerson()"
-                            title="First-Person Walk Mode — WASD to move, drag to look, Esc to exit">
-                        <i class="fas fa-walking"></i> Walk
-                    </button> -->
                 </div>
             </div>
 
@@ -397,17 +486,40 @@
             <!-- Ollama AI Chat -->
             <div class="sbar-section ollama-chat-section">
                 <div class="sbar-header ollama-header">
-                    <span><i class="fas fa-robot"></i> AI Architect Chat</span>
-                    <span class="ollama-badge">Ollama</span>
+                    <span><i class="fas fa-robot"></i> AI Design Assistant</span>
+                    <div style="display:flex;align-items:center;gap:5px;">
+                        <span class="ollama-badge">Ollama</span>
+                        <button class="chat-clear-btn" onclick="clearChat()" title="Clear conversation"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+                <!-- Suggestion chips -->
+                <div class="chat-chips">
+                    <button class="chat-chip chip-interior" data-tooltip="Interior&#10;Suggestion" onclick="requestSuggestion('interior')">
+                        <i class="fas fa-couch"></i> 
+                    </button>
+                    <button class="chat-chip chip-exterior" data-tooltip="Exterior Suggestion" onclick="requestSuggestion('exterior')">
+                        <i class="fas fa-home"></i>
+                    </button>
+                    <button class="chat-chip chip-layout" data-tooltip="Layout Ideas" onclick="requestSuggestion('layout')">
+                        <i class="fas fa-th-large"></i> 
+                    </button>
+                    <button class="chat-chip chip-materials" data-tooltip="Materials Suggestion" onclick="requestSuggestion('materials')">
+                        <i class="fas fa-layer-group"></i> 
+                    </button>
                 </div>
                 <div id="ollamaChatMessages" class="chat-messages">
-                    <div class="chat-msg ai"><div class="chat-bubble">Hi! I'm your AI architect. Ask me anything about room design, layouts, materials, or cost estimates. I know your current project!</div></div>
+                    <div class="chat-msg ai">
+                        <div class="chat-bubble chat-welcome">
+                            <span class="chat-welcome-icon">&#127968;</span>
+                            <span>Hi! I'm your AI architect. I know your current project — tap a chip above for instant suggestions, or ask me anything about your design.</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="chat-input-row">
-                    <input type="text" id="ollamaChatInput" class="chat-input" placeholder="Ask AI about your design..." autocomplete="off">
-                    <button id="ollamaChatSend" class="chat-send-btn"><i class="fas fa-paper-plane"></i></button>
+                    <input type="text" id="ollamaChatInput" class="chat-input" placeholder="Ask about your design..." autocomplete="off">
+                    <button id="ollamaChatSend" class="chat-send-btn" title="Send"><i class="fas fa-paper-plane"></i></button>
                 </div>
-                <div class="chat-hint">Requires Ollama running on port 11434 and AI backend on port 3001</div>
+                <div class="chat-hint">Requires Ollama on port 11434 &amp; AI backend on port 3001</div>
             </div>
 
             <!-- AI Architecture Generate -->

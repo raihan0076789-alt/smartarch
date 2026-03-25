@@ -647,13 +647,36 @@ kbd { display: inline-block; padding: 1px 5px; background: var(--bg-panel2); bor
 .ollama-chat-section { background: linear-gradient(135deg, rgba(91,124,250,0.08), rgba(56,239,125,0.04)); border: 1px solid rgba(91,124,250,0.2) !important; }
 .ollama-header { display: flex; align-items: center; justify-content: space-between; }
 .ollama-badge { font-size: 0.6rem; background: linear-gradient(135deg, #5b7cfa, #38ef7d); color: #fff; padding: 2px 7px; border-radius: 10px; font-weight: 700; letter-spacing: 0.5px; }
-.chat-messages { height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding: 4px 0; margin-bottom: 6px; scrollbar-width: thin; }
+.chat-clear-btn { background: transparent; border: none; color: var(--text-dim); cursor: pointer; padding: 2px 4px; border-radius: 4px; font-size: 0.7rem; transition: color var(--transition); }
+.chat-clear-btn:hover { color: var(--danger); }
+
+/* Suggestion chips */
+.chat-chips { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 7px; }
+.chat-chip {
+  flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center;
+  gap: 4px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 20px;
+  background: var(--bg-dark); color: var(--text-muted); font-size: 0.67rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.chat-chip:hover { color: #fff; border-color: transparent; transform: translateY(-1px); }
+.chat-chip.loading { opacity: 0.6; pointer-events: none; }
+.chip-interior:hover  { background: linear-gradient(135deg,#5b7cfa,#7c6fe0); }
+.chip-exterior:hover  { background: linear-gradient(135deg,#38ef7d,#1eb85a); color: #0a1a0f !important; }
+.chip-layout:hover    { background: linear-gradient(135deg,#ffc107,#e67e22); color: #1a0f00 !important; }
+.chip-materials:hover { background: linear-gradient(135deg,#56ccf2,#2d9cdb); color: #001a2e !important; }
+.chip-interior.active  { background: linear-gradient(135deg,#5b7cfa,#7c6fe0); color:#fff; border-color:transparent; }
+.chip-exterior.active  { background: linear-gradient(135deg,#38ef7d,#1eb85a); color:#0a1a0f; border-color:transparent; }
+.chip-layout.active    { background: linear-gradient(135deg,#ffc107,#e67e22); color:#1a0f00; border-color:transparent; }
+.chip-materials.active { background: linear-gradient(135deg,#56ccf2,#2d9cdb); color:#001a2e; border-color:transparent; }
+
+/* Chat messages */
+.chat-messages { height: 210px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding: 4px 0; margin-bottom: 6px; scrollbar-width: thin; }
 .chat-messages::-webkit-scrollbar { width: 4px; }
 .chat-messages::-webkit-scrollbar-thumb { background: rgba(91,124,250,0.3); border-radius: 2px; }
 .chat-msg { display: flex; }
 .chat-msg.user { justify-content: flex-end; }
 .chat-msg.ai { justify-content: flex-start; }
-.chat-bubble { max-width: 88%; padding: 6px 10px; border-radius: 12px; font-size: 0.75rem; line-height: 1.4; word-break: break-word; }
+.chat-bubble { max-width: 92%; padding: 7px 10px; border-radius: 12px; font-size: 0.75rem; line-height: 1.5; word-break: break-word; }
 .chat-msg.user .chat-bubble { background: linear-gradient(135deg, #5b7cfa, #3a60e8); color: #fff; border-bottom-right-radius: 3px; }
 .chat-msg.ai .chat-bubble { background: rgba(255,255,255,0.07); color: #c8d4f0; border: 1px solid rgba(255,255,255,0.08); border-bottom-left-radius: 3px; }
 .chat-bubble.error { background: rgba(231,76,60,0.15); border-color: rgba(231,76,60,0.3); color: #ff9999; }
@@ -662,6 +685,18 @@ kbd { display: inline-block; padding: 1px 5px; background: var(--bg-panel2); bor
 .chat-bubble.typing span:nth-child(2) { animation-delay: 0.2s; }
 .chat-bubble.typing span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes typing-dot { 0%,100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(-4px); opacity: 1; } }
+
+/* Welcome bubble */
+.chat-welcome { display: flex; align-items: flex-start; gap: 6px; background: rgba(91,124,250,0.12) !important; border-color: rgba(91,124,250,0.25) !important; }
+.chat-welcome-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+/* Suggestion result card */
+.chat-suggestion-card { background: rgba(56,239,125,0.07) !important; border-color: rgba(56,239,125,0.2) !important; }
+.chat-suggestion-label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 5px; opacity: 0.7; }
+.chat-bubble ol, .chat-bubble ul { padding-left: 1.1em; margin: 4px 0; }
+.chat-bubble li { margin-bottom: 3px; }
+.chat-bubble strong { color: #e2e8f0; }
+
 .chat-input-row { display: flex; gap: 4px; }
 .chat-input { flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(91,124,250,0.3); color: #e2e8f0; padding: 6px 10px; border-radius: 8px; font-size: 0.8rem; outline: none; }
 .chat-input:focus { border-color: #5b7cfa; background: rgba(91,124,250,0.1); }
@@ -671,3 +706,105 @@ kbd { display: inline-block; padding: 1px 5px; background: var(--bg-panel2); bor
 .ai-loading { color: #5b7cfa; font-size: 0.75rem; padding: 8px; text-align: center; }
 .ai-result { font-size: 0.65rem; color: #b0c4de; white-space: pre-wrap; word-break: break-word; background: rgba(0,0,0,0.2); padding: 6px; border-radius: 6px; }
 .ai-error { color: #ff9999; font-size: 0.75rem; padding: 8px; }
+/* ── EXPORT DROPDOWN ─────────────────────────────────────────── */
+.export-dropdown-wrap { position: relative; }
+.export-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--bg-panel2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 185px;
+  z-index: 500;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+  overflow: hidden;
+  animation: export-dd-in 0.12s ease;
+}
+@keyframes export-dd-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.export-dropdown.open { display: block; }
+.export-option {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.58rem 0.9rem;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition);
+  border-bottom: 1px solid var(--border);
+}
+.export-option:last-child { border-bottom: none; }
+.export-option:hover { background: rgba(91,124,250,0.1); color: var(--accent); }
+.export-option:hover i { color: var(--accent); }
+.export-option i { width: 15px; color: var(--text-muted); flex-shrink: 0; font-size: 0.8rem; }
+.export-option span { display: flex; flex-direction: column; gap: 1px; }
+.export-option strong { font-size: 0.8rem; font-weight: 600; line-height: 1; }
+.export-option small { font-size: 0.68rem; color: var(--text-muted); line-height: 1; }
+.export-chevron { font-size: 0.65rem; margin-left: 3px; transition: transform var(--transition); }
+.export-dropdown-wrap.open .export-chevron { transform: rotate(180deg); }
+.export-group-label {
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-dim);
+  padding: 0.45rem 0.9rem 0.2rem;
+  background: var(--bg-dark);
+}
+.export-group-label + .export-option { border-top: none; }
+
+
+/* Tooltip base */
+.chat-chip {
+  position: relative; /* required for tooltip positioning */
+}
+
+/* Tooltip text */
+.chat-chip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+
+  background: rgba(15, 15, 20, 0.95);
+  color: #fff;
+  padding: 5px 10px;
+  font-size: 11px;
+  border-radius: 6px;
+
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+/* Tooltip arrow */
+.chat-chip::before {
+  content: "";
+  position: absolute;
+  bottom: 115%;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(15, 15, 20, 0.95) transparent transparent transparent;
+
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+/* Show tooltip on hover */
+.chat-chip:hover::after,
+.chat-chip:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

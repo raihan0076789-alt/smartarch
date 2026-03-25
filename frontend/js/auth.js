@@ -129,7 +129,9 @@ function updateUIForLoggedInUser(user) {
         navUser.style.display = 'flex';
         const avatar = document.getElementById('userAvatar');
         if (avatar) {
-            avatar.src = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=667eea&color=fff`;
+            const uid = user.id || user._id || 'guest';
+            const savedPic = localStorage.getItem('user_avatar_' + uid);
+            avatar.src = savedPic || user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=667eea&color=fff`;
         }
     }
 }
