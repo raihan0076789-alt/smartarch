@@ -1839,7 +1839,7 @@
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || 'Request failed');
 
-            showToast('Reset link sent! Check your email inbox.', 'success');
+            showToast("We've sent a reset link if that email matches an account with us." , 'success');
             document.getElementById('forgotFormElement').reset();
             setTimeout(closeModal, 2500);
         } catch (err) {

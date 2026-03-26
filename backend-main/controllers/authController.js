@@ -159,7 +159,7 @@ exports.forgotPassword = async (req, res) => {
 
         try {
             await sendEmail({ to: user.email, subject: 'SmartArch — Password Reset Request', html });
-            res.status(200).json({ success: true, message: 'Password reset link sent to your email.' });
+            res.status(200).json({ success: true, message: "We've sent a reset link if that email matches an account with us."  });
         } catch (emailError) {
             console.error('Email send error:', emailError);
             // Rollback token if email fails

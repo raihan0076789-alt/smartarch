@@ -1013,10 +1013,10 @@ input:-webkit-autofill:active {
                     </div>
                     <div class="contact-content">
                         <div class="contact-label">Email Support</div>
-                        <a href="mailto:support@smartarch.com" class="contact-value">support@smartarch.com</a>
+                        <a href="contact.html#contactFormSectionn" class="contact-value">support@smartarch.com</a>
                     </div>
                 </div>
-
+             <!-- "mailto:support@smartarch.com" -->
                 <div class="contact-item">
                     <div class="contact-icon">
                         <i class="fas fa-phone"></i>
@@ -1121,6 +1121,9 @@ input:-webkit-autofill:active {
     <script src="js/admin.js"></script>
 
    <script>
+    // ── API BASE URL (works whether served via http-server or file://) ──
+    const API_BASE = 'http://localhost:5000/api';
+
     // ── HELP MODAL FUNCTIONS ──────────────────────────────────────
     const helpModal = document.getElementById('helpModal');
     const forgotPasswordLink = document.getElementById('forgotPasswordLink');
@@ -1194,7 +1197,7 @@ input:-webkit-autofill:active {
         resetBtn.disabled = true;
 
         try {
-            const response = await fetch('/api/auth/forgot-password', {
+            const response = await fetch(`${API_BASE}/auth/forgot-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1205,9 +1208,7 @@ input:-webkit-autofill:active {
             const data = await response.json();
 
             if (response.ok) {
-                showResetSuccess(
-                    'Reset link sent! Check your email at ' + email + ' for instructions.'
-                );
+                showResetSuccess(data.message);
                 resetEmail.value = '';
 
                 // Auto close after 3 seconds
@@ -1281,7 +1282,7 @@ input:-webkit-autofill:active {
         loginBtn.disabled = true;
 
         try {
-            const response = await fetch('/api/auth/admin-login', {
+            const response = await fetch(`${API_BASE}/admin/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
