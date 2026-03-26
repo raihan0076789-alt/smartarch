@@ -1212,7 +1212,203 @@
         .toggle-eye:hover {
             color: #2c2626;
         }
-       </style>
+   
+
+        /* ── HELP MODAL SHARED STYLES ────────────────────────────────────── */
+        .modal-subtitle { color: var(--slate); font-size: 0.9rem; line-height: 1.6; }
+
+        .modal-tabs {
+            display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .modal-tab {
+            background: transparent; border: none;
+            color: var(--slate); padding: 0.75rem 1.25rem;
+            font-size: 0.9rem; font-weight: 600; cursor: pointer;
+            border-bottom: 2px solid transparent; transition: all 0.2s;
+            position: relative; bottom: -1px; font-family: 'Outfit', sans-serif;
+        }
+        .modal-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+        .modal-tab:hover { color: var(--white); }
+
+        .modal-tab-content { display: none; }
+        .modal-tab-content.active { display: block; animation: uFadeIn 0.2s ease; }
+
+        .modal-form { display: flex; flex-direction: column; gap: 1.5rem; }
+
+        .modal-info-box {
+            background: rgba(0,212,200,0.05);
+            border: 1px solid rgba(0,212,200,0.15);
+            border-radius: var(--r); padding: 1rem; margin-bottom: 1.5rem;
+            display: flex; gap: 1rem;
+        }
+        .modal-info-icon {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: rgba(0,212,200,0.1); display: flex;
+            align-items: center; justify-content: center;
+            color: var(--cyan); flex-shrink: 0; font-size: 1.1rem;
+        }
+        .modal-info-text { display: flex; flex-direction: column; gap: 0.3rem; }
+        .modal-info-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; color: var(--white); }
+        .modal-info-desc { color: var(--slate); font-size: 0.8rem; line-height: 1.5; }
+
+        .modal-buttons { display: flex; gap: 0.75rem; }
+
+        .btn-modal {
+            flex: 1; padding: 0.9rem 1.5rem; background: transparent;
+            color: var(--slate); border: 1.5px solid rgba(255,255,255,0.15);
+            border-radius: 10px; font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem; font-weight: 600; cursor: pointer;
+            transition: all 0.25s ease; text-transform: uppercase; letter-spacing: 0.5px;
+            text-decoration: none; text-align: center; display: inline-flex;
+            align-items: center; justify-content: center;
+        }
+        .btn-modal:hover { color: var(--white); border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05); }
+        .btn-modal-primary { background: var(--cyan); color: var(--ink); border: none; }
+        .btn-modal-primary:hover { background: #2ee8dc; box-shadow: 0 8px 24px rgba(0,212,200,0.3); }
+        .btn-modal-primary.loading { pointer-events: none; opacity: 0.8; }
+
+        .contact-info { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+        .contact-item { display: flex; gap: 1rem; align-items: flex-start; }
+        .contact-icon {
+            width: 40px; height: 40px; border-radius: 10px; background: rgba(0,212,200,0.1);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--cyan); flex-shrink: 0; font-size: 1.1rem;
+        }
+        .contact-content { flex: 1; }
+        .contact-label { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--white); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .contact-value { color: var(--cyan); font-size: 0.9rem; text-decoration: none; transition: all 0.2s; display: block; }
+        .contact-value:hover { color: #2ee8dc; text-decoration: underline; }
+
+        .help-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+        .help-item {
+            background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+            border-radius: var(--r); padding: 1.25rem; cursor: pointer;
+            transition: all 0.2s; display: flex; gap: 1rem; align-items: center;
+        }
+        .help-item:hover { border-color: rgba(0,212,200,0.2); background: rgba(0,212,200,0.04); transform: translateX(4px); }
+        .help-item-icon {
+            width: 36px; height: 36px; border-radius: 8px; background: rgba(0,212,200,0.1);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--cyan); flex-shrink: 0; font-size: 1rem;
+        }
+        .help-item-content { flex: 1; }
+        .help-item-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; color: var(--white); margin-bottom: 0.2rem; }
+        .help-item-desc { color: var(--slate); font-size: 0.8rem; line-height: 1.5; }
+        .help-item-arrow { color: var(--cyan); font-size: 1.1rem; display: flex; align-items: center; }
+
+        /* ── HELP MODAL HEADER OVERRIDE (scoped to user help modal) ────── */
+        #userHelpModal .modal-header {
+            display: block;
+            margin-bottom: 1.5rem;
+        }
+        #userHelpModal .modal-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        /* ── USER HELP MODAL ─────────────────────────────────────────────── */
+        .u-help-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            animation: uFadeIn 0.3s ease;
+        }
+        .u-help-modal.active { display: flex; }
+        @keyframes uFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes uSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .u-help-modal-content {
+            background: var(--ink-2);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 25px 100px rgba(0,0,0,0.5);
+            animation: uSlideUp 0.3s ease;
+            position: relative;
+        }
+
+        .u-modal-close {
+            position: absolute;
+            top: 1.25rem; right: 1.25rem;
+            background: transparent;
+            border: none;
+            color: var(--slate);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .u-modal-close:hover { color: var(--white); transform: rotate(90deg); }
+
+        .u-modal-error {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #fca5a5;
+            padding: 0.875rem;
+            border-radius: var(--r);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            display: none;
+            margin-bottom: 1rem;
+        }
+        .u-modal-error.show { display: block; }
+
+        .u-modal-success {
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.3);
+            color: #86efac;
+            padding: 1rem;
+            border-radius: var(--r);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            display: none;
+            margin-bottom: 1rem;
+        }
+        .u-modal-success.show { display: block; }
+
+        .u-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.03);
+            border: 1.5px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 0 1rem;
+            transition: border-color 0.2s;
+        }
+        .u-input-wrapper:focus-within {
+            border-color: var(--cyan);
+        }
+        .u-input-wrapper > i {
+            color: var(--slate);
+            font-size: 0.9rem;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        .u-input-wrapper input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--white);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            padding: 0.9rem 0;
+        }
+        .u-input-wrapper input::placeholder { color: var(--slate-2); }
+    </style>
 </head>
 <body>
 
@@ -1636,9 +1832,9 @@
                                 <i class="fas fa-eye"></i>
                             </span>
                         </div>
-                            <div style="text-align:center;margin-top:6px">
-                        <a href="#" onclick="showForgotPassword()" style="font-size:13px;color:#00d4c8; text-decoration: none;">
-                            Forgot Password?
+                            <div style="text-align:right;margin-top:6px">
+                        <a href="#" id="userForgotPasswordLink" style="font-size:13px;color:#00d4c8; text-decoration: none;">
+                            Need help signing in?
                         </a>
                     </div>
                     </div>
@@ -1749,34 +1945,164 @@
                 <p class="form-switch">Already have an account? <a href="#" onclick="showLogin()">Sign in</a></p>
             </div>
 
-            <!-- FORGOT PASSWORD PANEL -->
-            <div id="forgotFormWrap" style="display:none">
-                <div class="modal-header">
-                    <div class="modal-title">Forgot Password</div>
-                    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-                </div>
-                <p style="color:var(--slate);font-size:0.875rem;margin-bottom:1.25rem;line-height:1.6;">
-                    Enter your registered email address and we will send you a password reset link.
-                </p>
-                <form id="forgotFormElement" onsubmit="handleForgotPassword(event)">
-                    <div class="form-group">
-                        <label class="form-label">Email Address</label>
-                        <div class="form-input-wrap">
-                            <span class="form-input-icon"><i class="fas fa-envelope"></i></span>
-                            <input type="email" id="forgotEmail" class="form-input"
-                                placeholder="your@email.com" required>
-                        </div>
-                    </div>
-                    <button type="submit" class="form-submit" id="forgotSubmitBtn">
-                        <i class="fas fa-paper-plane"></i> Send Reset Link
-                    </button>
-                </form>
-                <p class="form-switch" style="margin-top:1rem;">
-                    Remembered it? <a href="#" onclick="showLogin()">Back to Login</a>
-                </p>
-            </div>
+
 
         </div>
+    </div>
+</div>
+
+<!-- USER HELP MODAL (Need help signing in?) -->
+<div class="u-help-modal" id="userHelpModal">
+    <div class="u-help-modal-content">
+        <button class="u-modal-close" id="userHelpModalClose">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <div class="modal-header">
+            <h2 class="modal-title">Need Help?</h2>
+            <p class="modal-subtitle">Choose how we can assist you</p>
+        </div>
+
+        <div class="modal-tabs">
+            <button class="modal-tab active" onclick="userSwitchTab('reset', event)">
+                <i class="fas fa-redo"></i> Reset Password
+            </button>
+            <button class="modal-tab" onclick="userSwitchTab('support', event)">
+                <i class="fas fa-headset"></i> Support
+            </button>
+            <button class="modal-tab" onclick="userSwitchTab('faq', event)">
+                <i class="fas fa-question-circle"></i> FAQ
+            </button>
+        </div>
+
+        <!-- TAB 1: PASSWORD RESET -->
+        <div class="modal-tab-content active" id="userResetTab">
+            <div class="u-modal-error" id="userResetError"></div>
+            <div class="u-modal-success" id="userResetSuccess"></div>
+
+            <div class="modal-info-box">
+                <div class="modal-info-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="modal-info-text">
+                    <div class="modal-info-title">Password Reset</div>
+                    <div class="modal-info-desc">Enter your email to receive reset instructions</div>
+                </div>
+            </div>
+
+            <form class="modal-form" id="userResetForm">
+                <div class="form-group">
+                    <label class="form-label" for="userResetEmail">Email Address</label>
+                    <div class="u-input-wrapper">
+                        <i class="fas fa-envelope"></i>
+                        <input
+                            type="email"
+                            id="userResetEmail"
+                            class="form-input"
+                            placeholder="your@email.com"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="btn-modal" id="userHelpCancelBtn">Cancel</button>
+                    <button type="submit" class="btn-modal btn-modal-primary" id="userResetBtn">Send Reset Link</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TAB 2: SUPPORT -->
+        <div class="modal-tab-content" id="userSupportTab">
+            <div class="modal-info-box">
+                <div class="modal-info-icon">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <div class="modal-info-text">
+                    <div class="modal-info-title">Get Support</div>
+                    <div class="modal-info-desc">Our support team is ready to help</div>
+                </div>
+            </div>
+
+            <div class="contact-info">
+                <div class="contact-item">
+                    <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+                    <div class="contact-content">
+                        <div class="contact-label">Email Support</div>
+                        <a href="contact.html#contactFormSectionn" class="contact-value">support@smartarch.com</a>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon"><i class="fas fa-phone"></i></div>
+                    <div class="contact-content">
+                        <div class="contact-label">Phone Support</div>
+                        <a href="tel:+1234567890" class="contact-value">+1 (234) 567-890</a>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon"><i class="fas fa-comments"></i></div>
+                    <div class="contact-content">
+                        <div class="contact-label">Live Chat</div>
+                        <a href="#" onclick="userOpenLiveChat()" class="contact-value">Start Chat Now</a>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon"><i class="fas fa-clock"></i></div>
+                    <div class="contact-content">
+                        <div class="contact-label">Support Hours</div>
+                        <div class="contact-value">24/7 Available</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-buttons" style="margin-top:1.5rem;">
+                <button type="button" class="btn-modal" onclick="closeUserHelpModal()">Close</button>
+            </div>
+        </div>
+
+        <!-- TAB 3: FAQ -->
+        <div class="modal-tab-content" id="userFaqTab">
+            <div class="help-grid">
+                <div class="help-item" onclick="userExpandFaq(0)">
+                    <div class="help-item-icon"><i class="fas fa-key"></i></div>
+                    <div class="help-item-content">
+                        <div class="help-item-title">How do I reset my password?</div>
+                        <div class="help-item-desc">Click "Need help" and select password reset</div>
+                    </div>
+                    <div class="help-item-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+                <div class="help-item" onclick="userExpandFaq(1)">
+                    <div class="help-item-icon"><i class="fas fa-user-lock"></i></div>
+                    <div class="help-item-content">
+                        <div class="help-item-title">Account locked?</div>
+                        <div class="help-item-desc">Contact support for account recovery</div>
+                    </div>
+                    <div class="help-item-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+                <div class="help-item" onclick="userExpandFaq(2)">
+                    <div class="help-item-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="help-item-content">
+                        <div class="help-item-title">Security best practices</div>
+                        <div class="help-item-desc">Learn how to keep your account secure</div>
+                    </div>
+                    <div class="help-item-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+                <div class="help-item" onclick="userExpandFaq(3)">
+                    <div class="help-item-icon"><i class="fas fa-laptop"></i></div>
+                    <div class="help-item-content">
+                        <div class="help-item-title">Browser compatibility</div>
+                        <div class="help-item-desc">Check supported browsers and requirements</div>
+                    </div>
+                    <div class="help-item-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
+            </div>
+
+            <div class="modal-buttons" style="margin-top:1.5rem;">
+                <button type="button" class="btn-modal" onclick="closeUserHelpModal()">Close</button>
+                <a href="about.html" target="_blank" class="btn-modal btn-modal-primary">Learn More</a>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -1801,34 +2127,84 @@
         document.getElementById('authModal').classList.add('open');
         document.getElementById('loginFormWrap').style.display = 'block';
         document.getElementById('registerFormWrap').style.display = 'none';
-        document.getElementById('forgotFormWrap').style.display = 'none';
     }
 
     function showRegister() {
         document.getElementById('authModal').classList.add('open');
         document.getElementById('loginFormWrap').style.display = 'none';
         document.getElementById('registerFormWrap').style.display = 'block';
-        document.getElementById('forgotFormWrap').style.display = 'none';
-    }
-
-    function showForgotPassword() {
-        document.getElementById('authModal').classList.add('open');
-        document.getElementById('loginFormWrap').style.display = 'none';
-        document.getElementById('registerFormWrap').style.display = 'none';
-        document.getElementById('forgotFormWrap').style.display = 'block';
     }
 
     function closeModal() {
         document.getElementById('authModal').classList.remove('open');
     }
 
-    // ── Forgot Password Handler ────────────────────────────────────────────
-    async function handleForgotPassword(event) {
-        event.preventDefault();
-        const email = document.getElementById('forgotEmail').value.trim();
-        const btn   = document.getElementById('forgotSubmitBtn');
-        btn.disabled = true;
+    // ── User Help Modal ────────────────────────────────────────────────────
+    const userHelpModal = document.getElementById('userHelpModal');
+
+    document.getElementById('userForgotPasswordLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        userHelpModal.classList.add('active');
+        // Always open on Reset Password tab
+        userSwitchTabByName('reset');
+    });
+
+    document.getElementById('userHelpModalClose').addEventListener('click', closeUserHelpModal);
+    document.getElementById('userHelpCancelBtn').addEventListener('click', closeUserHelpModal);
+
+    userHelpModal.addEventListener('click', function(e) {
+        if (e.target === userHelpModal) closeUserHelpModal();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && userHelpModal.classList.contains('active')) closeUserHelpModal();
+    });
+
+    function closeUserHelpModal() {
+        userHelpModal.classList.remove('active');
+        document.getElementById('userResetForm').reset();
+        document.getElementById('userResetError').classList.remove('show');
+        document.getElementById('userResetSuccess').classList.remove('show');
+    }
+
+    function userSwitchTabByName(tabName) {
+        document.querySelectorAll('#userHelpModal .modal-tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#userHelpModal .modal-tab').forEach(b => b.classList.remove('active'));
+        document.getElementById('user' + tabName.charAt(0).toUpperCase() + tabName.slice(1) + 'Tab').classList.add('active');
+        document.querySelectorAll('#userHelpModal .modal-tab').forEach(b => {
+            if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + tabName + "'")) {
+                b.classList.add('active');
+            }
+        });
+    }
+
+    function userSwitchTab(tabName, event) {
+        document.querySelectorAll('#userHelpModal .modal-tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#userHelpModal .modal-tab').forEach(b => b.classList.remove('active'));
+        document.getElementById('user' + tabName.charAt(0).toUpperCase() + tabName.slice(1) + 'Tab').classList.add('active');
+        if (event && event.currentTarget) event.currentTarget.classList.add('active');
+    }
+
+    // ── User Forgot Password Form ──────────────────────────────────────────
+    document.getElementById('userResetForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const errorEl   = document.getElementById('userResetError');
+        const successEl = document.getElementById('userResetSuccess');
+        const btn       = document.getElementById('userResetBtn');
+        const email     = document.getElementById('userResetEmail').value.trim();
+
+        errorEl.classList.remove('show');
+        successEl.classList.remove('show');
+
+        if (!email) {
+            errorEl.textContent = 'Please enter your email address';
+            errorEl.classList.add('show');
+            return;
+        }
+
+        btn.classList.add('loading');
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        btn.disabled = true;
 
         try {
             const res  = await fetch('http://localhost:5000/api/auth/forgot-password', {
@@ -1837,17 +2213,38 @@
                 body:    JSON.stringify({ email })
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.message || 'Request failed');
 
-            showToast("We've sent a reset link if that email matches an account with us." , 'success');
-            document.getElementById('forgotFormElement').reset();
-            setTimeout(closeModal, 2500);
+            if (res.ok) {
+                successEl.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+                successEl.classList.add('show');
+                document.getElementById('userResetForm').reset();
+                setTimeout(closeUserHelpModal, 3000);
+            } else {
+                errorEl.textContent = data.message || 'Failed to send reset link';
+                errorEl.classList.add('show');
+            }
         } catch (err) {
-            showToast(err.message || 'Could not send reset email', 'error');
+            errorEl.textContent = 'Connection error. Please try again.';
+            errorEl.classList.add('show');
         } finally {
+            btn.classList.remove('loading');
+            btn.innerHTML = 'Send Reset Link';
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
         }
+    });
+
+    function userOpenLiveChat() {
+        alert('Live chat is loading...\n\nIn production, this would open your chat widget.');
+    }
+
+    function userExpandFaq(index) {
+        const answers = [
+            'Click "Need help signing in?" on the login form, then go to Reset Password tab and enter your email.',
+            'Contact our support team at support@smartarch.com or call +1 (234) 567-890 for account recovery.',
+            'Use a strong unique password, enable 2FA if available, and never share your credentials.',
+            'SmartArch works best on Chrome, Firefox, Safari, and Edge (latest versions).'
+        ];
+        alert(answers[index] || 'More info coming soon.');
     }
 
     // ── Password Strength (Register form) ─────────────────────────────────
@@ -1981,14 +2378,16 @@
         // Smooth anchor scrolling
         document.querySelectorAll('a[href^="#"]').forEach(a => {
             a.addEventListener('click', e => {
-                const target = document.querySelector(a.getAttribute('href'));
+                const href = a.getAttribute('href');
+                if (!href || href === '#') return;
+                   const target = document.querySelector(href);
                 if (target) {
                     e.preventDefault();
                     target.scrollIntoView({ behavior: 'smooth' });
                 }
             });
         });
-    });
+    });                 
 
     const passwordInput = document.getElementById('registerPassword');
     const confirmInput  = document.getElementById('confirmPassword');
