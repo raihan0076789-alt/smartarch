@@ -610,23 +610,43 @@
         setTimeout(()=>{ t.style.cssText='opacity:0;transform:translateX(60px);transition:all 0.3s'; setTimeout(()=>t.remove(),350); }, 3500);
     }
 
-    function handleContactSubmit(e) {
+    async function handleContactSubmit(e) {
         e.preventDefault();
-        const name    = document.getElementById('cf-name').value.trim();
-        const email   = document.getElementById('cf-email').value.trim();
-        const subject = document.getElementById('cf-subject').value;
-        const message = document.getElementById('cf-message').value.trim();
+        const name     = document.getElementById('cf-name').value.trim();
+        const email    = document.getElementById('cf-email').value.trim();
+        const subject  = document.getElementById('cf-subject').value;
+        const category = subject;
+        const company  = document.getElementById('cf-company').value.trim();
+        const message  = document.getElementById('cf-message').value.trim();
         if (!name || !email || !subject || !message) { showToast('Please fill in all required fields.','error'); return; }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Please enter a valid email address.','error'); return; }
         if (message.length < 10) { showToast('Please write at least 10 characters.','error'); return; }
         const btn = document.getElementById('submitBtn');
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
         btn.disabled = true;
-        setTimeout(()=>{
-            document.getElementById('contactFormWrap').style.display = 'none';
-            document.getElementById('formSuccess').style.display = 'block';
-            showToast('Message sent successfully!','success');
-        }, 1400);
+        try {
+            const token = localStorage.getItem('token');
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            const res = await fetch('http://localhost:5000/api/tickets', {
+                method: 'POST', headers,
+                body: JSON.stringify({ name, email, subject, category, company, message })
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('contactFormWrap').style.display = 'none';
+                document.getElementById('formSuccess').style.display = 'block';
+                showToast('Message sent successfully!', 'success');
+            } else {
+                showToast(data.message || 'Failed to send. Try again.', 'error');
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+                btn.disabled = false;
+            }
+        } catch (err) {
+            showToast('Network error. Please try again.', 'error');
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+            btn.disabled = false;
+        }
     }
 
     function resetForm() {

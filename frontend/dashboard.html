@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/dashboard.css?v=3">
     <!-- Guarantee dark theme even if styles.css is somehow loaded -->
     <style>
         html,body{background:#060a12!important;color:#f1f5f9!important;}
@@ -322,6 +322,11 @@
             <button class="nav-item" data-section="analytics">
                 <i class="fas fa-chart-bar"></i><span>Analytics</span>
             </button>
+            <div class="nav-section-label">Support</div>
+            <button class="nav-item" data-section="messages">
+                <i class="fas fa-comments"></i><span>Messages</span>
+                <span id="userMsgBadge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:0.68rem;font-weight:700;margin-left:auto;"></span>
+            </button>
             <div class="nav-section-label">Account</div>
             <button class="nav-item" data-section="settings">
                 <i class="fas fa-cog"></i><span>Settings</span>
@@ -512,6 +517,115 @@
 
             <!-- SETTINGS SECTION -->
            
+            <!-- ─── Messages / Chat Section ───────────────────────────── -->
+            <div class="content-section" id="messagesSection">
+                <div class="chat-shell">
+
+                    <!-- ── Left: Conversation List ── -->
+                    <div class="chat-sidebar" id="chatSidebar">
+                        <div class="chat-sidebar-header">
+                            <span class="chat-sidebar-title"><i class="fas fa-comments"></i> Support</span>
+                            <button class="chat-new-btn" id="chatNewBtn" onclick="showComposePanel()" title="New Message">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                        <div class="chat-thread-list" id="chatThreadList">
+                            <div class="chat-list-loading">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── Right: Active Thread / Compose ── -->
+                    <div class="chat-main" id="chatMain">
+
+                        <!-- Empty state -->
+                        <div class="chat-empty-state" id="chatEmptyState">
+                            <div class="chat-empty-icon"><i class="fas fa-comment-dots"></i></div>
+                            <h3>SmartArch Support</h3>
+                            <p>Select a conversation or start a new one. Our team typically responds within 1–2 business days.</p>
+                            <button class="btn-primary" onclick="showComposePanel()" style="margin-top:1rem;padding:0.65rem 1.5rem;border-radius:9px;font-size:0.875rem;font-weight:700;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:0.5rem;">
+                                <i class="fas fa-edit"></i> New Message
+                            </button>
+                        </div>
+
+                        <!-- Compose Panel -->
+                        <div class="chat-compose-panel" id="chatComposePanel" style="display:none;">
+                            <div class="chat-compose-header">
+                                <button class="chat-back-btn" onclick="hideComposePanel()"><i class="fas fa-arrow-left"></i></button>
+                                <span>New Message</span>
+                            </div>
+                            <div class="chat-compose-body">
+                                <div class="chat-compose-prefill-row">
+                                    <div class="chat-compose-field">
+                                        <label>Your Name</label>
+                                        <input type="text" id="composeFrom" placeholder="Full name" autocomplete="name">
+                                    </div>
+                                    <div class="chat-compose-field">
+                                        <label>Your Email</label>
+                                        <input type="email" id="composeEmail" placeholder="email@example.com" autocomplete="email">
+                                    </div>
+                                    <div class="chat-compose-field">
+                                        <label>Company <span style="color:var(--slate-2);font-weight:400;">(optional)</span></label>
+                                        <input type="text" id="composeCompany" placeholder="Company name" autocomplete="organization">
+                                    </div>
+                                </div>
+
+                               <div class="chat-compose-field" style="margin-bottom:0.75rem;">
+                                <label>Subject</label>
+                                <select id="composeSubject">
+                                    <option value="">Select a subject…</option>
+                                    <option value="General Inquiry">General Inquiry</option>
+                                    <option value="Technical Support">Technical Support</option>
+                                    <option value="Billing &amp; Plans">Billing &amp; Plans</option>
+                                    <option value="Bug Report">Bug Report</option>
+                                    <option value="Feature Request">Feature Request</option>
+                                    <option value="Project Help">Project Help</option>
+                                    <option value="Account Issue">Account Issue</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                                <div class="chat-compose-field" style="margin-bottom:1rem;">
+                                    <label>Message</label>
+                                    <textarea id="composeMessage" rows="5" placeholder="Describe your issue or question in detail…" maxlength="5000"></textarea>
+                                    <div class="chat-char-count"><span id="composeCharCount">0</span> / 5000</div>
+                                </div>
+                                <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+                                    <button class="chat-cancel-btn" onclick="hideComposePanel()">Cancel</button>
+                                    <button class="chat-send-btn" id="composeSendBtn" onclick="submitComposeForm()">
+                                        <i class="fas fa-paper-plane"></i> Send Message
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Thread View -->
+                        <div class="chat-thread-view" id="chatThreadView" style="display:none;">
+                            <div class="chat-thread-header">
+                                <button class="chat-back-btn" id="chatMobileBack" onclick="showChatListOnMobile()"><i class="fas fa-arrow-left"></i></button>
+                                <div class="chat-thread-header-info">
+                                    <h4 id="chatThreadSubject"></h4>
+                                    <span id="chatThreadMeta"></span>
+                                </div>
+                                <span id="chatThreadStatus"></span>
+                            </div>
+                            <div class="chat-messages" id="chatMessages"></div>
+                            <div class="chat-reply-box" id="chatReplyBox" style="display:none;">
+                                <textarea id="chatReplyInput" placeholder="Continue the conversation… (Shift+Enter for new line, Enter to send)" rows="2"
+                                    onkeydown="handleReplyKeydown(event)"></textarea>
+                                <button class="chat-reply-send" onclick="submitUserReply()" title="Send">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            <div class="chat-closed-notice" id="chatClosedNotice" style="display:none;">
+                                <i class="fas fa-lock"></i> This ticket is closed. <button onclick="showComposePanel()" style="background:none;border:none;color:var(--cyan);cursor:pointer;font-weight:700;text-decoration:underline;">Open a new one →</button>
+                            </div>
+                        </div>
+
+                    </div><!-- /chat-main -->
+                </div><!-- /chat-shell -->
+            </div>
+
             <div class="content-section" id="settingsSection">
                 <div class="section-header-row">
                     <div>
@@ -902,7 +1016,7 @@
 
 <script src="js/api.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/dashboard.js"></script>
+<script src="js/dashboard.js?v=3"></script>
 <script src="js/dashboard-charts.js"></script>
 <script src="js/dashboard-profile.js"></script>
 <script>

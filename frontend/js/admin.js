@@ -101,6 +101,7 @@ function navigateTo(pageName) {
     if (pageName === 'dashboard') loadDashboard();
     else if (pageName === 'users') loadUsers();
     else if (pageName === 'projects') loadProjects();
+    else if (pageName === 'messages' && typeof loadAdminTickets === 'function') loadAdminTickets();
 
     // Close sidebar on mobile
     if (window.innerWidth <= 768) {
@@ -113,6 +114,7 @@ function updateTopbarTitle(page) {
         dashboard: { title: 'Dashboard', subtitle: 'Overview & analytics' },
         users: { title: 'User Management', subtitle: 'Manage all registered users' },
         projects: { title: 'Project Management', subtitle: 'Manage all projects' },
+        messages: { title: 'Support Inbox', subtitle: 'Manage and reply to user tickets' },
         analytics: { title: 'Analytics', subtitle: 'Detailed statistics & charts' }
     };
     const t = titles[page] || { title: page, subtitle: '' };
@@ -781,6 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial load
     navigateTo('dashboard');
+    startTicketBadgePolling(); // safe to start — auth confirmed above
 });
 
 // Expose globals needed by inline onclick
@@ -797,3 +800,185 @@ window.closeModal = closeModal;
 window.adminLogout = adminLogout;
 window.usersPage = usersPage;
 window.projectsPage = projectsPage;
+
+// ─── SUPPORT MESSAGING SYSTEM ──────────────────────────────────────────────────
+
+const TICKET_API = 'http://localhost:5000/api/tickets';
+let currentTicketId = null;
+
+function adminAuthHeaders() {
+    const token = state.token || localStorage.getItem('adminToken');
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+}
+
+// Poll for unread badge every 30s
+function startTicketBadgePolling() {
+    pollAdminUnread();
+    setInterval(pollAdminUnread, 30000);
+}
+
+async function pollAdminUnread() {
+    if (!state.token && !localStorage.getItem('adminToken')) return; // not logged in yet
+    try {
+        const res = await fetch(`${TICKET_API}/admin/unread-count`, { headers: adminAuthHeaders() });
+        const data = await res.json();
+        const badge = document.getElementById('adminMsgBadge');
+        if (!badge) return;
+        if (data.count > 0) {
+            badge.textContent = data.count;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    } catch (e) {}
+}
+
+async function loadAdminTickets() {
+    const filter = document.getElementById('ticketStatusFilter')?.value || 'all';
+    const listEl  = document.getElementById('ticketList');
+    const countEl = document.getElementById('ticketCountBadge');
+    if (!listEl) return; // page not in DOM yet
+    listEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:120px;color:#6c757d;"><i class="fas fa-spinner fa-spin"></i></div>';
+    try {
+        const res = await fetch(`${TICKET_API}/admin/all?status=${filter}&limit=50`, { headers: adminAuthHeaders() });
+        const data = await res.json();
+        if (!data.success) return;
+        if (countEl) countEl.textContent = data.total ? `${data.total} ticket${data.total !== 1 ? 's' : ''}` : '';
+
+        if (!data.tickets.length) {
+            listEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;gap:0.75rem;color:#6c757d;">
+                <i class="fas fa-inbox" style="font-size:1.8rem;opacity:0.3;"></i>
+                <p style="margin:0;font-size:0.85rem;">No tickets found</p>
+            </div>`;
+            return;
+        }
+
+        listEl.innerHTML = data.tickets.map(t => {
+            const isNew = t.status === 'new';
+            const statusColors = { new: '#dc3545', seen: '#ffc107', replied: '#11998e', closed: '#6c757d' };
+            const statusBg    = { new: '#fff5f5',  seen: '#fffbea',  replied: '#f0fdf4', closed: '#f8f9fa' };
+            const color = statusColors[t.status] || '#6c757d';
+            const bg    = statusBg[t.status]    || '#f8f9fa';
+            const time = new Date(t.createdAt).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+            return `<div class="ticket-item" onclick="openAdminTicket('${t._id}')" data-id="${t._id}"
+                style="padding:0.875rem 1.125rem;border-bottom:1px solid #dee2e6;cursor:pointer;transition:background 0.15s;border-left:3px solid ${isNew ? '#dc3545' : 'transparent'};"
+                onmouseover="this.style.background='#f0f2f5'" onmouseout="if(!this.classList.contains('selected'))this.style.background='transparent'">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;margin-bottom:3px;">
+                    <span style="font-weight:${isNew ? '700' : '500'};color:${isNew ? '#1a1a2e' : '#495057'};font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px;">${t.subject}</span>
+                    <span style="color:#6c757d;font-size:0.7rem;flex-shrink:0;">${time}</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:3px;">
+                    <span style="color:#6c757d;font-size:0.775rem;">${t.name}</span>
+                    <span style="background:${bg};color:${color};border:1px solid ${color}44;padding:1px 8px;border-radius:20px;font-size:0.65rem;font-weight:700;text-transform:uppercase;">${t.status}</span>
+                </div>
+                <p style="margin:0;color:#868e96;font-size:0.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.message.slice(0, 65)}…</p>
+            </div>`;
+        }).join('');
+
+        pollAdminUnread();
+    } catch (e) {
+        console.error('loadAdminTickets error:', e);
+    }
+}
+
+async function openAdminTicket(id) {
+    currentTicketId = id;
+    // Highlight selected
+    document.querySelectorAll('.ticket-item').forEach(el => { el.style.background = 'transparent'; el.classList.remove('selected'); });
+    const sel = document.querySelector(`.ticket-item[data-id="${id}"]`);
+    if (sel) { sel.style.background = '#eef0fb'; sel.classList.add('selected'); }
+
+    try {
+        const res = await fetch(`${TICKET_API}/admin/${id}`, { headers: adminAuthHeaders() });
+        const data = await res.json();
+        if (!data.success) return;
+        renderAdminTicketDetail(data.ticket);
+        loadAdminTickets(); // refresh list to clear new badge
+    } catch (e) { console.error(e); }
+}
+
+function renderAdminTicketDetail(ticket) {
+    document.getElementById('ticketDetailEmpty').style.display = 'none';
+    const content = document.getElementById('ticketDetailContent');
+    content.style.display = 'flex';
+
+    document.getElementById('tdSubject').textContent = ticket.subject;
+    document.getElementById('tdMeta').textContent = `${ticket.name} <${ticket.email}>${ticket.company ? ' · ' + ticket.company : ''} · ${new Date(ticket.createdAt).toLocaleString()}`;
+
+    const statusColors = { new: '#dc3545', seen: '#ffc107', replied: '#11998e', closed: '#6c757d' };
+    const statusBgs   = { new: '#fff5f5',  seen: '#fffbea',  replied: '#f0fdf4', closed: '#f8f9fa' };
+    const badge = document.getElementById('tdStatusBadge');
+    badge.textContent = ticket.status.toUpperCase();
+    badge.style.cssText = `padding:3px 12px;border-radius:20px;font-size:0.7rem;font-weight:700;border:1px solid ${statusColors[ticket.status]}55;background:${statusBgs[ticket.status]};color:${statusColors[ticket.status]};`;
+
+    const sel = document.getElementById('tdStatusSelect');
+    sel.value = ticket.status === 'new' ? 'seen' : ticket.status;
+
+    // Build thread
+    const thread = document.getElementById('tdThread');
+    const allMessages = [
+        { sender: 'user', senderName: ticket.name, message: ticket.message, createdAt: ticket.createdAt },
+        ...ticket.replies
+    ];
+
+    thread.innerHTML = allMessages.map(msg => {
+        const isAdmin = msg.sender === 'admin';
+        const time = new Date(msg.createdAt).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+        return `<div style="display:flex;flex-direction:column;align-items:${isAdmin ? 'flex-end' : 'flex-start'};">
+            <div style="max-width:78%;background:${isAdmin ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff'};border:1px solid ${isAdmin ? 'transparent' : '#dee2e6'};border-radius:${isAdmin ? '14px 14px 4px 14px' : '14px 14px 14px 4px'};padding:0.75rem 1rem;box-shadow:0 2px 6px rgba(0,0,0,0.07);">
+                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:5px;">
+                    <span style="font-weight:700;font-size:0.75rem;color:${isAdmin ? 'rgba(255,255,255,0.85)' : '#6c757d'};">${isAdmin ? '🛡 ' + msg.senderName : '👤 ' + msg.senderName}</span>
+                    <span style="color:${isAdmin ? 'rgba(255,255,255,0.6)' : '#adb5bd'};font-size:0.7rem;">${time}</span>
+                </div>
+                <p style="margin:0;color:${isAdmin ? '#fff' : '#1a1a2e'};font-size:0.875rem;line-height:1.65;white-space:pre-wrap;">${msg.message}</p>
+            </div>
+        </div>`;
+    }).join('');
+
+    // Scroll to bottom
+    setTimeout(() => { thread.scrollTop = thread.scrollHeight; }, 50);
+}
+
+async function sendAdminReply() {
+    if (!currentTicketId) return;
+    const box = document.getElementById('replyBox');
+    const message = box.value.trim();
+    if (!message) { box.style.borderColor = '#ef4444'; setTimeout(() => box.style.borderColor = 'rgba(255,255,255,0.1)', 1500); return; }
+
+    try {
+        const res = await fetch(`${TICKET_API}/admin/${currentTicketId}/reply`, {
+            method: 'POST', headers: adminAuthHeaders(),
+            body: JSON.stringify({ message })
+        });
+        const data = await res.json();
+        if (data.success) {
+            box.value = '';
+            renderAdminTicketDetail(data.ticket);
+            loadAdminTickets();
+        } else {
+            alert(data.message || 'Failed to send reply.');
+        }
+    } catch (e) { alert('Network error.'); }
+}
+
+async function changeTicketStatus(status) {
+    if (!currentTicketId) return;
+    try {
+        const res = await fetch(`${TICKET_API}/admin/${currentTicketId}/status`, {
+            method: 'PATCH', headers: adminAuthHeaders(),
+            body: JSON.stringify({ status })
+        });
+        const data = await res.json();
+        if (data.success) { renderAdminTicketDetail(data.ticket); loadAdminTickets(); }
+    } catch (e) {}
+}
+
+// Expose globals
+window.loadAdminTickets = loadAdminTickets;
+window.openAdminTicket = openAdminTicket;
+window.sendAdminReply = sendAdminReply;
+window.changeTicketStatus = changeTicketStatus;
+window.startTicketBadgePolling = startTicketBadgePolling;
+
+// Start badge polling — only after auth is confirmed (called from init block below)
+// DOMContentLoaded hook removed; polling is started by requireAdminAuth success path instead

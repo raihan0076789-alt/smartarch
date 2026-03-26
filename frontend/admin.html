@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard — SmartArch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -38,6 +40,13 @@
                 </a>
                 <a class="nav-item" data-page="projects">
                     <i class="fas fa-drafting-compass"></i> Projects
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">Support</div>
+                <a class="nav-item" data-page="messages" style="display:flex;align-items:center;justify-content:space-between;">
+                    <span><i class="fas fa-inbox"></i> Messages</span>
+                    <span id="adminMsgBadge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:0.7rem;font-weight:700;line-height:1.4;"></span>
                 </a>
             </div>
             <div class="nav-section">
@@ -389,6 +398,81 @@
             </div>
 
         </div>
+
+    <!-- ─── Messages / Inbox Page ──────────────────────────────────────────── -->
+    <div class="page" id="page-messages">
+        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+            <div>
+                <h2 class="page-title">Support Inbox</h2>
+                <p class="page-subtitle">Manage and reply to user support tickets</p>
+            </div>
+            <select id="ticketStatusFilter" onchange="loadAdminTickets()"
+                style="background:#0F172A;border:1px solid var(--gray-light);color:var(--dark);padding:0.5rem 1rem;border-radius:8px;font-size:0.85rem;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+                <option value="all">All Tickets</option>
+                <option value="new">New</option>
+                <option value="seen">Seen</option>
+                <option value="replied">Replied</option>
+                <option value="closed">Closed</option>
+            </select>
+        </div>
+
+        <div style="display:grid;grid-template-columns:340px 1fr;gap:1.25rem;height:calc(100vh - 200px);min-height:480px;">
+
+            <!-- ── Ticket List ── -->
+            <div style="background:#0F172A;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;display:flex;flex-direction:column;border:1px solid var(--gray-light);">
+                <div style="padding:0.875rem 1.125rem;border-bottom:1px solid var(--gray-light);display:flex;align-items:center;justify-content:space-between;background:#0F172A">
+                    <span style="font-weight:700;color:var(--dark);font-size:0.875rem;">Tickets</span>
+                    <span id="ticketCountBadge" style="color:var(--gray);font-size:0.75rem;"></span>
+                </div>
+                <div id="ticketList" style="overflow-y:auto;flex:1;"></div>
+            </div>
+
+            <!-- ── Ticket Detail ── -->
+            <div style="background:#0F172A;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;display:flex;flex-direction:column;border:1px solid var(--gray-light);" id="ticketDetail">
+                <!-- Empty state -->
+                <div id="ticketDetailEmpty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:1rem;color:var(--gray);">
+                    <i class="fas fa-inbox" style="font-size:3rem;opacity:0.2;"></i>
+                    <p style="margin:0;font-size:0.9rem;">Select a ticket to read and reply</p>
+                </div>
+                <!-- Thread content -->
+                <div id="ticketDetailContent" style="display:none;flex-direction:column;height:100%;">
+                    <!-- Thread header -->
+                    <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--gray-light);background:#0F172A;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-shrink:0;">
+                        <div style="flex:1;min-width:0;">
+                            <h3 id="tdSubject" style="margin:0 0 3px;color:var(--dark);font-size:0.95rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></h3>
+                            <p id="tdMeta" style="margin:0;color:var(--gray);font-size:0.775rem;"></p>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;flex-shrink:0;align-items:center;">
+                            <span id="tdStatusBadge"></span>
+                            <select id="tdStatusSelect" onchange="changeTicketStatus(this.value)"
+                                style="background:#0F172A;border:1px solid var(--gray-light);color:var(--dark);padding:0.35rem 0.7rem;border-radius:7px;font-size:0.775rem;cursor:pointer;">
+                                <option value="seen">Open</option>
+                                <option value="replied">Replied</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Thread messages -->
+                    <div id="tdThread" style="flex:1;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:0.875rem;background:#0F172A;"></div>
+                    <!-- Reply box -->
+                    <div style="padding:1rem 1.25rem;border-top:1px solid var(--gray-light);background:#0F172A;flex-shrink:0;">
+                        <textarea id="replyBox" placeholder="Type your reply to the user…" rows="3"
+                            style="width:100%;background:#0F172A;border:1px solid var(--gray-light);border-radius:9px;color:var(--dark);font-family:inherit;font-size:0.875rem;padding:0.75rem 1rem;resize:vertical;outline:none;transition:border-color 0.2s;box-sizing:border-box;"
+                            onfocus="this.style.borderColor='var(--primary)';this.style.boxShadow='0 0 0 3px rgba(102,126,234,0.12)'"
+                            onblur="this.style.borderColor='var(--gray-light)';this.style.boxShadow='none'"></textarea>
+                        <div style="display:flex;justify-content:flex-end;margin-top:0.625rem;">
+                            <button onclick="sendAdminReply()"
+                                style="background:linear-gradient(135deg,var(--primary),var(--secondary));color:#0F172A;border:none;padding:0.6rem 1.4rem;border-radius:8px;font-weight:700;font-size:0.85rem;cursor:pointer;display:flex;align-items:center;gap:0.5rem;transition:opacity 0.2s;box-shadow:0 4px 12px rgba(102,126,234,0.35);"
+                                onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+                                <i class="fas fa-paper-plane"></i> Send Reply
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
         <!-- /page-content -->
 
     </div>
@@ -457,11 +541,12 @@
 // Analytics page additional rendering
 const origLoadDashboard = window.loadDashboard || (() => {});
 
-// Hook into navigateTo for analytics
+// Hook into navigateTo for analytics AND messages
 const _origNavigate = window.navigateTo;
 window.navigateTo = function(page) {
     _origNavigate(page);
     if (page === 'analytics') renderAnalyticsPage();
+    if (page === 'messages' && typeof loadAdminTickets === 'function') loadAdminTickets();
 };
 
 async function renderAnalyticsPage() {
@@ -513,6 +598,7 @@ if (window.innerWidth <= 768) {
     const btn = document.getElementById('mobileMenuBtn');
     if (btn) btn.style.display = 'flex';
 }
+
 </script>
 
 </body>
