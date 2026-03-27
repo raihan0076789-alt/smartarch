@@ -82,6 +82,7 @@
 
         .nav-brand-text em { font-style: normal; color: var(--cyan); }
 
+        .nav-center { display: flex; align-items: center; gap: 0.25rem; margin: 0 auto; }
         .nav-links { display: flex; align-items: center; gap: 0.25rem; margin: 0 auto; }
 
         .nav-link {
@@ -91,10 +92,13 @@
         .nav-link.active { color: var(--cyan); background: rgba(0,212,200,0.08); }
         .nav-link:hover { color: var(--white); background: rgba(255,255,255,0.06); }
 
-        .nav-right { display: flex; gap: 0.75rem; }
+        .nav-right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+        .nav-auth { display: flex; align-items: center; gap: 0.75rem; }
+        .nav-user { display: none; align-items: center; gap: 0.75rem; }
 
         .btn-ghost {
-            background: transparent; border: 1px solid rgba(255,255,255,0.15); color: var(--slate);
+            background: var(--cyan); color: #060a12;
+            border: 1px solid rgba(255,255,255,0.15);
             padding: 0.45rem 1.1rem; border-radius: 9px; font-size: 0.875rem;
             font-weight: 500; cursor: pointer; text-decoration: none;
             display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.2s;
@@ -111,6 +115,69 @@
         }
 
         .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,212,200,0.4); }
+
+        /* Avatar menu */
+        .user-menu-wrap { position: relative; }
+        .user-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--cyan);
+            cursor: pointer;
+            object-fit: cover;
+        }
+
+        .user-dropdown {
+            position: absolute; top: calc(100% + 10px); right: 0;
+            background: var(--ink-2);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            min-width: 170px;
+            padding: 0.5rem;
+            display: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .user-menu-wrap:hover .user-dropdown { display: block; }
+
+        .user-dropdown a {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.6rem 0.875rem;
+            border-radius: 8px;
+            color: var(--slate);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.15s;
+        }
+
+        .user-dropdown a:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+
+        /* Mobile hamburger */
+        .hamburger {
+            display: none;
+            background: none; border: none; cursor: pointer;
+            color: var(--slate); font-size: 1.3rem;
+            padding: 0.25rem;
+        }
+
+        /* Mobile nav */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: var(--nav-h); left: 0; right: 0;
+            background: rgba(6,10,18,0.97);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 5%;
+            z-index: 999;
+            backdrop-filter: blur(20px);
+        }
+        .mobile-menu.open { display: flex; flex-direction: column; gap: 0.5rem; }
+        .mobile-menu .nav-link { padding: 0.75rem 1rem; display: block; }
+
+        @media (max-width: 768px) {
+            .nav-center, .nav-links { display: none; }
+            .hamburger { display: block; }
+        }
+   
 
         /* ── PAGE HERO ──────────────────────────────────────────────── */
         .page-hero {
@@ -544,41 +611,6 @@
             .tech-grid { grid-template-columns: 1fr; }
             .highlights-grid { grid-template-columns: 1fr; }
         }
-        /* Avatar menu */
-      /* Avatar menu */
-        .user-menu-wrap { position: relative; }
-        .user-avatar {
-            width: 36px; height: 36px;
-            border-radius: 50%;
-            border: 2px solid var(--cyan);
-            cursor: pointer;
-            object-fit: cover;
-        }
-
-        .user-dropdown {
-            position: absolute; top: calc(100% + 10px); right: 0;
-            background: var(--ink-2);
-            border: 1px solid var(--border);
-            border-radius: var(--r);
-            min-width: 170px;
-            padding: 0.5rem;
-            display: none;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-        }
-
-        .user-menu-wrap:hover .user-dropdown { display: block; }
-
-        .user-dropdown a {
-            display: flex; align-items: center; gap: 0.6rem;
-            padding: 0.6rem 0.875rem;
-            border-radius: 8px;
-            color: var(--slate);
-            text-decoration: none;
-            font-size: 0.875rem;
-            transition: all 0.15s;
-        }
-
-        .user-dropdown a:hover { background: rgba(255,255,255,0.06); color: var(--white); }
 
     </style>
 </head>
@@ -591,41 +623,61 @@
 <nav class="navbar">
     <a href="index.html" class="nav-brand">
         <div class="nav-logo"><i class="fas fa-home"></i></div>
-        <span class="nav-brand-text"> Smart<em>Arch</em></span>
+        <span class="nav-brand-text">Smart<em> Arch</em></span>
     </a>
-    <div class="nav-links">
-        <a href="index.html" class="nav-link">Home</a>
+
+    <div class="nav-center">
+        <a href="index.html#features" class="nav-link">Features</a>
+        <a href="index.html#workflow" class="nav-link">How It Works</a>
         <a href="about.html" class="nav-link active">About</a>
-        <a href="contact.html" class="nav-link ">Contact</a>
-
-        <!-- <a href="index.html#features" class="nav-link">Features</a> -->
-       
-    </div>
-   <div class="nav-right">
-
-    <!-- Guest buttons -->
-    <div id="navGuest">
-        <!-- <a href="index.html" class="btn-ghost">← Back to Home</a> -->
+        <a href="contact.html" class="nav-link">Contact</a>
     </div>
 
-    <!-- Logged in -->
-    <div id="navUser" style="display:none;">
-        <a href="dashboard.html" class="btn-cta">
-            <i class="fas fa-rocket"></i> Dashboard
-        </a>
-         <div class="user-menu-wrap">
+    <!-- Auth state: logged out -->
+    <div class="nav-right">
+        <div class="nav-auth" id="navAuth">
+            <button class="btn-ghost" onclick="redirectToModal('login')">Login</button>
+            <button class="btn-cta" onclick="redirectToModal('register')">
+                <i class="fas fa-rocket"></i> Get Started
+            </button>
+        </div>
+
+        <!-- Auth state: logged in -->
+        <div class="nav-user" id="navUser">
+            <a href="dashboard.html" class="btn-ghost">
+                <i class="fas fa-rocket"></i> Dashboard
+            </a>
+            <div class="user-menu-wrap">
                 <img src="" alt="User" id="userAvatar" class="user-avatar">
                 <div class="user-dropdown">
                     <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
-                    <a href="dashboard.html#settingsSection" onclick="openSettings()"><i class="fas fa-cog"></i>Settings</a>
+                    <a href="dashboard.html#settingsSection"><i class="fas fa-cog"></i> Settings</a>
                     <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                  
                 </div>
             </div>
+        </div>
     </div>
 
-</div>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+    </button>
 </nav>
+
+<!-- Mobile nav -->
+<div class="mobile-menu" id="mobileMenu">
+    <a href="index.html#features" class="nav-link" onclick="closeMobileMenu()">Features</a>
+    <a href="index.html#workflow" class="nav-link" onclick="closeMobileMenu()">How It Works</a>
+    <a href="about.html" class="nav-link active">About</a>
+    <a href="contact.html" class="nav-link" onclick="closeMobileMenu()">Contact</a>
+    <div id="mobileNavAuth">
+        <button class="btn-ghost" onclick="redirectToModal('login'); closeMobileMenu()" style="width:100%;margin-top:0.5rem">Login</button>
+        <button class="btn-cta" onclick="redirectToModal('register'); closeMobileMenu()" style="width:100%;margin-top:0.5rem;justify-content:center">Get Started</button>
+    </div>
+    <div id="mobileNavUser" style="display:none">
+        <a href="dashboard.html" class="btn-ghost" style="width:100%;margin-top:0.5rem;justify-content:center">Dashboard</a>
+        <button class="btn-ghost" onclick="logout()" style="width:100%;margin-top:0.5rem">Logout</button>
+    </div>
+</div>
 <!-- PAGE HERO -->
 <div class="page-hero">
     <div class="eyebrow">About the Project</div>
@@ -1048,6 +1100,11 @@
 <script src="js/dashboard-profile.js"></script>
 
 <script>
+    // Stubs so auth.js doesn't throw if called on this page
+    function showLoading(msg) {}
+    function hideLoading() {}
+    function showToast(msg, type) {}
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -1059,38 +1116,53 @@
 
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-function checkAuth(){
-    const token = localStorage.getItem("token");
-
-    const navGuest = document.getElementById("navGuest");
-    const navUser  = document.getElementById("navUser");
-
-    const ctaGuest = document.getElementById("ctaGuest");
-    const ctaUser  = document.getElementById("ctaUser");
-
-    if(token){
-        navGuest.style.display = "none";
-        navUser.style.display = "block";
-
-        // CTA toggle
-        if(ctaGuest) ctaGuest.style.display = "none";
-        if(ctaUser) ctaUser.style.display = "inline-flex";
-
-    }else{
-        navGuest.style.display = "block";
-        navUser.style.display = "none";
-
-        // CTA toggle
-        if(ctaGuest) ctaGuest.style.display = "inline-flex";
-        if(ctaUser) ctaUser.style.display = "none";
-    }
+function toggleMobileMenu() {
+    document.getElementById('mobileMenu').classList.toggle('open');
+}
+function closeMobileMenu() {
+    document.getElementById('mobileMenu').classList.remove('open');
 }
 
-document.addEventListener("DOMContentLoaded", checkAuth);
+// Redirect to index with modal param (login/register)
+function redirectToModal(type) {
+    window.location.href = 'index.html?modal=' + type;
+}
 
+document.addEventListener("DOMContentLoaded", function() {
+    // Use shared checkAuth from auth.js if available, else fallback
+    if (typeof checkAuth === 'function') {
+        checkAuth();
+    } else {
+        _localCheckAuth();
+    }
+});
+
+function _localCheckAuth() {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    const navAuth = document.getElementById('navAuth');
+    const navUser = document.getElementById('navUser');
+    const mobileNavAuth = document.getElementById('mobileNavAuth');
+    const mobileNavUser = document.getElementById('mobileNavUser');
+
+    if (token && userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            if (navAuth) navAuth.style.display = 'none';
+            if (navUser) navUser.style.display = 'flex';
+            if (mobileNavAuth) mobileNavAuth.style.display = 'none';
+            if (mobileNavUser) { mobileNavUser.style.display = 'flex'; mobileNavUser.style.flexDirection = 'column'; }
+            const avatar = document.getElementById('userAvatar');
+            if (avatar) {
+                const uid = user.id || user._id || 'guest';
+                const savedPic = localStorage.getItem('user_avatar_' + uid);
+                avatar.src = savedPic || user.avatar ||
+                    'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=00d4c8&color=060a12&bold=true';
+            }
+        } catch(e) {}
+    }
+}
 
 </script>
 </body>
 </html>
-
-

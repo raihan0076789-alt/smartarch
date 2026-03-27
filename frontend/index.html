@@ -1445,12 +1445,11 @@
                 <i class="fas fa-rocket"></i> Dashboard
             </a>
             <div class="user-menu-wrap">
-                <img src="" alt="User" id="userAvatar" class="user-avatar">
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="User" id="userAvatar" class="user-avatar">
                 <div class="user-dropdown">
                     <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
-                    <a href="dashboard.html#settingsSection" onclick="openSettings()"><i class="fas fa-cog"></i>Settings</a>
-                    <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                  
+                    <a href="dashboard.html#settingsSection"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
         </div>
@@ -1965,7 +1964,7 @@
 
         <div class="modal-tabs">
             <button class="modal-tab active" onclick="userSwitchTab('reset', event)">
-                <i class="fas fa-redo"></i> Reset Password
+               <i class="fas fa-key"></i> Forgot Password
             </button>
             <button class="modal-tab" onclick="userSwitchTab('support', event)">
                 <i class="fas fa-headset"></i> Support
@@ -2116,7 +2115,6 @@
 
 <script src="js/api.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/dashboard-profile.js"></script>
 <script>
     function toggleTips() {
         const tips = document.getElementById("passwordTips");
@@ -2346,19 +2344,6 @@
         }, 3200);
     }
    
-    // ── Auth UI ────────────────────────────────────────────────────────────────
-    function updateUIForLoggedInUser(user) {
-        document.getElementById('navAuth').style.display = 'none';
-        document.getElementById('navUser').style.display = 'flex';
-        document.getElementById('mobileNavAuth').style.display = 'none';
-        document.getElementById('mobileNavUser').style.display = 'flex';
-        document.getElementById('mobileNavUser').style.flexDirection = 'column';
-
-        const avatar = document.getElementById('userAvatar');
-        avatar.src = user.avatar ||
-            `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=00d4c8&color=060a12&bold=true`;
-    }
-
     // ── Scroll reveal ──────────────────────────────────────────────────────────
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -2374,6 +2359,12 @@
     // ── Init ───────────────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
         checkAuth();
+
+        // Open modal if redirected from another page with ?modal=login or ?modal=register
+        const urlParams = new URLSearchParams(window.location.search);
+        const modalParam = urlParams.get('modal');
+        if (modalParam === 'login') showLogin();
+        else if (modalParam === 'register') showRegister();
 
         // Smooth anchor scrolling
         document.querySelectorAll('a[href^="#"]').forEach(a => {

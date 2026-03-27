@@ -13,6 +13,12 @@ async function handleLogin(event) {
         localStorage.setItem('user', JSON.stringify(data.user));
         api.setToken(data.token);
 
+        // Persist avatar in per-user key so it survives logout/login cycles
+        if (data.user && data.user.avatar) {
+            const uid = data.user.id || data.user._id || 'guest';
+            localStorage.setItem('user_avatar_' + uid, data.user.avatar);
+        }
+
         showToast('Login successful!', 'success');
         hideLoading();
 
@@ -65,6 +71,12 @@ async function handleRegister(event) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         api.setToken(data.token);
+
+        // Persist avatar in per-user key so it survives logout/login cycles
+        if (data.user && data.user.avatar) {
+            const uid = data.user.id || data.user._id || 'guest';
+            localStorage.setItem('user_avatar_' + uid, data.user.avatar);
+        }
 
         showToast('Account created successfully!', 'success');
         hideLoading();
@@ -123,6 +135,8 @@ function requireAuth() {
 function updateUIForLoggedInUser(user) {
     const navAuth = document.getElementById('navAuth');
     const navUser = document.getElementById('navUser');
+    const mobileNavAuth = document.getElementById('mobileNavAuth');
+    const mobileNavUser = document.getElementById('mobileNavUser');
 
     if (navAuth) navAuth.style.display = 'none';
     if (navUser) {
@@ -131,8 +145,14 @@ function updateUIForLoggedInUser(user) {
         if (avatar) {
             const uid = user.id || user._id || 'guest';
             const savedPic = localStorage.getItem('user_avatar_' + uid);
-            avatar.src = savedPic || user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=667eea&color=fff`;
+            avatar.src = savedPic || user.avatar ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=00d4c8&color=060a12&bold=true`;
         }
+    }
+    if (mobileNavAuth) mobileNavAuth.style.display = 'none';
+    if (mobileNavUser) {
+        mobileNavUser.style.display = 'flex';
+        mobileNavUser.style.flexDirection = 'column';
     }
 }
 
