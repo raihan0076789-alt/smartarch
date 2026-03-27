@@ -110,6 +110,177 @@
   opacity: 1;
   transform: translateY(0);
 }
+/* ── AI Design Feedback panel ─────────────────────────────── */
+.aifb-run-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #3a7bd5, #2d5fa8);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: opacity .2s;
+  letter-spacing: .02em;
+}
+.aifb-run-btn:hover { opacity: .88; }
+.aifb-run-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.aifb-results { margin-top: 10px; }
+
+.aifb-score-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.aifb-score-ring {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+}
+.aifb-score-ring svg { transform: rotate(-90deg); }
+.aifb-score-ring .aifb-ring-bg  { fill: none; stroke: rgba(255,255,255,.08); stroke-width: 4; }
+.aifb-score-ring .aifb-ring-val { fill: none; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset .6s ease; }
+.aifb-score-num {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: .85rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+.aifb-score-meta { flex: 1; min-width: 0; }
+.aifb-score-label {
+  font-size: .8rem;
+  font-weight: 600;
+  color: #7ec8e3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.aifb-score-date {
+  font-size: .68rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.aifb-dims { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+.aifb-dim {
+  background: rgba(255,255,255,.04);
+  border-radius: 6px;
+  padding: 7px 9px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.aifb-dim:hover { background: rgba(255,255,255,.08); }
+.aifb-dim-header { display: flex; align-items: center; gap: 7px; }
+.aifb-dim-title {
+  flex: 1;
+  font-size: .72rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.aifb-dim-score {
+  font-size: .72rem;
+  font-weight: 700;
+  min-width: 22px;
+  text-align: right;
+  color: #e2e8f0;
+}
+.aifb-bar-track {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255,255,255,.08);
+  margin-top: 4px;
+  overflow: hidden;
+}
+.aifb-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width .6s ease;
+}
+.aifb-dim-detail {
+  display: none;
+  font-size: .7rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.aifb-dim.expanded .aifb-dim-detail { display: block; }
+.aifb-dim-summary {
+  font-size: .7rem;
+  color: #7ec8e3;
+  margin-bottom: 4px;
+  font-style: italic;
+}
+
+.aifb-list-section { margin-bottom: 8px; }
+.aifb-list-title {
+  font-size: .7rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 4px;
+}
+.aifb-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.aifb-list li {
+  font-size: .7rem;
+  color: #94a3b8;
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: rgba(255,255,255,.03);
+  line-height: 1.45;
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+.aifb-list li .aifb-li-icon { flex-shrink: 0; margin-top: 1px; }
+.aifb-issues li .aifb-li-icon { color: #f87171; }
+.aifb-wins   li .aifb-li-icon { color: #4ade80; }
+
+.aifb-placeholder {
+  font-size: .73rem;
+  color: #475569;
+  text-align: center;
+  padding: 12px 6px;
+  line-height: 1.5;
+}
+.aifb-error {
+  font-size: .73rem;
+  color: #f87171;
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(248,113,113,.08);
+  margin-top: 6px;
+}
+.aifb-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 0;
+  color: #64748b;
+  font-size: .72rem;
+}
+.aifb-spinner i { font-size: 1.2rem; color: #3a7bd5; }
     </style>
 </head>
 <body>
@@ -483,6 +654,19 @@
                 </div>
             </div>
 
+
+            <!-- AI Design Feedback -->
+            <div class="sbar-section">
+                <div class="sbar-header"><i class="fas fa-star-half-alt"></i> AI Design Feedback</div>
+                <button class="aifb-run-btn" id="aifbRunBtn" onclick="runAIFeedback()">
+                    <i class="fas fa-brain"></i>
+                    <span id="aifbBtnLabel">Analyse My Design</span>
+                </button>
+                <div id="aifbPanel">
+                    <div class="aifb-placeholder">Add rooms to your design, then click <strong>Analyse</strong> to get an AI quality report.</div>
+                </div>
+            </div>
+
             <!-- Ollama AI Chat -->
             <div class="sbar-section ollama-chat-section">
                 <div class="sbar-header ollama-header">
@@ -689,6 +873,259 @@
       if(b) b.classList.toggle('active', id === 'sb_'+v);
     });
   };
+})();
+</script>
+
+<script>
+// ── AI Design Feedback ─────────────────────────────────────────────
+// Self-contained module. Uses window.architectureAPI (from api.js)
+// and window.api (main backend) — both already initialised by api.js.
+// Reads window.projectData which architect.js maintains.
+// No existing functions are modified.
+
+(function() {
+
+  // Colour ramp for dimension bars and ring (score 0-10)
+  function scoreColor(s) {
+    if (s >= 8) return '#4ade80';   // green
+    if (s >= 6) return '#facc15';   // amber
+    if (s >= 4) return '#fb923c';   // orange
+    return '#f87171';               // red
+  }
+
+  function ringDash(score) {
+    // circumference of r=22 circle = 2π×22 ≈ 138.23
+    const C = 138.23;
+    return C - (score / 10) * C;
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    try {
+      return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch(e) { return ''; }
+  }
+
+  function esc(s) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(String(s || '')));
+    return d.innerHTML;
+  }
+
+  // ── Render ───────────────────────────────────────────────────────
+  function renderFeedback(fb) {
+    const panel = document.getElementById('aifbPanel');
+    if (!panel) return;
+
+    if (!fb || (!fb.overallScore && fb.overallScore !== 0)) {
+      panel.innerHTML = '<div class="aifb-placeholder">No feedback yet. Click <strong>Analyse My Design</strong> to generate a report.</div>';
+      return;
+    }
+
+    const dims = fb.dimensions || {};
+    const dimOrder = ['spaceUtilisation','roomFlow','naturalLight','styleConsistency','functionalCompleteness'];
+
+    const dimRows = dimOrder.map(key => {
+      const d = dims[key];
+      if (!d || typeof d !== 'object') return '';
+      const score = (typeof d.score === 'number' && !isNaN(d.score)) ? d.score : 5;
+      const col = scoreColor(score);
+      return `
+        <div class="aifb-dim" onclick="this.classList.toggle('expanded')">
+          <div class="aifb-dim-header">
+            <span class="aifb-dim-title">${esc(d.title || key)}</span>
+            <span class="aifb-dim-score" style="color:${col}">${score}/10</span>
+          </div>
+          <div class="aifb-bar-track">
+            <div class="aifb-bar-fill" style="width:${score*10}%;background:${col}"></div>
+          </div>
+          <div class="aifb-dim-detail">
+            ${d.summary ? `<div class="aifb-dim-summary">${esc(d.summary)}</div>` : ''}
+            ${esc(d.detail || '')}
+          </div>
+        </div>`;
+    }).join('');
+
+    const issueItems = (fb.topIssues || []).map(t =>
+      `<li><span class="aifb-li-icon"><i class="fas fa-exclamation-circle"></i></span>${esc(t)}</li>`
+    ).join('');
+
+    const winItems = (fb.quickWins || []).map(t =>
+      `<li><span class="aifb-li-icon"><i class="fas fa-check-circle"></i></span>${esc(t)}</li>`
+    ).join('');
+
+    const safeScore = (typeof fb.overallScore === 'number' && !isNaN(fb.overallScore)) ? fb.overallScore : 5;
+    const ringColor = scoreColor(safeScore);
+    const dash      = ringDash(safeScore);
+
+    panel.innerHTML = `
+      <div class="aifb-results">
+        <div class="aifb-score-row">
+          <div class="aifb-score-ring">
+            <svg width="52" height="52" viewBox="0 0 52 52">
+              <circle class="aifb-ring-bg" cx="26" cy="26" r="22"/>
+              <circle class="aifb-ring-val" cx="26" cy="26" r="22"
+                stroke="${ringColor}"
+                stroke-dasharray="138.23"
+                stroke-dashoffset="${dash}"/>
+            </svg>
+            <div class="aifb-score-num">${safeScore}</div>
+          </div>
+          <div class="aifb-score-meta">
+            <div class="aifb-score-label">${esc(fb.scoreLabel)}</div>
+            <div class="aifb-score-date">${fmtDate(fb.analysedAt)}</div>
+          </div>
+        </div>
+
+        <div class="aifb-dims">${dimRows}</div>
+
+        ${issueItems ? `
+        <div class="aifb-list-section">
+          <div class="aifb-list-title">Top issues</div>
+          <ul class="aifb-list aifb-issues">${issueItems}</ul>
+        </div>` : ''}
+
+        ${winItems ? `
+        <div class="aifb-list-section">
+          <div class="aifb-list-title">Quick wins</div>
+          <ul class="aifb-list aifb-wins">${winItems}</ul>
+        </div>` : ''}
+      </div>`;
+  }
+
+  function showSpinner(msg) {
+    const panel = document.getElementById('aifbPanel');
+    if (panel) panel.innerHTML = `
+      <div class="aifb-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>${esc(msg || 'Analysing design…')}</span>
+      </div>`;
+  }
+
+  function showError(msg) {
+    const panel = document.getElementById('aifbPanel');
+    if (panel) panel.innerHTML = `<div class="aifb-error"><i class="fas fa-exclamation-triangle"></i> ${esc(msg)}</div>`;
+  }
+
+  function setBtnState(loading) {
+    const btn   = document.getElementById('aifbRunBtn');
+    const label = document.getElementById('aifbBtnLabel');
+    if (!btn) return;
+    btn.disabled = loading;
+    if (label) label.textContent = loading ? 'Analysing…' : 'Analyse My Design';
+  }
+
+  // ── Load cached feedback on page ready ──────────────────────────
+  async function loadCachedFeedback() {
+    const pd = window.projectData;
+    if (!pd || !pd._id) return;
+    try {
+      const fb = await fetchCachedFeedback(pd._id);
+      if (fb && fb.overallScore != null) {
+        renderFeedback(fb);
+      }
+    } catch(e) {
+      // Silently ignore — feedback is optional
+    }
+  }
+
+  // ── Main: run analysis ────────────────────────────────────────────
+  // ── Direct fetch helpers (bypass window.architectureAPI / window.api
+  //    so the feature works even if api.js is served from cache) ──────
+  async function fetchAIFeedback(projectData) {
+    const response = await fetch('http://localhost:3001/api/architecture/feedback', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ projectData }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Feedback request failed');
+    return data;
+  }
+
+  async function persistFeedback(projectId, feedback) {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    await fetch('http://localhost:5000/api/projects/' + projectId + '/ai-feedback', {
+      method:  'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body:    JSON.stringify({ feedback }),
+    });
+  }
+
+  async function fetchCachedFeedback(projectId) {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    const response = await fetch('http://localhost:5000/api/projects/' + projectId + '/ai-feedback', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return (data && data.aiFeedback) ? data.aiFeedback : null;
+  }
+
+  window.runAIFeedback = async function() {
+    const pd = window.projectData;
+    if (!pd) {
+      showError('No project loaded. Open or create a project first.');
+      return;
+    }
+    const allRooms = (pd.floors || []).flatMap(f => f.rooms || []);
+    if (allRooms.length === 0) {
+      showError('Add at least one room before running the analysis.');
+      return;
+    }
+
+    setBtnState(true);
+    showSpinner('Running AI analysis on your design…');
+
+    try {
+      // 1. Call backend-ai directly (no dependency on window.architectureAPI)
+      const aiResp = await fetchAIFeedback(pd);
+      if (!aiResp || !aiResp.feedback) throw new Error('Empty response from AI backend');
+
+      const fb = aiResp.feedback;
+
+      // 2. Persist to backend-main if we have a saved project id (non-fatal)
+      if (pd._id) {
+        persistFeedback(pd._id, fb).catch(e => console.warn('Could not persist AI feedback:', e.message));
+      }
+
+      // 3. Render
+      renderFeedback(fb);
+      if (window.showToast) window.showToast('AI design analysis complete!', 'success');
+    } catch(err) {
+      console.error('runAIFeedback error:', err);
+      const msg = err.message || 'Analysis failed';
+      if (msg.includes('Failed to fetch') || msg.includes('ECONNREFUSED') || msg.includes('NetworkError')) {
+        showError('AI backend is offline. Make sure the AI server is running on port 3001.');
+      } else if (msg.includes('not found') || msg.includes('404')) {
+        showError('Ollama model not found. Run: ollama pull llama3');
+      } else if (msg.includes('at least one room')) {
+        showError(msg);
+      } else {
+        showError('Analysis failed: ' + msg);
+      }
+    } finally {
+      setBtnState(false);
+    }
+  };
+
+  // Expose for architect.js to call after project load
+  window.aifbLoadCached = loadCachedFeedback;
+
+  // Auto-load cached feedback when projectData becomes available
+  // We poll briefly since architect.js sets window.projectData asynchronously
+  let _pollCount = 0;
+  const _poll = setInterval(function() {
+    _pollCount++;
+    if (window.projectData && window.projectData._id) {
+      clearInterval(_poll);
+      loadCachedFeedback();
+    }
+    if (_pollCount > 40) clearInterval(_poll); // give up after ~8s
+  }, 200);
+
 })();
 </script>
 

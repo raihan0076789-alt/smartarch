@@ -81,7 +81,21 @@ const projectSchema = new mongoose.Schema({
     tags: [{ type: String, trim: true }],
     isPublic: { type: Boolean, default: false },
     version: { type: Number, default: 1 },
-    lastModifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    lastModifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    aiFeedback: {
+        overallScore:  { type: Number, default: null },
+        scoreLabel:    { type: String, default: '' },
+        analysedAt:    { type: Date,   default: null },
+        dimensions: {
+            spaceUtilisation:       { score: Number, title: String, summary: String, detail: String },
+            roomFlow:               { score: Number, title: String, summary: String, detail: String },
+            naturalLight:           { score: Number, title: String, summary: String, detail: String },
+            styleConsistency:       { score: Number, title: String, summary: String, detail: String },
+            functionalCompleteness: { score: Number, title: String, summary: String, detail: String },
+        },
+        topIssues: [{ type: String }],
+        quickWins:  [{ type: String }],
+    }
 }, { timestamps: true });
 
 projectSchema.pre('save', function(next) {

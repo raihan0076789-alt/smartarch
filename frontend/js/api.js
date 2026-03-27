@@ -77,6 +77,10 @@ class API {
     async getProjectVersions(projectId)       { return this.request(`/projects/${projectId}/versions`); }
     async restoreVersion(projectId, versionId){ return this.request(`/projects/${projectId}/versions/${versionId}/restore`, { method: 'POST' }); }
 
+    // ── AI Feedback ───────────────────────────────
+    async getAIFeedback(projectId)            { return this.request(`/projects/${projectId}/ai-feedback`); }
+    async saveAIFeedback(projectId, feedback) { return this.request(`/projects/${projectId}/ai-feedback`, { method: 'PUT', body: JSON.stringify({ feedback }) }); }
+
     // ── Models ────────────────────────────────────
     async generateFloorPlan(projectId)        { return this.request(`/models/${projectId}/floorplan`, { method: 'POST' }); }
     async generate3DModel(projectId)          { return this.request(`/models/${projectId}/3d`,        { method: 'POST' }); }
@@ -178,6 +182,28 @@ class ArchitectureAPI {
             return data;
         } catch (error) {
             console.error('ArchitectureAPI.chat error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Request AI design quality feedback for a project.
+     * Calls backend-ai POST /api/architecture/feedback
+     * @param {object} projectData  Full SmartArch project object
+     * @returns {Promise<{ success, feedback }>}
+     */
+    async requestAIFeedback(projectData) {
+        try {
+            const response = await fetch(`${AI_API_BASE_URL}/feedback`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ projectData }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Feedback request failed');
+            return data;
+        } catch (error) {
+            console.error('ArchitectureAPI.requestAIFeedback error:', error);
             throw error;
         }
     }

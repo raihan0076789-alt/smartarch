@@ -15,6 +15,7 @@ import {
   exportSTL,
   exportGLTF,
 } from '../controllers/architectureController.js';
+import { getDesignFeedback } from '../controllers/feedbackController.js';
 
 const router = express.Router();
 
@@ -33,6 +34,9 @@ router.post('/floorplan/upload-image', upload.single('file'), uploadFloorplanIma
 
 // ── AI Chat ────────────────────────────────────────────────────────
 router.post('/chat', chatWithArchitect);
+
+// ── AI Design Feedback ─────────────────────────────────────────────
+router.post('/feedback', getDesignFeedback);
 
 /**
  * POST /api/architecture/suggest
