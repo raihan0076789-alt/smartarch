@@ -37,6 +37,11 @@ const userSchema = new mongoose.Schema({
         autoSave: { type: Boolean, default: true }
     },
     suspended: { type: Boolean, default: false },
+    emailVerified:      { type: Boolean, default: false },
+    emailOtp:           String,
+    emailOtpExpire:     Date,
+    otpResendCount:     { type: Number, default: 0 },
+    otpResendDate:      Date,
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     createdAt: { type: Date, default: Date.now }
@@ -51,6 +56,14 @@ userSchema.pre('save', async function(next) {
 
 userSchema.methods.matchPassword = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Generate a 6-digit OTP for email verification (10 min expiry)
+userSchema.methods.getEmailOtp = function() {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit
+    this.emailOtp       = crypto.createHash('sha256').update(otp).digest('hex');
+    this.emailOtpExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    return otp;
 };
 
 // Generate and hash a password reset token

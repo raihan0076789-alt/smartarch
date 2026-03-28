@@ -50,13 +50,76 @@
         .mobile-menu { display: none; position: fixed; top: var(--nav-h); left: 0; right: 0; background: rgba(6,10,18,0.97); border-bottom: 1px solid var(--border); padding: 1rem 5%; z-index: 999; backdrop-filter: blur(20px); }
         .mobile-menu.open { display: flex; flex-direction: column; gap: 0.5rem; }
         .mobile-menu .nav-link { padding: 0.75rem 1rem; display: block; border-radius: var(--r); }
-        /* Avatar dropdown */
+        /* Avatar menu */
         .user-menu-wrap { position: relative; }
-        .user-avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--cyan); cursor: pointer; object-fit: cover; }
-        .user-dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: var(--ink-2); border: 1px solid var(--border); border-radius: var(--r); min-width: 170px; padding: 0.5rem; display: none; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-        .user-menu-wrap:hover .user-dropdown { display: block; }
-        .user-dropdown a { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.875rem; border-radius: 8px; color: var(--slate); text-decoration: none; font-size: 0.875rem; transition: all 0.15s; }
+        .user-avatar {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            border: 2px solid var(--cyan);
+            cursor: pointer;
+            object-fit: cover;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .user-avatar:hover { border-color: #2ee8dc; box-shadow: 0 0 0 3px rgba(0,212,200,0.18); }
+
+        .user-dropdown {
+            position: absolute; top: calc(100% + 12px); right: 0;
+            background: var(--ink-2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            min-width: 220px;
+            padding: 0.4rem;
+            display: block;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);
+            opacity: 0;
+            transform: translateY(-8px) scale(0.97);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 1000;
+        }
+        .user-menu-wrap.open .user-dropdown {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .user-dropdown-header {
+            display: flex; align-items: center; gap: 0.65rem;
+            padding: 0.7rem 0.875rem 0.6rem;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            margin-bottom: 0.3rem;
+        }
+        .user-dropdown-avatar {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid var(--cyan);
+            flex-shrink: 0;
+        }
+        .user-dropdown-info { overflow: hidden; }
+        .user-dropdown-name {
+            font-size: 0.82rem; font-weight: 600;
+            color: var(--white);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .user-dropdown-email {
+            font-size: 0.72rem;
+            color: var(--slate);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .user-dropdown a {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.6rem 0.875rem;
+            border-radius: 8px;
+            color: var(--slate);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.15s;
+        }
         .user-dropdown a:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+        .user-dropdown a.logout-link { color: #f87171; }
+        .user-dropdown a.logout-link:hover { background: rgba(248,113,113,0.08); color: #fca5a5; }
         .mobile-menu .btn-ghost, .mobile-menu .btn-cta { display: block; text-align: center; margin-top: 0.5rem; justify-content: center; }
 
         /* HERO */
@@ -293,12 +356,19 @@
             <a href="dashboard.html" class="btn-ghost">
                 <i class="fas fa-rocket"></i> Dashboard
             </a>
-            <div class="user-menu-wrap">
+            <div class="user-menu-wrap" id="userMenuWrap">
                 <img src="" alt="User" id="userAvatar" class="user-avatar">
-                <div class="user-dropdown">
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="user-dropdown-header">
+                        <img src="" alt="" class="user-dropdown-avatar" id="userDropdownAvatar">
+                        <div class="user-dropdown-info">
+                            <div class="user-dropdown-name" id="userDropdownName">—</div>
+                            <div class="user-dropdown-email" id="userDropdownEmail">—</div>
+                        </div>
+                    </div>
                     <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
                     <a href="dashboard.html#settingsSection"><i class="fas fa-cog"></i> Settings</a>
-                    <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    <a href="#" class="logout-link" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
         </div>
@@ -746,5 +816,48 @@
 </script>
 <script src="js/api.js"></script>
 <script src="js/auth.js"></script>
+<script>
+(function() {
+    var wrap = document.getElementById('userMenuWrap');
+    var avatar = document.getElementById('userAvatar');
+    if (!wrap || !avatar) return;
+
+    avatar.addEventListener('click', function(e) {
+        e.stopPropagation();
+        wrap.classList.toggle('open');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!wrap.contains(e.target)) wrap.classList.remove('open');
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') wrap.classList.remove('open');
+    });
+
+    function populateDropdownHeader() {
+        var userStr = localStorage.getItem('user');
+        if (!userStr) return;
+        try {
+            var user = JSON.parse(userStr);
+            var nameEl     = document.getElementById('userDropdownName');
+            var emailEl    = document.getElementById('userDropdownEmail');
+            var miniAvatar = document.getElementById('userDropdownAvatar');
+            if (nameEl)  nameEl.textContent  = user.name  || '—';
+            if (emailEl) emailEl.textContent = user.email || '—';
+            if (miniAvatar) miniAvatar.src = avatar.src || '';
+            var obs = new MutationObserver(function() {
+                if (miniAvatar) miniAvatar.src = avatar.src;
+            });
+            obs.observe(avatar, { attributes: true, attributeFilter: ['src'] });
+        } catch(e) {}
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', populateDropdownHeader);
+    } else {
+        populateDropdownHeader();
+    }
+})();
+</script>
 </body>
 </html>

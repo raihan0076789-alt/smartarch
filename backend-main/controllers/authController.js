@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/sendEmail');
+const welcomeEmailTemplate = require('../utils/welcomeEmail');
+const verifyEmailTemplate  = require('../utils/verifyEmail');
 
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -20,12 +22,28 @@ exports.register = async (req, res) => {
         }
 
         const user = await User.create({ name, email, password, company, phone });
-        const token = generateToken(user._id);
 
+        // Generate 6-digit OTP and send
+        const otp = user.getEmailOtp();
+        await user.save({ validateBeforeSave: false });
+
+
+        try {
+            await sendEmail({
+                to: user.email,
+                subject: 'SmartArch — Your verification code',
+                html: verifyEmailTemplate(user.name, otp)
+            });
+        } catch (emailErr) {
+            console.error('OTP email failed:', emailErr.message);
+        }
+
+        // No JWT yet — user must enter OTP first
         res.status(201).json({
             success: true,
-            token,
-            user: { id: user._id, name: user.name, email: user.email, role: user.role, company: user.company, phone: user.phone, avatar: user.avatar, preferences: user.preferences }
+            requiresVerification: true,
+            email: user.email,
+            message: 'Account created! Enter the 6-digit code sent to your email.'
         });
     } catch (error) {
         console.error(error);
@@ -49,6 +67,16 @@ exports.login = async (req, res) => {
         const isMatch = await user.matchPassword(password);
         if (!isMatch) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+
+        // Block login until email is verified
+        if (!user.emailVerified) {
+            return res.status(403).json({
+                success: false,
+                requiresVerification: true,
+                email: user.email,
+                message: 'Please verify your email before logging in. Enter the OTP sent to your email.'
+            });
         }
 
         const token = generateToken(user._id);
@@ -205,6 +233,133 @@ exports.resetPassword = async (req, res) => {
             success: true,
             token,
             message: 'Password reset successfully. You are now logged in.'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+
+// ─── VERIFY OTP ─────────────────────────────────────────────────────────────────
+// POST /api/auth/verify-otp   Body: { email, otp }
+exports.verifyEmail = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        if (!email || !otp) {
+            return res.status(400).json({ success: false, message: 'Email and OTP are required.' });
+        }
+
+        const hashedOtp = crypto.createHash('sha256').update(otp.trim()).digest('hex');
+
+        // First check if user exists at all (helps give a better error)
+        const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
+        if (existingUser && existingUser.emailVerified) {
+            return res.status(400).json({ success: false, message: 'This email is already verified. Please log in.' });
+        }
+
+        const user = await User.findOne({
+            email:          email.toLowerCase().trim(),
+            emailOtp:       hashedOtp,
+            emailOtpExpire: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid or expired OTP. Please request a new code.'
+            });
+        }
+
+        user.emailVerified  = true;
+        user.emailOtp       = undefined;
+        user.emailOtpExpire = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        // Send welcome email — fire-and-forget
+        sendEmail({
+            to: user.email,
+            subject: 'Welcome to SmartArch 🎉',
+            html: welcomeEmailTemplate(user.name)
+        }).catch((err) => console.error('Welcome email failed:', err.message));
+
+        const token = generateToken(user._id);
+        res.json({
+            success: true,
+            token,
+            user: { id: user._id, name: user.name, email: user.email, role: user.role, company: user.company, phone: user.phone, avatar: user.avatar, preferences: user.preferences },
+            message: 'Email verified successfully! Welcome to SmartArch.'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+// ─── RESEND VERIFICATION EMAIL ───────────────────────────────────────────────────────────────────────
+// POST /api/auth/resend-verification  Body: { email }
+exports.resendVerification = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Please provide an email address.' });
+        }
+
+        const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+        if (!user || user.emailVerified) {
+            return res.status(200).json({
+                success: true,
+                message: 'If that email is registered and unverified, a new OTP has been sent.'
+            });
+        }
+
+        // ── Daily resend limit: max 5 per day ─────────────────────────────────
+        const MAX_RESENDS_PER_DAY = 5;
+        const now = new Date();
+        const lastResendDate = user.otpResendDate ? new Date(user.otpResendDate) : null;
+        const isSameDay = lastResendDate &&
+            lastResendDate.getUTCFullYear() === now.getUTCFullYear() &&
+            lastResendDate.getUTCMonth()    === now.getUTCMonth() &&
+            lastResendDate.getUTCDate()     === now.getUTCDate();
+
+        if (isSameDay && user.otpResendCount >= MAX_RESENDS_PER_DAY) {
+            return res.status(429).json({
+                success: false,
+                limitReached: true,
+                message: `Too many attempts. You can request a maximum of ${MAX_RESENDS_PER_DAY} codes per day. Please try again tomorrow.`
+            });
+        }
+
+        // Reset counter if it's a new day
+        if (!isSameDay) {
+            user.otpResendCount = 0;
+        }
+
+        // Increment counter and record date
+        user.otpResendCount = (user.otpResendCount || 0) + 1;
+        user.otpResendDate  = now;
+        // ─────────────────────────────────────────────────────────────────────
+
+        const otp = user.getEmailOtp();
+        await user.save({ validateBeforeSave: false });
+
+        try {
+            await sendEmail({
+                to: user.email,
+                subject: 'SmartArch — New verification code',
+                html: verifyEmailTemplate(user.name, otp)
+            });
+        } catch (emailErr) {
+            console.error('Resend OTP failed:', emailErr.message);
+            return res.status(500).json({ success: false, message: 'Failed to send OTP. Please try again later.' });
+        }
+
+        const remaining = MAX_RESENDS_PER_DAY - user.otpResendCount;
+        res.status(200).json({
+            success: true,
+            remaining,
+            message: `A new 6-digit code has been sent to your email. ${remaining} resend${remaining === 1 ? '' : 's'} remaining today.`
         });
     } catch (error) {
         console.error(error);

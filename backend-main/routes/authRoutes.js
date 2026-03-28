@@ -4,7 +4,8 @@ const router = express.Router();
 const {
     register, login, getMe,
     updateProfile, updatePassword, logout,
-    forgotPassword, resetPassword
+    forgotPassword, resetPassword,
+    verifyEmail, resendVerification
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 const {
@@ -18,6 +19,10 @@ router.get('/me', protect, getMe);
 router.put('/profile', protect, updateProfile);
 router.put('/password', protect, updatePassword);
 router.post('/logout', protect, logout);
+
+// ── Email Verification ────────────────────────────────────────────────────────
+router.post('/verify-otp', verifyEmail);
+router.post('/resend-verification', resendVerification);
 
 // ── Forgot / Reset Password ──────────────────────────────────────────────────
 router.post('/forgot-password', forgotPasswordValidation, validate, forgotPassword);

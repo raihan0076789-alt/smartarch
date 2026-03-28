@@ -190,25 +190,60 @@
         /* Avatar menu */
         .user-menu-wrap { position: relative; }
         .user-avatar {
-            width: 36px; height: 36px;
+            width: 38px; height: 38px;
             border-radius: 50%;
             border: 2px solid var(--cyan);
             cursor: pointer;
             object-fit: cover;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
+        .user-avatar:hover { border-color: #2ee8dc; box-shadow: 0 0 0 3px rgba(0,212,200,0.18); }
 
         .user-dropdown {
-            position: absolute; top: calc(100% + 10px); right: 0;
+            position: absolute; top: calc(100% + 12px); right: 0;
             background: var(--ink-2);
             border: 1px solid var(--border);
-            border-radius: var(--r);
-            min-width: 170px;
-            padding: 0.5rem;
-            display: none;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border-radius: 14px;
+            min-width: 220px;
+            padding: 0.4rem;
+            display: block;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);
+            opacity: 0;
+            transform: translateY(-8px) scale(0.97);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 1000;
+        }
+        .user-menu-wrap.open .user-dropdown {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
         }
 
-        .user-menu-wrap:hover .user-dropdown { display: block; }
+        .user-dropdown-header {
+            display: flex; align-items: center; gap: 0.65rem;
+            padding: 0.7rem 0.875rem 0.6rem;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            margin-bottom: 0.3rem;
+        }
+        .user-dropdown-avatar {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid var(--cyan);
+            flex-shrink: 0;
+        }
+        .user-dropdown-info { overflow: hidden; }
+        .user-dropdown-name {
+            font-size: 0.82rem; font-weight: 600;
+            color: var(--white);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .user-dropdown-email {
+            font-size: 0.72rem;
+            color: var(--slate);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
 
         .user-dropdown a {
             display: flex; align-items: center; gap: 0.6rem;
@@ -219,8 +254,9 @@
             font-size: 0.875rem;
             transition: all 0.15s;
         }
-
         .user-dropdown a:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+        .user-dropdown a.logout-link { color: #f87171; }
+        .user-dropdown a.logout-link:hover { background: rgba(248,113,113,0.08); color: #fca5a5; }
 
         /* Mobile hamburger */
         .hamburger {
@@ -1445,12 +1481,19 @@
             <a href="dashboard.html" class="btn-ghost">
                 <i class="fas fa-rocket"></i> Dashboard
             </a>
-            <div class="user-menu-wrap">
-                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="User" id="userAvatar" class="user-avatar">
-                <div class="user-dropdown">
+            <div class="user-menu-wrap" id="userMenuWrap">
+                <img src="" alt="User" id="userAvatar" class="user-avatar">
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="user-dropdown-header">
+                        <img src="" alt="" class="user-dropdown-avatar" id="userDropdownAvatar">
+                        <div class="user-dropdown-info">
+                            <div class="user-dropdown-name" id="userDropdownName">—</div>
+                            <div class="user-dropdown-email" id="userDropdownEmail">—</div>
+                        </div>
+                    </div>
                     <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
                     <a href="dashboard.html#settingsSection"><i class="fas fa-cog"></i> Settings</a>
-                    <a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    <a href="#" class="logout-link" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
         </div>
@@ -1951,6 +1994,58 @@
     </div>
 </div>
 
+
+<!-- ═══ OTP VERIFICATION SCREEN ══════════════════════════════════════════════ -->
+<div id="verifyPendingOverlay" style="display:none;position:fixed;inset:0;background:rgba(6,10,18,0.97);z-index:10000;align-items:center;justify-content:center;backdrop-filter:blur(12px);">
+    <div style="max-width:420px;width:90%;background:#0d1424;border:1px solid rgba(255,255,255,0.08);border-radius:20px;overflow:hidden;text-align:center;">
+        <div style="height:4px;background:linear-gradient(90deg,#00d4c8,#3b82f6,#8b5cf6);"></div>
+        <div style="padding:36px 32px 32px;">
+            <div style="width:60px;height:60px;background:rgba(0,212,200,0.1);border:1.5px solid rgba(0,212,200,0.3);border-radius:50%;margin:0 auto 18px;font-size:1.7rem;line-height:60px;">🔐</div>
+            <h2 style="margin:0 0 8px;font-size:1.35rem;font-weight:800;color:#f1f5f9;">Enter verification code</h2>
+            <p style="margin:0 0 4px;color:#94a3b8;font-size:0.88rem;line-height:1.6;">We sent a 6-digit code to</p>
+            <p id="verifyPendingEmail" style="margin:0 0 24px;color:#00d4c8;font-size:0.9rem;font-weight:600;">—</p>
+
+            <!-- OTP input boxes -->
+            <div id="otpBoxes" style="display:flex;gap:8px;justify-content:center;margin-bottom:20px;">
+                <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]"
+                    style="width:44px;height:54px;background:#0a1628;border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;text-align:center;font-size:1.5rem;font-weight:700;color:#f1f5f9;outline:none;transition:border-color 0.2s;">
+                <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]"
+                    style="width:44px;height:54px;background:#0a1628;border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;text-align:center;font-size:1.5rem;font-weight:700;color:#f1f5f9;outline:none;transition:border-color 0.2s;">
+                <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]"
+                    style="width:44px;height:54px;background:#0a1628;border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;text-align:center;font-size:1.5rem;font-weight:700;color:#f1f5f9;outline:none;transition:border-color 0.2s;">
+                <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]"
+                    style="width:44px;height:54px;background:#0a1628;border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;text-align:center;font-size:1.5rem;font-weight:700;color:#f1f5f9;outline:none;transition:border-color 0.2s;">
+                <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]"
+                    style="width:44px;height:54px;background:#0a1628;border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;text-align:center;font-size:1.5rem;font-weight:700;color:#f1f5f9;outline:none;transition:border-color 0.2s;">
+                <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]"
+                    style="width:44px;height:54px;background:#0a1628;border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;text-align:center;font-size:1.5rem;font-weight:700;color:#f1f5f9;outline:none;transition:border-color 0.2s;">
+            </div>
+
+            <!-- Error message -->
+            <p id="otpError" style="display:none;color:#f87171;font-size:0.8rem;margin:0 0 14px;">Invalid or expired code. Try again.</p>
+
+            <!-- Verify button -->
+            <button onclick="handleVerifyOtp()" id="verifyOtpBtn"
+                style="width:100%;padding:13px;background:linear-gradient(135deg,#00d4c8,#3b82f6);border:none;color:#060a12;border-radius:10px;font-size:0.95rem;font-weight:700;cursor:pointer;margin-bottom:12px;transition:opacity 0.2s;">
+                Verify &amp; Continue
+            </button>
+
+            <!-- Timer + Resend -->
+            <p id="otpTimerMsg" style="color:#64748b;font-size:0.8rem;margin:0 0 10px;">
+                Code expires in <span id="otpTimerCount" style="color:#fbbf24;font-weight:600;">10:00</span>
+            </p>
+            <button onclick="handleResendVerification()" id="resendBtn"
+                style="background:none;border:none;color:#00d4c8;font-size:0.85rem;font-weight:600;cursor:pointer;text-decoration:underline;padding:0;">
+                Resend code
+            </button>
+            <br><br>
+            <button onclick="closeVerifyPending()"
+                style="background:none;border:none;color:#475569;font-size:0.8rem;cursor:pointer;padding:0;">
+                Back to home
+            </button>
+        </div>
+    </div>
+</div>
 <!-- USER HELP MODAL (Need help signing in?) -->
 <div class="u-help-modal" id="userHelpModal">
     <div class="u-help-modal-content">
@@ -2358,8 +2453,184 @@
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
     // ── Init ───────────────────────────────────────────────────────────────────
+
+    // ── OTP Verification ───────────────────────────────────────────────────────
+    var _verifyPendingEmail = '';
+    var _otpTimer = null;
+
+    function showVerificationPending(email) {
+        _verifyPendingEmail = email || '';
+        var el = document.getElementById('verifyPendingEmail');
+        if (el) el.textContent = email || 'your email address';
+        // Clear boxes and error
+        document.querySelectorAll('.otp-box').forEach(function(b) { b.value = ''; b.style.borderColor = 'rgba(255,255,255,0.12)'; });
+        var err = document.getElementById('otpError'); if (err) err.style.display = 'none';
+        var overlay = document.getElementById('verifyPendingOverlay');
+        if (overlay) overlay.style.display = 'flex';
+        // Focus first box
+        setTimeout(function() {
+            var first = document.querySelector('.otp-box');
+            if (first) first.focus();
+        }, 100);
+        startOtpTimer(600); // 10 minutes
+    }
+    window.showVerificationPending = showVerificationPending;
+
+    function closeVerifyPending() {
+        var overlay = document.getElementById('verifyPendingOverlay');
+        if (overlay) overlay.style.display = 'none';
+        if (_otpTimer) { clearInterval(_otpTimer); _otpTimer = null; }
+    }
+
+    function startOtpTimer(seconds) {
+        if (_otpTimer) clearInterval(_otpTimer);
+        var remaining = seconds;
+        var countEl = document.getElementById('otpTimerCount');
+        function tick() {
+            if (!countEl) return;
+            var m = Math.floor(remaining / 60);
+            var s = remaining % 60;
+            countEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+            if (remaining <= 0) {
+                clearInterval(_otpTimer);
+                countEl.textContent = 'expired';
+                countEl.style.color = '#f87171';
+            }
+            remaining--;
+        }
+        tick();
+        _otpTimer = setInterval(tick, 1000);
+    }
+
+    // OTP box keyboard navigation
+    document.addEventListener('DOMContentLoaded', function() {
+        var boxes = document.querySelectorAll('.otp-box');
+        boxes.forEach(function(box, i) {
+            box.addEventListener('focus', function() { this.style.borderColor = '#00d4c8'; });
+            box.addEventListener('blur',  function() { this.style.borderColor = this.value ? 'rgba(0,212,200,0.5)' : 'rgba(255,255,255,0.12)'; });
+            box.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(-1);
+                if (this.value && i < boxes.length - 1) boxes[i + 1].focus();
+                // Auto-submit when last box filled
+                if (i === boxes.length - 1 && this.value) handleVerifyOtp();
+            });
+            box.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && !this.value && i > 0) boxes[i - 1].focus();
+                if (e.key === 'ArrowLeft'  && i > 0) boxes[i - 1].focus();
+                if (e.key === 'ArrowRight' && i < boxes.length - 1) boxes[i + 1].focus();
+            });
+            // Handle paste on any box
+            box.addEventListener('paste', function(e) {
+                e.preventDefault();
+                var pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+                pasted.split('').forEach(function(ch, idx) { if (boxes[idx]) boxes[idx].value = ch; });
+                var nextEmpty = Array.from(boxes).findIndex(function(b) { return !b.value; });
+                if (nextEmpty !== -1) boxes[nextEmpty].focus(); else boxes[boxes.length-1].focus();
+                if (pasted.length === 6) handleVerifyOtp();
+            });
+        });
+    });
+
+    async function handleVerifyOtp() {
+        var boxes = document.querySelectorAll('.otp-box');
+        var otp = Array.from(boxes).map(function(b) { return b.value; }).join('');
+        if (otp.length < 6) {
+            showToast('Please enter the full 6-digit code.', 'error');
+            return;
+        }
+        var btn = document.getElementById('verifyOtpBtn');
+        var err = document.getElementById('otpError');
+        if (btn) { btn.disabled = true; btn.textContent = 'Verifying…'; }
+        if (err) err.style.display = 'none';
+        try {
+            var data = await api.verifyOtp(_verifyPendingEmail, otp);
+            if (data.success && data.token) {
+                if (_otpTimer) clearInterval(_otpTimer);
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                api.setToken(data.token);
+                showToast('Email verified! Welcome to SmartArch 🎉', 'success');
+                if (typeof updateUIForLoggedInUser === 'function') updateUIForLoggedInUser(data.user);
+                var overlay = document.getElementById('verifyPendingOverlay');
+                if (overlay) overlay.style.display = 'none';
+                setTimeout(function() { window.location.href = 'dashboard.html'; }, 1000);
+            }
+        } catch(e) {
+            if (err) err.style.display = 'block';
+            boxes.forEach(function(b) { b.style.borderColor = '#f87171'; });
+            if (btn) { btn.disabled = false; btn.textContent = 'Verify & Continue'; }
+        }
+    }
+    window.handleVerifyOtp = handleVerifyOtp;
+
+    async function handleResendVerification() {
+        var btn = document.getElementById('resendBtn');
+        if (!btn || !_verifyPendingEmail) return;
+        btn.disabled = true;
+        btn.textContent = 'Sending…';
+        try {
+            var data = await api.resendVerification(_verifyPendingEmail);
+
+            // Handle daily limit reached (limitReached flag from backend)
+            if (data && data.limitReached) {
+                showToast(data.message || 'Daily resend limit reached. Try again tomorrow.', 'error');
+                btn.disabled = true;
+                btn.textContent = 'Limit reached';
+                btn.style.color = '#f87171';
+                btn.style.textDecoration = 'none';
+                btn.style.cursor = 'default';
+                return;
+            }
+
+            // Show remaining resends if provided
+            var msg = 'New code sent! Check your inbox.';
+            if (data && typeof data.remaining === 'number') {
+                msg += ' (' + data.remaining + ' resend' + (data.remaining === 1 ? '' : 's') + ' left today)';
+            }
+            showToast(msg, 'success');
+
+            // Clear boxes and restart timer
+            document.querySelectorAll('.otp-box').forEach(function(b) { b.value = ''; b.style.borderColor = 'rgba(255,255,255,0.12)'; });
+            var err = document.getElementById('otpError'); if (err) err.style.display = 'none';
+            startOtpTimer(600);
+
+            // If 0 remaining, disable resend button permanently for this session
+            if (data && data.remaining === 0) {
+                btn.disabled = true;
+                btn.textContent = 'No resends left today';
+                btn.style.color = '#64748b';
+                btn.style.textDecoration = 'none';
+                btn.style.cursor = 'default';
+                return;
+            }
+        } catch(e) {
+            // Handle 429 limit-reached error thrown by api.js
+            if (e.data && e.data.limitReached) {
+                showToast(e.message || 'Daily resend limit reached. Try again tomorrow.', 'error');
+                btn.disabled = true;
+                btn.textContent = 'Limit reached';
+                btn.style.color = '#f87171';
+                btn.style.textDecoration = 'none';
+                btn.style.cursor = 'default';
+                return;
+            }
+            showToast(e.message || 'Failed to resend. Please try again.', 'error');
+        }
+        // 30-second cooldown before allowing another resend click
+        setTimeout(function() {
+            if (!btn.disabled) return; // already permanently disabled
+            btn.disabled = false;
+            btn.textContent = 'Resend code';
+        }, 30000);
+    }
+    window.handleResendVerification = handleResendVerification;
+
+    // No-op: OTP doesn't use URL params (kept so DOMContentLoaded call doesn't break)
+    async function handleVerifyEmailParam() {}
+
     document.addEventListener('DOMContentLoaded', () => {
         checkAuth();
+        handleVerifyEmailParam();
 
         // Open modal if redirected from another page with ?modal=login or ?modal=register
         const urlParams = new URLSearchParams(window.location.search);
@@ -2434,6 +2705,49 @@ function hideEye(input) {
 function preventBlur(e) {
     e.preventDefault(); // prevents input blur when clicking eye
 }
+</script>
+<script>
+(function() {
+    var wrap = document.getElementById('userMenuWrap');
+    var avatar = document.getElementById('userAvatar');
+    if (!wrap || !avatar) return;
+
+    avatar.addEventListener('click', function(e) {
+        e.stopPropagation();
+        wrap.classList.toggle('open');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!wrap.contains(e.target)) wrap.classList.remove('open');
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') wrap.classList.remove('open');
+    });
+
+    function populateDropdownHeader() {
+        var userStr = localStorage.getItem('user');
+        if (!userStr) return;
+        try {
+            var user = JSON.parse(userStr);
+            var nameEl     = document.getElementById('userDropdownName');
+            var emailEl    = document.getElementById('userDropdownEmail');
+            var miniAvatar = document.getElementById('userDropdownAvatar');
+            if (nameEl)  nameEl.textContent  = user.name  || '—';
+            if (emailEl) emailEl.textContent = user.email || '—';
+            if (miniAvatar) miniAvatar.src = avatar.src || '';
+            var obs = new MutationObserver(function() {
+                if (miniAvatar) miniAvatar.src = avatar.src;
+            });
+            obs.observe(avatar, { attributes: true, attributeFilter: ['src'] });
+        } catch(e) {}
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', populateDropdownHeader);
+    } else {
+        populateDropdownHeader();
+    }
+})();
 </script>
 </body>
 </html>

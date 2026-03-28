@@ -30,7 +30,12 @@ class API {
         try {
             const response = await fetch(url, config);
             const data     = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Something went wrong');
+            if (!response.ok) {
+                const err = new Error(data.message || 'Something went wrong');
+                err.data  = data;  // attach full response so callers can read requiresVerification, email, etc.
+                err.requiresVerification = data.requiresVerification || false;
+                throw err;
+            }
             return data;
         } catch (error) {
             console.error('API Error:', error);
@@ -53,6 +58,14 @@ class API {
 
     async resetPassword(token, password) {
         return this.request(`/auth/reset-password/${token}`, { method: 'PUT', body: JSON.stringify({ password }) });
+    }
+
+    async verifyOtp(email, otp) {
+        return this.request('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, otp }) });
+    }
+
+    async resendVerification(email) {
+        return this.request('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) });
     }
 
     async getProfile() {
