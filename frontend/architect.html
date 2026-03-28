@@ -289,7 +289,7 @@
     <!-- ══════════════════════ TOP NAV ══════════════════════ -->
     <nav class="architect-nav">
         <div class="nav-left">
-            <a href="dashboard.html" class="back-btn" title="Back"><i class="fas fa-arrow-left"></i></a>
+            <a href="#" class="back-btn" title="Back" onclick="samHandleBack(event)"><i class="fas fa-arrow-left"></i></a>
             <div class="project-title-wrap">
                 <input type="text" id="projectTitle" value="Untitled Project" onchange="updateProjectTitle()" spellcheck="false">
                 <span class="save-badge" id="saveStatus">Saved</span>
@@ -1127,6 +1127,321 @@
   }, 200);
 
 })();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SAVE ALERT MODALS  (Option B + Option C)
+     All classes prefixed sam- to avoid any collision.
+     JS is fully self-contained in the IIFE below.
+══════════════════════════════════════════════════════════════ -->
+
+<!-- Modal A: Unsaved-changes warning (Option B) -->
+<div id="samUnsavedOverlay" style="display:none;position:fixed;inset:0;z-index:9990;background:rgba(6,10,18,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+  <div id="samUnsavedBox" style="background:#111827;border:1px solid rgba(239,68,68,.18);border-radius:18px;width:360px;max-width:calc(100vw - 32px);overflow:hidden;transform:scale(.94);opacity:0;transition:transform .22s cubic-bezier(.34,1.56,.64,1),opacity .18s ease;">
+
+    <div style="display:flex;justify-content:center;padding:24px 0 16px;">
+      <div style="width:52px;height:52px;border-radius:13px;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#ef4444" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      </div>
+    </div>
+
+    <div style="padding:0 24px 6px;text-align:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:7px;">Wait — you'll lose your work</div>
+      <div style="font-size:12.5px;color:#64748b;line-height:1.55;">Leaving now will discard all changes made since your last save.</div>
+    </div>
+
+    <div style="padding:14px 24px 4px;display:flex;flex-direction:column;gap:7px;">
+      <div id="samChangeRow" style="display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:10px 13px;">
+        <div style="width:7px;height:7px;border-radius:50%;background:#f59e0b;flex-shrink:0;"></div>
+        <div style="min-width:0;">
+          <div style="font-size:11.5px;font-weight:600;color:#94a3b8;margin-bottom:2px;">Changes not saved</div>
+          <div id="samChangeDetail" style="font-size:11px;color:#475569;"></div>
+        </div>
+      </div>
+      <div id="samTimeRow" style="display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:10px 13px;">
+        <div style="width:7px;height:7px;border-radius:50%;background:#3b82f6;flex-shrink:0;"></div>
+        <div style="min-width:0;">
+          <div style="font-size:11.5px;font-weight:600;color:#94a3b8;margin-bottom:2px;">Last saved</div>
+          <div id="samTimeDetail" style="font-size:11px;color:#475569;">Not yet saved this session</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;padding:18px 24px 22px;">
+      <button onclick="samDiscardAndLeave()" style="flex:1;padding:10px 12px;border-radius:10px;font-size:12.5px;font-weight:600;background:transparent;color:#ef4444;border:1px solid rgba(239,68,68,.3);cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(239,68,68,.08)'" onmouseout="this.style.background='transparent'">Discard &amp; leave</button>
+      <button onclick="samSaveAndLeave()" style="flex:1;padding:10px 12px;border-radius:10px;font-size:12.5px;font-weight:600;background:#00d4c8;color:#060a12;border:none;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">Save &amp; exit</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal B: Post-save AI feedback nudge (Option C) -->
+<div id="samSavedOverlay" style="display:none;position:fixed;inset:0;z-index:9990;background:rgba(6,10,18,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+  <div id="samSavedBox" style="background:#111827;border:1px solid rgba(0,212,200,.15);border-radius:18px;width:360px;max-width:calc(100vw - 32px);overflow:hidden;transform:scale(.94);opacity:0;transition:transform .22s cubic-bezier(.34,1.56,.64,1),opacity .18s ease;">
+
+    <div style="display:flex;justify-content:center;padding:24px 0 16px;">
+      <div style="width:52px;height:52px;border-radius:13px;background:rgba(0,212,200,.1);display:flex;align-items:center;justify-content:center;">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#00d4c8" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </div>
+    </div>
+
+    <div style="padding:0 24px 16px;text-align:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:7px;">Project saved</div>
+      <div style="font-size:12.5px;color:#64748b;line-height:1.55;">Your design is safe. Want an instant quality report?</div>
+    </div>
+
+    <div style="margin:0 24px 18px;background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.18);border-radius:11px;padding:13px 14px;display:flex;align-items:flex-start;gap:11px;">
+      <div style="width:36px;height:36px;border-radius:9px;background:rgba(139,92,246,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="#a78bfa" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+      </div>
+      <div style="min-width:0;">
+        <div style="font-size:12.5px;font-weight:700;color:#a78bfa;margin-bottom:4px;">AI Design Feedback</div>
+        <div style="font-size:11.5px;color:#64748b;line-height:1.5;">Get a scored report across 5 dimensions — room flow, natural light, space utilisation, style consistency, and functional completeness.</div>
+      </div>
+    </div>
+
+    <!-- <div style="display:flex;gap:8px;padding:0 24px 22px;">
+      <button onclick="samDismissSaved()" style="flex:1;padding:10px 12px;border-radius:10px;font-size:12.5px;font-weight:600;background:transparent;color:#64748b;border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.05)'" onmouseout="this.style.background='transparent'">Maybe later</button>
+      <button onclick="samRunFeedback()" style="flex:1;padding:10px 12px;border-radius:10px;font-size:12.5px;font-weight:600;background:#a78bfa;color:#1e0a3c;border:none;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">Analyse now</button>
+    </div> -->
+
+    
+<div style="display:flex;justify-content:space-between;align-items:center;padding:0 24px 22px;">
+  <!-- Red button with new dashboard style + back arrow -->
+  <button onclick="samGoToDashboard()" 
+          /* CHANGE padding:10px; TO padding:6px 10px; HERE */
+          style="display:flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:10px;background:#dc2626;border:none;cursor:pointer;transition:opacity .15s;" 
+          onmouseover="this.style.opacity='.85'" 
+          onmouseout="this.style.opacity='1'">
+    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2">
+      <!-- Back arrow (left-pointing) -->
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10 12H3m0 0l4-4m-4 4l4 4"/>
+        <!-- New Dashboard icon layout (matching uploaded image) -->
+      <!-- Top left (short) -->
+      <rect x="13" y="7" width="4" height="3" rx="1"/>
+      <!-- Bottom left (medium) -->
+      <rect x="13" y="12" width="4" height="5" rx="1"/>
+      <!-- Right (tall/full height) -->
+      <rect x="19" y="7" width="4" height="10" rx="1"/>
+    </svg>
+  </button>
+  <!-- Existing action buttons -->
+  <div style="display:flex;gap:8px;">
+    <button onclick="samDismissSaved()" style="padding:10px 12px;border-radius:10px;font-size:12.5px;font-weight:600;background:transparent;color:#64748b;border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.05)'" onmouseout="this.style.background='transparent'">Maybe later</button>
+    <button onclick="samRunFeedback()" style="padding:10px 12px;border-radius:10px;font-size:12.5px;font-weight:600;background:#a78bfa;color:#1e0a3c;border:none;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">Analyse now</button>
+  </div>
+</div>
+    
+
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  SAVE ALERT MODULE  (sam*)
+//  Fully self-contained IIFE. Reads/calls existing globals only:
+//    - window.saveProject()  (architect.js)
+//    - window.runAIFeedback() (AI feedback block)
+//    - el('saveStatus')      (existing DOM element)
+//    - _undoStack            (existing architect.js variable)
+//  Does NOT modify any existing functions.
+// ══════════════════════════════════════════════════════════════
+(function () {
+
+  // ── State ─────────────────────────────────────────────────
+  var _pendingHref  = 'dashboard.html'; // where to go after confirm
+  var _savedAt      = null;             // Date of last successful save
+  var _undoLenAtSave = 0;              // undo stack length when last saved
+  var _leaving      = false;           // true once user confirmed discard
+
+  // ── Helpers ───────────────────────────────────────────────
+  function isUnsaved() {
+    var s = document.getElementById('saveStatus');
+    return s && s.classList.contains('unsaved');
+  }
+
+  function getUndoLen() {
+    // _undoStack is defined in architect.js in the same page scope
+    try { return (typeof _undoStack !== 'undefined') ? _undoStack.length : 0; } catch(e) { return 0; }
+  }
+
+  function changesSinceSave() {
+    return Math.max(0, getUndoLen() - _undoLenAtSave);
+  }
+
+  function fmtTime(date) {
+    if (!date) return 'Not yet saved this session';
+    var diff = Math.round((Date.now() - date) / 1000);
+    if (diff < 10)  return 'Just now';
+    if (diff < 60)  return diff + ' seconds ago';
+    if (diff < 120) return '1 minute ago';
+    return Math.floor(diff / 60) + ' minutes ago';
+  }
+
+  function openModal(id) {
+    var overlay = document.getElementById(id);
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    // Animate in after display:flex takes effect
+    var box = overlay.querySelector('[id$="Box"]');
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        if (box) { box.style.transform = 'scale(1)'; box.style.opacity = '1'; }
+      });
+    });
+  }
+
+  function closeModal(id) {
+    var overlay = document.getElementById(id);
+    if (!overlay) return;
+    var box = overlay.querySelector('[id$="Box"]');
+    if (box) { box.style.transform = 'scale(.94)'; box.style.opacity = '0'; }
+    setTimeout(function() { overlay.style.display = 'none'; }, 200);
+  }
+
+  // Close on backdrop click
+  ['samUnsavedOverlay','samSavedOverlay'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('click', function(e) {
+      if (e.target === el) closeModal(id);
+    });
+  });
+
+  // Escape key closes both
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    closeModal('samUnsavedOverlay');
+    closeModal('samSavedOverlay');
+  });
+
+  // ── Back button handler ───────────────────────────────────
+  window.samHandleBack = function(e) {
+    if (e) e.preventDefault();
+    _pendingHref = 'dashboard.html';
+
+    if (!isUnsaved()) {
+      window.location.href = _pendingHref;
+      return;
+    }
+
+    // Populate change detail
+    var n = changesSinceSave();
+    var changeEl = document.getElementById('samChangeDetail');
+    if (changeEl) {
+      changeEl.textContent = n > 1
+        ? n + ' unsaved edits in this session'
+        : 'Changes made since last save';
+    }
+    var timeEl = document.getElementById('samTimeDetail');
+    if (timeEl) timeEl.textContent = fmtTime(_savedAt);
+
+    openModal('samUnsavedOverlay');
+  };
+
+  // ── Unsaved modal actions ─────────────────────────────────
+  window.samDiscardAndLeave = function() {
+    _leaving = true;
+    closeModal('samUnsavedOverlay');
+    setTimeout(function() { window.location.href = _pendingHref; }, 180);
+  };
+
+  window.samSaveAndLeave = function() {
+    closeModal('samUnsavedOverlay');
+    // Call existing saveProject, then navigate on success
+    var orig = window.saveProject;
+    if (typeof orig !== 'function') { window.location.href = _pendingHref; return; }
+
+    // Temporarily wrap to catch completion
+    window.saveProject = function() {
+      var result = orig.apply(this, arguments);
+      // saveProject is async — wait for saveStatus to flip to Saved
+      var attempts = 0;
+      var poll = setInterval(function() {
+        attempts++;
+        var s = document.getElementById('saveStatus');
+        var saved = s && !s.classList.contains('unsaved');
+        if (saved || attempts > 30) {
+          clearInterval(poll);
+          window.saveProject = orig; // restore
+          _leaving = true;
+          window.location.href = _pendingHref;
+        }
+      }, 150);
+      return result;
+    };
+    orig.call(window);
+  };
+
+  // ── beforeunload — browser tab/refresh guard ──────────────
+  window.addEventListener('beforeunload', function(e) {
+    if (_leaving) return;
+    if (!isUnsaved()) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
+
+  // ── Patch saveProject to record save time + show nudge ────
+  // We wait for architect.js to define saveProject, then wrap it.
+  // Using a short poll so we don't race with script load order.
+  var _patchAttempts = 0;
+  var _patchPoll = setInterval(function() {
+    _patchAttempts++;
+    if (typeof window.saveProject !== 'function') {
+      if (_patchAttempts > 50) clearInterval(_patchPoll);
+      return;
+    }
+    clearInterval(_patchPoll);
+
+    var _originalSave = window.saveProject;
+
+    window.saveProject = async function() {
+      var result = await _originalSave.apply(this, arguments);
+      // Check if save succeeded (saveStatus no longer has .unsaved)
+      var s = document.getElementById('saveStatus');
+      var succeeded = s && !s.classList.contains('unsaved');
+      if (succeeded) {
+        _savedAt       = new Date();
+        _undoLenAtSave = getUndoLen();
+        // Show post-save nudge (Option C) — only if project has rooms
+        var allRooms = [];
+        try {
+          if (window.projectData && Array.isArray(window.projectData.floors)) {
+            allRooms = window.projectData.floors.flatMap(function(f) { return f.rooms || []; });
+          }
+        } catch(e) {}
+        if (allRooms.length > 0) {
+          setTimeout(function() { openModal('samSavedOverlay'); }, 400);
+        }
+      }
+      return result;
+    };
+
+    // Also track the initial load as a clean saved state
+    _undoLenAtSave = getUndoLen();
+  }, 100);
+
+  // ── Post-save modal actions ───────────────────────────────
+  window.samDismissSaved = function() {
+    closeModal('samSavedOverlay');
+  };
+
+  window.samRunFeedback = function() {
+    closeModal('samSavedOverlay');
+    // Scroll the AI feedback panel into view in the right sidebar
+    var panel = document.getElementById('aifbPanel');
+    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Run the analysis
+    if (typeof window.runAIFeedback === 'function') {
+      setTimeout(window.runAIFeedback, 300);
+    }
+  };
+
+})();
+
+function samGoToDashboard() {
+  window.location.href = '/dashboard'; // Adjust path as needed
+}
 </script>
 
 </body>

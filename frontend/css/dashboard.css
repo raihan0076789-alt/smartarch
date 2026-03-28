@@ -511,6 +511,38 @@ body::before {
     background: transparent !important;
 }
 
+/* AI Score Strip */
+.ai-score-strip {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.55rem 1.25rem;
+    border-top: 1px solid var(--border) !important;
+    background: rgba(255,255,255,0.02) !important;
+}
+.ai-score-strip-label {
+    font-size: 0.68rem;
+    color: var(--slate-2);
+    white-space: nowrap;
+    flex: 1;
+    letter-spacing: 0.02em;
+}
+.ai-score-dots { display: flex; gap: 3px; align-items: center; }
+.ai-score-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    transition: background 0.3s;
+}
+.ai-score-value {
+    font-size: 0.72rem; font-weight: 700;
+    min-width: 28px; text-align: right;
+    letter-spacing: -0.01em;
+}
+.ai-score-strip.not-analysed .ai-score-strip-label { color: rgba(100,116,139,0.5); }
+.ai-score-strip.not-analysed .ai-score-value {
+    color: rgba(100,116,139,0.45);
+    font-weight: 400; font-size: 0.67rem;
+}
+
 /* Empty State */
 .empty-state { text-align: center; padding: 5rem 2rem; }
 .empty-state-icon {

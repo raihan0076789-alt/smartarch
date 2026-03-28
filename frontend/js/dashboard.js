@@ -141,10 +141,49 @@ async function loadProjects() {
         renderProjects();
         updateAnalytics();
         hideLoading();
+        // Silently fetch AI scores in the background — does not block render
+        fetchAllAIScores();
     } catch (error) {
         hideLoading();
         showToast('Failed to load projects', 'error');
     }
+}
+
+// Fetch AI feedback scores for all projects in the background.
+// When a score arrives it patches the in-memory project object and
+// updates only that card's strip — no full re-render, no flicker.
+async function fetchAllAIScores() {
+    if (!projects || projects.length === 0) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    for (const project of projects) {
+        if (project._aiFeedbackLoaded) continue;
+        try {
+            const res = await fetch('http://localhost:5000/api/projects/' + project._id + '/ai-feedback', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) continue;
+            const data = await res.json();
+            project.aiFeedback = (data && data.aiFeedback) ? data.aiFeedback : null;
+            project._aiFeedbackLoaded = true;
+            patchScoreStrip(project);
+        } catch (e) {
+            // Non-fatal — card stays "Not analysed"
+        }
+    }
+}
+
+// Replace the score strip HTML for a single card already in the DOM
+function patchScoreStrip(project) {
+    const card = document.querySelector('.project-card[data-project-id="' + project._id + '"]');
+    if (!card) return;
+    const strip = card.querySelector('.ai-score-strip');
+    if (!strip) return;
+    const newStrip = document.createElement('div');
+    newStrip.innerHTML = aiScoreStripHtml(project);
+    const newEl = newStrip.firstElementChild;
+    if (newEl) strip.replaceWith(newEl);
 }
 
 function renderProjects() {
@@ -164,7 +203,7 @@ function renderProjects() {
     if (emptyState) emptyState.style.display = 'none';
 
     grid.innerHTML = filteredProjects.map(project => `
-        <div class="project-card" onclick="openProject('${project._id}')">
+        <div class="project-card" data-project-id="${project._id}" onclick="openProject('${project._id}')">
             <div class="project-thumbnail">
                 <i class="fas fa-home"></i>
                 <span class="project-status status-${project.status}">${formatStatus(project.status)}</span>
@@ -186,6 +225,7 @@ function renderProjects() {
                     </button>
                 </div>
             </div>
+            ${aiScoreStripHtml(project)}
         </div>
     `).join('');
 }
@@ -199,6 +239,37 @@ function escHtml(str) {
 function formatStatus(status) {
     const m = { draft: 'Draft', in_progress: 'In Progress', review: 'Review', approved: 'Approved', archived: 'Archived' };
     return m[status] || status;
+}
+
+// ── AI Score Strip helpers ──────────────────────────────────────────
+function aiScoreColor(score) {
+    if (score >= 8) return '#4ade80';
+    if (score >= 6) return '#facc15';
+    if (score >= 4) return '#fb923c';
+    return '#f87171';
+}
+
+function aiScoreStripHtml(project) {
+    const fb = project.aiFeedback;
+    const score = fb && fb.overallScore != null ? fb.overallScore : null;
+
+    if (score === null) {
+        return '<div class="ai-score-strip not-analysed">' +
+            '<span class="ai-score-strip-label">AI score</span>' +
+            '<span class="ai-score-value">Not analysed</span>' +
+        '</div>';
+    }
+
+    const color = aiScoreColor(score);
+    const dots  = Array.from({ length: 10 }, function(_, i) {
+        return '<div class="ai-score-dot" style="' + (i < score ? 'background:' + color : '') + '"></div>';
+    }).join('');
+
+    return '<div class="ai-score-strip">' +
+        '<span class="ai-score-strip-label">AI score</span>' +
+        '<div class="ai-score-dots">' + dots + '</div>' +
+        '<span class="ai-score-value" style="color:' + color + '">' + score + '/10</span>' +
+    '</div>';
 }
 
 function filterByStatus(status) {
@@ -228,7 +299,7 @@ function filterProjects() {
     if (emptyState) emptyState.style.display = 'none';
 
     grid.innerHTML = filtered.map(project => `
-        <div class="project-card" onclick="openProject('${project._id}')">
+        <div class="project-card" data-project-id="${project._id}" onclick="openProject('${project._id}')">
             <div class="project-thumbnail">
                 <i class="fas fa-home"></i>
                 <span class="project-status status-${project.status}">${formatStatus(project.status)}</span>
@@ -236,7 +307,21 @@ function filterProjects() {
             <div class="project-info">
                 <h3>${escHtml(project.name)}</h3>
                 <p>${escHtml(project.description || 'No description')}</p>
+                <div class="project-meta">
+                    <span><i class="fas fa-ruler-combined"></i> ${project.metadata?.totalArea || 0} m²</span>
+                    <span><i class="fas fa-layer-group"></i> ${project.floors?.length || 0} floors</span>
+                    <span><i class="fas fa-door-open"></i> ${project.metadata?.totalRooms || 0} rooms</span>
+                </div>
+                <div class="project-actions" onclick="event.stopPropagation()">
+                    <button class="btn btn-sm btn-primary" onclick="openProject('${project._id}')">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="confirmDelete('${project._id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </div>
+            ${aiScoreStripHtml(project)}
         </div>
     `).join('');
 }
