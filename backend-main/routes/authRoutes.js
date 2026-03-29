@@ -5,7 +5,8 @@ const {
     register, login, getMe,
     updateProfile, updatePassword, logout,
     forgotPassword, resetPassword,
-    verifyEmail, resendVerification
+    verifyEmail, resendVerification,
+    googleAuth, googleProfile
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 const {
@@ -15,6 +16,8 @@ const {
 
 router.post('/register', userValidation, validate, register);
 router.post('/login', login);
+router.post('/google', googleAuth);
+router.post('/google-profile', googleProfile);
 router.get('/me', protect, getMe);
 router.put('/profile', protect, updateProfile);
 router.put('/password', protect, updatePassword);

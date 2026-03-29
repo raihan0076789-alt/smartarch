@@ -109,6 +109,45 @@ async function handleRegister(event) {
     }
 }
 
+// ─── GOOGLE SIGN-IN ──────────────────────────────────────────────────────────
+// loginWithGoogle() is the fallback for when GSI renders its own button.
+// It is only called by the hidden fallback <button> elements.
+function loginWithGoogle() {
+    if (typeof google === 'undefined' || !google.accounts) {
+        showToast('Google Sign-In is not available. Check your internet connection.', 'error');
+        return;
+    }
+    google.accounts.id.prompt();
+}
+
+// Called by Google Identity Services after the user picks an account
+async function handleGoogleCredential(response) {
+    try {
+        showLoading('Signing in with Google...');
+        const data = await api.googleAuth(response.credential);
+
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        api.setToken(data.token);
+
+        if (data.user && data.user.avatar) {
+            const uid = data.user.id || data.user._id || 'guest';
+            localStorage.setItem('user_avatar_' + uid, data.user.avatar);
+        }
+
+        hideLoading();
+        showToast('Signed in with Google!', 'success');
+
+        if (typeof closeModal === 'function') closeModal();
+        if (typeof updateUIForLoggedInUser === 'function') updateUIForLoggedInUser(data.user);
+
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+    } catch (error) {
+        hideLoading();
+        showToast(error.message || 'Google sign-in failed. Please try again.', 'error');
+    }
+}
+
 function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -175,3 +214,5 @@ window.logout                 = logout;
 window.checkAuth              = checkAuth;
 window.requireAuth            = requireAuth;
 window.updateUIForLoggedInUser = updateUIForLoggedInUser;
+window.loginWithGoogle        = loginWithGoogle;
+window.handleGoogleCredential = handleGoogleCredential;

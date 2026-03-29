@@ -296,7 +296,163 @@ exports.verifyEmail = async (req, res) => {
     }
 };
 
-// ─── RESEND VERIFICATION EMAIL ───────────────────────────────────────────────────────────────────────
+
+// ─── GOOGLE PROFILE (popup / access-token flow) ───────────────────────────────
+// POST /api/auth/google-profile
+// Body: { googleId, email, name, picture }
+// Called after frontend fetches profile from Google's userinfo endpoint using
+// an access token — no ID token verification needed here.
+exports.googleProfile = async (req, res) => {
+    try {
+        const { googleId, email, name, picture } = req.body;
+
+        if (!googleId || !email) {
+            return res.status(400).json({ success: false, message: 'Google profile data is incomplete.' });
+        }
+
+        let user = await User.findOne({ googleId });
+
+        if (!user) {
+            user = await User.findOne({ email: email.toLowerCase() });
+            if (user) {
+                user.googleId      = googleId;
+                user.emailVerified = true;
+                if (picture && !user.avatar) user.avatar = picture;
+                await user.save({ validateBeforeSave: false });
+            } else {
+                user = new User({
+                    name,
+                    email: email.toLowerCase(),
+                    googleId,
+                    avatar: picture || '',
+                    emailVerified: true,
+                });
+                await user.save({ validateBeforeSave: false });
+
+                sendEmail({
+                    to: user.email,
+                    subject: 'Welcome to SmartArch 🎉',
+                    html: welcomeEmailTemplate(user.name)
+                }).catch((err) => console.error('Welcome email failed:', err.message));
+            }
+        }
+
+        if (user.suspended) {
+            return res.status(403).json({ success: false, message: 'Your account has been suspended. Please contact support.' });
+        }
+
+        const token = generateToken(user._id);
+        res.json({
+            success: true,
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                company: user.company,
+                phone: user.phone,
+                avatar: user.avatar,
+                preferences: user.preferences
+            }
+        });
+    } catch (error) {
+        console.error('googleProfile error:', error.message);
+        console.error('googleProfile stack:', error.stack);
+        res.status(500).json({ success: false, message: 'Server error during Google sign-in.', detail: error.message });
+    }
+};
+
+// ─── GOOGLE OAUTH (ID token flow — for future One Tap support) ────────────────
+// POST /api/auth/google
+// Body: { credential }  — the ID token from Google Identity Services
+exports.googleAuth = async (req, res) => {
+    try {
+        const { credential } = req.body;
+        if (!credential) {
+            return res.status(400).json({ success: false, message: 'Google credential is required.' });
+        }
+
+        const clientId = process.env.GOOGLE_CLIENT_ID;
+        if (!clientId || clientId === 'YOUR_GOOGLE_CLIENT_ID_HERE') {
+            console.error('googleAuth: GOOGLE_CLIENT_ID is not set in .env');
+            return res.status(500).json({ success: false, message: 'Google Sign-In is not configured on the server.' });
+        }
+
+        const { OAuth2Client } = require('google-auth-library');
+        const client = new OAuth2Client(clientId);
+
+        // Verify the ID token Google gave us
+        let payload;
+        try {
+            const ticket = await client.verifyIdToken({
+                idToken: credential,
+                audience: clientId,
+            });
+            payload = ticket.getPayload();
+        } catch (verifyErr) {
+            console.error('Google token verification failed:', verifyErr.message);
+            return res.status(401).json({ success: false, message: 'Invalid Google token. Please try again.' });
+        }
+
+        const { sub: googleId, email, name, picture } = payload;
+
+        // Find existing user by googleId first, then by email
+        let user = await User.findOne({ googleId });
+
+        if (!user) {
+            user = await User.findOne({ email: email.toLowerCase() });
+            if (user) {
+                // Link Google to existing email/password account
+                user.googleId      = googleId;
+                user.emailVerified = true;
+                if (picture && !user.avatar) user.avatar = picture;
+                await user.save({ validateBeforeSave: false });
+            } else {
+                // Brand-new Google user — skip password validation entirely
+                user = new User({
+                    name,
+                    email: email.toLowerCase(),
+                    googleId,
+                    avatar: picture || '',
+                    emailVerified: true,
+                });
+                await user.save({ validateBeforeSave: false });
+
+                // Welcome email — fire-and-forget
+                sendEmail({
+                    to: user.email,
+                    subject: 'Welcome to SmartArch 🎉',
+                    html: welcomeEmailTemplate(user.name)
+                }).catch((err) => console.error('Welcome email failed:', err.message));
+            }
+        }
+
+        if (user.suspended) {
+            return res.status(403).json({ success: false, message: 'Your account has been suspended. Please contact support.' });
+        }
+
+        const token = generateToken(user._id);
+        res.json({
+            success: true,
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                company: user.company,
+                phone: user.phone,
+                avatar: user.avatar,
+                preferences: user.preferences
+            }
+        });
+    } catch (error) {
+        console.error('googleAuth error:', error.message);
+        console.error('googleAuth stack:', error.stack);
+        res.status(500).json({ success: false, message: 'Server error during Google sign-in.' });
+    }
+};
 // POST /api/auth/resend-verification  Body: { email }
 exports.resendVerification = async (req, res) => {
     try {

@@ -19,9 +19,13 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, 'Please provide a password'],
         minlength: [8, 'Password must be at least 8 characters'],
         select: false
+    },
+    googleId: {
+        type: String,
+        sparse: true,   // allows multiple null values (unique only among non-null)
+        unique: true
     },
     role: {
         type: String,
@@ -48,7 +52,7 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 userSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) { next(); return; }
+    if (!this.isModified('password') || !this.password) { next(); return; }
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
     next();

@@ -52,6 +52,14 @@ class API {
         return this.request('/auth/login', { method: 'POST', body: JSON.stringify(credentials) });
     }
 
+    async googleAuth(credential) {
+        return this.request('/auth/google', { method: 'POST', body: JSON.stringify({ credential }) });
+    }
+
+    async googleProfile(profile) {
+        return this.request('/auth/google-profile', { method: 'POST', body: JSON.stringify(profile) });
+    }
+
     async forgotPassword(email) {
         return this.request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
     }
