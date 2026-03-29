@@ -101,6 +101,7 @@ function navigateTo(pageName) {
     if (pageName === 'dashboard') loadDashboard();
     else if (pageName === 'users') loadUsers();
     else if (pageName === 'projects') loadProjects();
+    else if (pageName === 'analytics') { loadAnalytics(); loadAIScoreAnalytics(); }
     else if (pageName === 'messages' && typeof loadAdminTickets === 'function') loadAdminTickets();
 
     // Close sidebar on mobile
@@ -982,3 +983,254 @@ window.startTicketBadgePolling = startTicketBadgePolling;
 
 // Start badge polling — only after auth is confirmed (called from init block below)
 // DOMContentLoaded hook removed; polling is started by requireAdminAuth success path instead
+// ─── Analytics Page ──────────────────────────────────────────────────────────
+async function loadAnalytics() {
+    // Reuse dashboard data to populate the analytics stat cards + duplicate charts
+    try {
+        const res = await adminRequest('/dashboard');
+        const d = res.data;
+        const setEl2 = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        setEl2('stat-total-users-2',    d.stats.totalUsers);
+        setEl2('stat-total-projects-2', d.stats.totalProjects);
+        setEl2('stat-users-week-2',     d.stats.usersThisWeek);
+        setEl2('stat-projects-week-2',  d.stats.projectsThisWeek);
+
+        renderLineChart('userGrowthChart2',    d.userGrowth,        'New Users',    '#667eea');
+        renderLineChart('projectGrowthChart2', d.projectGrowth,     'New Projects', '#11998e');
+        renderDonut('statusChart2', d.projectsByStatus, 'status');
+        renderDonut('typeChart2',   d.projectsByType,   'type');
+
+        const topEl = document.getElementById('topUsersListAnalytics');
+        if (topEl) {
+            if (!d.topUsers || !d.topUsers.length) {
+                topEl.innerHTML = '<div class="empty-state"><i class="fas fa-trophy"></i><p>No data yet</p></div>';
+            } else {
+                topEl.innerHTML = d.topUsers.map((u, i) => {
+                    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                    return `<div class="top-user-item">
+                        <div class="rank-badge ${rankClass}">${i + 1}</div>
+                        <div class="user-avatar-sm">${initials(u.name)}</div>
+                        <div class="top-user-info">
+                            <div class="top-user-name">${esc(u.name)}</div>
+                            <div class="top-user-email">${esc(u.email)}</div>
+                        </div>
+                        <div class="top-user-count">${u.projectCount} <span style="font-size:0.7rem;color:var(--gray);font-weight:400;">projects</span></div>
+                    </div>`;
+                }).join('');
+            }
+        }
+    } catch (err) {
+        console.error('loadAnalytics error:', err.message);
+    }
+}
+
+// ─── AI Score Analytics ───────────────────────────────────────────────────────
+// All state kept locally — no collision with existing state object.
+let _aiScoreData = null;
+
+async function loadAIScoreAnalytics() {
+    try {
+        const res = await adminRequest('/ai-scores');
+        _aiScoreData = res.data;
+        renderAIScoreCards(_aiScoreData);
+        renderAIRadarChart(_aiScoreData);
+        renderAITopProjects(_aiScoreData.topProjects);
+        renderAIScoreTable();
+    } catch (err) {
+        console.error('AI score analytics error:', err.message);
+        const tb = document.getElementById('aiScoreTableBody');
+        if (tb) tb.innerHTML = `<tr><td colspan="10"><div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>${err.message}</p></div></td></tr>`;
+    }
+}
+
+function renderAIScoreCards(d) {
+    const setCard = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+    if (d.analysedProjects === 0) {
+        setCard('ais-avg',      'N/A');
+        setCard('ais-coverage', '0');
+        setCard('ais-high',     'N/A');
+        setCard('ais-low',      'N/A');
+        setCard('ais-avg-label',      'No analysed projects');
+        setCard('ais-coverage-sub',   `0 of ${d.totalProjects} projects`);
+        setCard('ais-high-name', '—');
+        setCard('ais-low-name',  '—');
+        return;
+    }
+
+    setCard('ais-avg',           d.averageScore + '/10');
+    setCard('ais-coverage',      d.coveragePercent + '%');
+    setCard('ais-high',          d.highestScore + '/10');
+    setCard('ais-low',           d.lowestScore + '/10');
+    setCard('ais-avg-label',     aiScoreLabel(d.averageScore));
+    setCard('ais-coverage-sub',  `${d.analysedProjects} of ${d.totalProjects} projects`);
+
+    // Best and worst project names
+    const sorted = [...d.allProjects].sort((a, b) => b.overallScore - a.overallScore);
+    setCard('ais-high-name', sorted[0]?.name ? sorted[0].name.slice(0, 20) : '—');
+    setCard('ais-low-name',  sorted[sorted.length - 1]?.name ? sorted[sorted.length - 1].name.slice(0, 20) : '—');
+}
+
+function renderAIRadarChart(d) {
+    const canvas = document.getElementById('aiRadarChart');
+    const empty  = document.getElementById('aiRadarEmpty');
+    if (!canvas) return;
+
+    if (d.analysedProjects === 0) {
+        canvas.style.display = 'none';
+        if (empty) empty.style.display = 'block';
+        return;
+    }
+
+    if (empty) empty.style.display = 'none';
+    canvas.style.display = 'block';
+
+    if (state.charts['aiRadarChart']) state.charts['aiRadarChart'].destroy();
+
+    const dims = d.dimensionAverages;
+    const labels = ['Space', 'Room Flow', 'Light', 'Style', 'Function'];
+    const keys   = ['spaceUtilisation', 'roomFlow', 'naturalLight', 'styleConsistency', 'functionalCompleteness'];
+    const values = keys.map(k => dims[k]?.average ?? 0);
+
+    state.charts['aiRadarChart'] = new Chart(canvas, {
+        type: 'radar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Avg score',
+                data: values,
+                backgroundColor: 'rgba(102,126,234,0.15)',
+                borderColor: '#667eea',
+                borderWidth: 2,
+                pointBackgroundColor: '#667eea',
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    min: 0,
+                    max: 10,
+                    ticks: {
+                        stepSize: 2,
+                        font: { size: 10 },
+                        color: '#aaa',
+                        backdropColor: 'transparent'
+                    },
+                    grid:        { color: 'rgba(0,0,0,0.06)' },
+                    angleLines:  { color: 'rgba(0,0,0,0.06)' },
+                    pointLabels: { font: { size: 11, weight: '600' }, color: '#444' }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.parsed.r.toFixed(1)} / 10`
+                    }
+                }
+            }
+        }
+    });
+}
+
+function renderAITopProjects(projects) {
+    const el = document.getElementById('aiTopProjectsList');
+    if (!el) return;
+    if (!projects || !projects.length) {
+        el.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><p>No analysed projects yet</p></div>';
+        return;
+    }
+    const rankClass = i => ['gold','silver','bronze','other','other'][i] || 'other';
+    el.innerHTML = projects.map((p, i) => `
+        <div class="ais-project-row">
+            <div class="ais-rank ${rankClass(i)}">${i + 1}</div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:0.85rem;font-weight:600;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(p.name)}</div>
+                <div style="font-size:0.75rem;color:var(--gray);">${esc(p.owner?.name || 'Unknown')}</div>
+            </div>
+            <div class="ais-score-pill ${aiScorePillClass(p.overallScore)}">${p.overallScore}/10</div>
+        </div>
+    `).join('');
+}
+
+function renderAIScoreTable() {
+    const el   = document.getElementById('aiScoreTableBody');
+    const sort = document.getElementById('aiScoreSort')?.value || 'score-desc';
+    if (!el) return;
+
+    if (!_aiScoreData || !_aiScoreData.allProjects) {
+        el.innerHTML = '<tr><td colspan="10"><div class="loading-spinner"><i class="fas fa-spinner"></i></div></td></tr>';
+        return;
+    }
+
+    if (!_aiScoreData.allProjects.length) {
+        el.innerHTML = '<tr><td colspan="10"><div class="empty-state"><i class="fas fa-folder-open"></i><p>No analysed projects yet</p></div></td></tr>';
+        return;
+    }
+
+    const rows = [..._aiScoreData.allProjects].sort((a, b) => {
+        if (sort === 'score-desc') return b.overallScore - a.overallScore;
+        if (sort === 'score-asc')  return a.overallScore - b.overallScore;
+        if (sort === 'name')       return (a.name || '').localeCompare(b.name || '');
+        if (sort === 'date')       return new Date(b.analysedAt || 0) - new Date(a.analysedAt || 0);
+        return 0;
+    });
+
+    const dimCell = v => v != null
+        ? `<td class="ais-dim-cell" style="color:${aiDimColor(v)}">${v}</td>`
+        : `<td class="ais-dim-cell" style="color:#ddd">—</td>`;
+
+    el.innerHTML = rows.map((p, i) => `
+        <tr>
+            <td style="font-size:0.78rem;color:var(--gray);font-weight:600;">${i + 1}</td>
+            <td>
+                <div style="font-size:0.85rem;font-weight:600;color:var(--dark);">${esc(p.name)}</div>
+                <div style="font-size:0.75rem;color:var(--gray);">${p.analysedAt ? formatDate(p.analysedAt) : '—'}</div>
+            </td>
+            <td>
+                <div class="user-cell">
+                    <div class="user-avatar-sm" style="width:26px;height:26px;font-size:0.65rem">${initials(p.owner?.name || '?')}</div>
+                    <span style="font-size:0.82rem">${esc(p.owner?.name || 'Unknown')}</span>
+                </div>
+            </td>
+            <td style="text-align:center"><span class="ais-score-pill ${aiScorePillClass(p.overallScore)}">${p.overallScore}/10</span></td>
+            ${dimCell(p.dimensions?.spaceUtilisation)}
+            ${dimCell(p.dimensions?.roomFlow)}
+            ${dimCell(p.dimensions?.naturalLight)}
+            ${dimCell(p.dimensions?.styleConsistency)}
+            ${dimCell(p.dimensions?.functionalCompleteness)}
+            <td style="font-size:0.75rem;color:var(--gray);">${p.analysedAt ? formatDate(p.analysedAt) : '—'}</td>
+        </tr>
+    `).join('');
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function aiScoreLabel(score) {
+    if (score >= 9) return 'Excellent';
+    if (score >= 7) return 'Good';
+    if (score >= 5) return 'Needs work';
+    if (score >= 3) return 'Poor';
+    return 'Critical';
+}
+
+function aiScorePillClass(score) {
+    if (score >= 8) return 'excellent';
+    if (score >= 6) return 'good';
+    if (score >= 4) return 'needs';
+    return 'poor';
+}
+
+function aiDimColor(v) {
+    if (v >= 8) return '#059669';
+    if (v >= 6) return '#b45309';
+    if (v >= 4) return '#c2410c';
+    return '#dc2626';
+}
+
+// Expose globally so the sort <select> inline onchange works
+window.renderAIScoreTable    = renderAIScoreTable;
+window.loadAIScoreAnalytics  = loadAIScoreAnalytics;

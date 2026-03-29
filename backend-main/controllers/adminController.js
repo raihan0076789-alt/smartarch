@@ -343,3 +343,112 @@ exports.deleteProject = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
+// ─── AI Score Analytics ───────────────────────────────────────────────────────
+// GET /api/admin/ai-scores
+// Returns aggregated AI feedback stats across all projects for admin analytics.
+exports.getAIScoreAnalytics = async (req, res) => {
+    try {
+        // Fetch all projects that have aiFeedback with a real score
+        const projects = await Project.find({
+            'aiFeedback.overallScore': { $ne: null, $exists: true }
+        })
+        .select('name owner aiFeedback createdAt')
+        .populate('owner', 'name email')
+        .sort({ 'aiFeedback.analysedAt': -1 })
+        .lean();
+
+        const total = await Project.countDocuments({});
+        const analysed = projects.length;
+
+        if (analysed === 0) {
+            return res.json({
+                success: true,
+                data: {
+                    totalProjects: total,
+                    analysedProjects: 0,
+                    coveragePercent: 0,
+                    averageScore: null,
+                    highestScore: null,
+                    lowestScore: null,
+                    dimensionAverages: {},
+                    scoreDistribution: Array(5).fill(0),
+                    topProjects: [],
+                    allProjects: []
+                }
+            });
+        }
+
+        const scores = projects.map(p => p.aiFeedback.overallScore);
+        const avg  = scores.reduce((a, b) => a + b, 0) / scores.length;
+        const high = Math.max(...scores);
+        const low  = Math.min(...scores);
+
+        // Per-dimension averages across all analysed projects
+        const dimKeys = ['spaceUtilisation', 'roomFlow', 'naturalLight', 'styleConsistency', 'functionalCompleteness'];
+        const dimTitles = {
+            spaceUtilisation:       'Space Utilisation',
+            roomFlow:               'Room Flow',
+            naturalLight:           'Natural Light',
+            styleConsistency:       'Style Consistency',
+            functionalCompleteness: 'Functional Completeness'
+        };
+        const dimensionAverages = {};
+        dimKeys.forEach(key => {
+            const vals = projects
+                .map(p => p.aiFeedback.dimensions && p.aiFeedback.dimensions[key] && p.aiFeedback.dimensions[key].score)
+                .filter(v => v != null && !isNaN(v));
+            dimensionAverages[key] = {
+                title: dimTitles[key],
+                average: vals.length ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)) : null
+            };
+        });
+
+        // Score distribution: bands 1-2, 3-4, 5-6, 7-8, 9-10
+        const dist = [0, 0, 0, 0, 0];
+        scores.forEach(s => {
+            if (s <= 2) dist[0]++;
+            else if (s <= 4) dist[1]++;
+            else if (s <= 6) dist[2]++;
+            else if (s <= 8) dist[3]++;
+            else dist[4]++;
+        });
+
+        // Per-project table (all analysed, sorted best first)
+        const allProjects = projects
+            .sort((a, b) => b.aiFeedback.overallScore - a.aiFeedback.overallScore)
+            .map(p => ({
+                id:           p._id,
+                name:         p.name,
+                owner:        p.owner ? { name: p.owner.name, email: p.owner.email } : { name: 'Unknown', email: '' },
+                overallScore: p.aiFeedback.overallScore,
+                scoreLabel:   p.aiFeedback.scoreLabel || '',
+                analysedAt:   p.aiFeedback.analysedAt,
+                dimensions:   dimKeys.reduce((acc, k) => {
+                    acc[k] = p.aiFeedback.dimensions && p.aiFeedback.dimensions[k]
+                        ? p.aiFeedback.dimensions[k].score
+                        : null;
+                    return acc;
+                }, {})
+            }));
+
+        res.json({
+            success: true,
+            data: {
+                totalProjects:    total,
+                analysedProjects: analysed,
+                coveragePercent:  parseFloat(((analysed / total) * 100).toFixed(1)),
+                averageScore:     parseFloat(avg.toFixed(1)),
+                highestScore:     high,
+                lowestScore:      low,
+                dimensionAverages,
+                scoreDistribution: dist,
+                topProjects:      allProjects.slice(0, 5),
+                allProjects
+            }
+        });
+    } catch (error) {
+        console.error('AI score analytics error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};

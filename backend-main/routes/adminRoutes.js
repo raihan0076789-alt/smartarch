@@ -12,7 +12,8 @@ const {
     getAllProjects,
     getProjectById,
     updateProjectVisibility,
-    deleteProject
+    deleteProject,
+    getAIScoreAnalytics
 } = require('../controllers/adminController');
 
 // Public admin route
@@ -30,5 +31,7 @@ router.get('/projects', adminProtect, getAllProjects);
 router.get('/projects/:id', adminProtect, getProjectById);
 router.patch('/projects/:id/visibility', adminProtect, updateProjectVisibility);
 router.delete('/projects/:id', adminProtect, deleteProject);
+
+router.get('/ai-scores', adminProtect, getAIScoreAnalytics);
 
 module.exports = router;

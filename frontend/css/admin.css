@@ -822,3 +822,49 @@ tr:hover td{background:rgba(0,212,200,0.04);}
     color:var(--white);
 }
 
+
+
+/* ── AI Score Analytics ──────────────────────────────────────────── */
+.ais-score-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 20px;
+    min-width: 42px;
+}
+.ais-score-pill.excellent { background: rgba(16,185,129,.12); color: #059669; }
+.ais-score-pill.good      { background: rgba(245,158,11,.12); color: #b45309; }
+.ais-score-pill.needs     { background: rgba(249,115,22,.12); color: #c2410c; }
+.ais-score-pill.poor      { background: rgba(239,68,68,.12);  color: #dc2626; }
+.ais-dim-cell {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--gray);
+}
+.ais-project-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+.ais-project-row:last-child { border-bottom: none; }
+.ais-rank {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.ais-rank.gold   { background: rgba(234,179,8,.15);  color: #a16207; }
+.ais-rank.silver { background: rgba(148,163,184,.15); color: #475569; }
+.ais-rank.bronze { background: rgba(180,83,9,.1);    color: #92400e; }
+.ais-rank.other  { background: #f0f2f5; color: var(--gray); }

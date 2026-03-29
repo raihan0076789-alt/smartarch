@@ -395,6 +395,128 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- ─── AI Score Analytics ─────────────────────────────────── -->
+                <div style="border-top:2px solid #f0f2f5;margin:0.5rem 0 1.5rem;padding-top:1.5rem;">
+
+                    <!-- Section heading -->
+                    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;">
+                        <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;">
+                            <i class="fas fa-star" style="color:#fff;font-size:0.8rem;"></i>
+                        </div>
+                        <div>
+                            <div style="font-size:1rem;font-weight:700;color:var(--dark);">AI Design Score Analytics</div>
+                            <div style="font-size:0.78rem;color:var(--gray);">Aggregated feedback scores across all analysed projects</div>
+                        </div>
+                    </div>
+
+                    <!-- 4 metric cards -->
+                    <div class="stats-grid" id="aiScoreCards" style="margin-bottom:1.25rem;">
+                        <div class="stat-card blue">
+                            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="ais-avg">—</div>
+                                <div class="stat-label">Platform avg score</div>
+                                <div class="stat-change neutral" id="ais-avg-label">out of 10</div>
+                            </div>
+                        </div>
+                        <div class="stat-card teal">
+                            <div class="stat-icon"><i class="fas fa-percentage"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="ais-coverage">—</div>
+                                <div class="stat-label">Projects analysed</div>
+                                <div class="stat-change neutral" id="ais-coverage-sub">of total</div>
+                            </div>
+                        </div>
+                        <div class="stat-card green">
+                            <div class="stat-icon"><i class="fas fa-arrow-up"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="ais-high">—</div>
+                                <div class="stat-label">Highest score</div>
+                                <div class="stat-change up"><i class="fas fa-award"></i> <span id="ais-high-name">—</span></div>
+                            </div>
+                        </div>
+                        <div class="stat-card orange">
+                            <div class="stat-icon"><i class="fas fa-arrow-down"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="ais-low">—</div>
+                                <div class="stat-label">Lowest score</div>
+                                <div class="stat-change neutral"><span id="ais-low-name">—</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Radar chart + project table -->
+                    <div class="grid-2" style="margin-bottom:1.25rem;">
+
+                        <!-- Radar chart -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-spider"></i> Avg score per dimension</div>
+                            </div>
+                            <div class="card-body" style="display:flex;align-items:center;justify-content:center;min-height:280px;">
+                                <div id="aiRadarEmpty" style="text-align:center;color:var(--gray);display:none;">
+                                    <i class="fas fa-chart-radar" style="font-size:2rem;margin-bottom:0.5rem;opacity:.3;"></i>
+                                    <p style="font-size:0.85rem;">No analysed projects yet</p>
+                                </div>
+                                <div style="width:100%;max-width:320px;position:relative;">
+                                    <canvas id="aiRadarChart" height="280"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top 5 scored projects -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-medal"></i> Top scored projects</div>
+                            </div>
+                            <div class="card-body" style="padding-top:0.5rem;">
+                                <div id="aiTopProjectsList">
+                                    <div class="loading-spinner"><i class="fas fa-spinner"></i></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Full sortable table -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-table"></i> All analysed projects</div>
+                            <div style="display:flex;align-items:center;gap:0.5rem;">
+                                <label style="font-size:0.78rem;color:var(--gray);">Sort by</label>
+                                <select id="aiScoreSort" onchange="renderAIScoreTable()" style="font-size:0.78rem;padding:4px 8px;border:1px solid var(--gray-light);border-radius:6px;color:var(--dark);background:#fff;">
+                                    <option value="score-desc">Score (high first)</option>
+                                    <option value="score-asc">Score (low first)</option>
+                                    <option value="name">Project name</option>
+                                    <option value="date">Most recently analysed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Project</th>
+                                        <th>Owner</th>
+                                        <th style="text-align:center">Score</th>
+                                        <th style="text-align:center">Space</th>
+                                        <th style="text-align:center">Flow</th>
+                                        <th style="text-align:center">Light</th>
+                                        <th style="text-align:center">Style</th>
+                                        <th style="text-align:center">Function</th>
+                                        <th>Analysed</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="aiScoreTableBody">
+                                    <tr><td colspan="10"><div class="loading-spinner"><i class="fas fa-spinner"></i></div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
         </div>
