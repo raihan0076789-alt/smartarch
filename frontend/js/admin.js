@@ -103,6 +103,8 @@ function navigateTo(pageName) {
     else if (pageName === 'projects') loadProjects();
     else if (pageName === 'analytics') { loadAnalytics(); loadAIScoreAnalytics(); }
     else if (pageName === 'messages' && typeof loadAdminTickets === 'function') loadAdminTickets();
+    else if (pageName === 'reviews') loadAdminReviews();
+    else if (pageName === 'app-ratings') loadAppRatingStats();
 
     // Close sidebar on mobile
     if (window.innerWidth <= 768) {
@@ -116,7 +118,9 @@ function updateTopbarTitle(page) {
         users: { title: 'User Management', subtitle: 'Manage all registered users' },
         projects: { title: 'Project Management', subtitle: 'Manage all projects' },
         messages: { title: 'Support Inbox', subtitle: 'Manage and reply to user tickets' },
-        analytics: { title: 'Analytics', subtitle: 'Detailed statistics & charts' }
+        analytics: { title: 'Analytics', subtitle: 'Detailed statistics & charts' },
+        reviews: { title: 'Reviews', subtitle: 'Project ratings & user feedback' },
+        'app-ratings': { title: 'App Ratings', subtitle: 'Overall platform satisfaction ratings' }
     };
     const t = titles[page] || { title: page, subtitle: '' };
     const el = document.getElementById('pageTitle');
@@ -1234,3 +1238,294 @@ function aiDimColor(v) {
 // Expose globally so the sort <select> inline onchange works
 window.renderAIScoreTable    = renderAIScoreTable;
 window.loadAIScoreAnalytics  = loadAIScoreAnalytics;
+
+// ─── Reviews ──────────────────────────────────────────────────────────────────
+async function reviewsRequest(endpoint, options = {}) {
+    const url = `http://localhost:5000/api/reviews${endpoint}`;
+    const config = {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...(state.token ? { 'Authorization': `Bearer ${state.token}` } : {}),
+            ...options.headers
+        }
+    };
+    const res  = await fetch(url, config);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Request failed');
+    return data;
+}
+
+async function loadAdminReviews() {
+    try {
+        const res  = await reviewsRequest('/admin/stats');
+        const data = res.data;
+
+        // ── Stat cards ────────────────────────────────────────────────────────
+        setEl('rv-stat-total', data.totalReviews ?? '0');
+        setEl('rv-stat-avg',   data.overallAverage != null ? `${data.overallAverage} ★` : '—');
+        setEl('rv-stat-five',  data.distribution ? data.distribution[4] : '0');
+        setEl('rv-stat-top',
+            data.topProjects && data.topProjects.length
+                ? data.topProjects[0].projectName
+                : '—'
+        );
+
+        // ── Distribution bar chart ────────────────────────────────────────────
+        const distCtx = document.getElementById('rvDistChart');
+        if (distCtx) {
+            if (distCtx._rvChart) distCtx._rvChart.destroy();
+            distCtx._rvChart = new Chart(distCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['1 ★', '2 ★', '3 ★', '4 ★', '5 ★'],
+                    datasets: [{
+                        label: 'Reviews',
+                        data: data.distribution || [0,0,0,0,0],
+                        backgroundColor: [
+                            'rgba(239,68,68,.75)',
+                            'rgba(249,115,22,.75)',
+                            'rgba(234,179,8,.75)',
+                            'rgba(34,197,94,.75)',
+                            'rgba(102,126,234,.85)'
+                        ],
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,.06)' }, ticks: { color: '#94a3b8' } },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,.06)' },
+                            ticks: { color: '#94a3b8', stepSize: 1 },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // ── Top rated projects list ───────────────────────────────────────────
+        const topEl = document.getElementById('rvTopProjectsList');
+        if (topEl) {
+            if (!data.topProjects || !data.topProjects.length) {
+                topEl.innerHTML = '<p style="color:var(--gray);font-size:.85rem">No reviews yet.</p>';
+            } else {
+                topEl.innerHTML = data.topProjects.map((p, i) => `
+                    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+                        <span style="font-size:1rem;width:22px;text-align:center">${['🥇','🥈','🥉','4️⃣','5️⃣'][i] || (i+1)}</span>
+                        <div style="flex:1;min-width:0">
+                            <div style="font-size:.85rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escAdm(p.projectName)}</div>
+                            <div style="font-size:.75rem;color:var(--gray)">${escAdm(p.ownerName || '')} · ${p.reviewCount} review${p.reviewCount !== 1 ? 's' : ''}</div>
+                        </div>
+                        <div style="text-align:right;flex-shrink:0">
+                            <div style="font-size:.9rem;font-weight:700;color:#f59e0b">${p.avgRating} ★</div>
+                        </div>
+                    </div>`).join('');
+            }
+        }
+
+        // ── Recent reviews feed ───────────────────────────────────────────────
+        const feedEl = document.getElementById('rvRecentFeed');
+        if (feedEl) {
+            if (!data.recentReviews || !data.recentReviews.length) {
+                feedEl.innerHTML = '<p style="color:var(--gray);font-size:.85rem">No reviews yet.</p>';
+            } else {
+                feedEl.innerHTML = `
+                    <table style="width:100%;border-collapse:collapse;font-size:.83rem">
+                        <thead>
+                            <tr style="color:var(--gray);text-align:left;border-bottom:1px solid rgba(255,255,255,.08)">
+                                <th style="padding:6px 10px">Reviewer</th>
+                                <th style="padding:6px 10px">Project</th>
+                                <th style="padding:6px 10px;text-align:center">Rating</th>
+                                <th style="padding:6px 10px">Comment</th>
+                                <th style="padding:6px 10px">Date</th>
+                                <th style="padding:6px 10px;text-align:center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.recentReviews.map(r => `
+                            <tr style="border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background=''">
+                                <td style="padding:8px 10px">
+                                    <div style="font-weight:600;color:var(--text)">${escAdm(r.reviewer?.name || 'Unknown')}</div>
+                                    <div style="font-size:.73rem;color:var(--gray)">${escAdm(r.reviewer?.email || '')}</div>
+                                </td>
+                                <td style="padding:8px 10px;color:var(--text-secondary);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                                    ${escAdm(r.project?.name || '—')}
+                                </td>
+                                <td style="padding:8px 10px;text-align:center">
+                                    <span style="color:#f59e0b;font-weight:700">${r.rating} ★</span>
+                                </td>
+                                <td style="padding:8px 10px;color:var(--gray);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                                    ${r.comment ? escAdm(r.comment) : '<em style="color:#475569">No comment</em>'}
+                                </td>
+                                <td style="padding:8px 10px;color:var(--gray);white-space:nowrap">
+                                    ${new Date(r.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+                                </td>
+                                <td style="padding:8px 10px;text-align:center">
+                                    <button onclick="adminRemoveReview('${r._id}')"
+                                        style="background:rgba(239,68,68,.15);border:none;color:#f87171;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:.75rem">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>`;
+            }
+        }
+    } catch (err) {
+        console.error('loadAdminReviews error:', err);
+    }
+}
+
+async function adminRemoveReview(reviewId) {
+    if (!confirm('Delete this review? This cannot be undone.')) return;
+    try {
+        await reviewsRequest(`/admin/${reviewId}`, { method: 'DELETE' });
+        loadAdminReviews();
+    } catch (err) {
+        alert(err.message || 'Could not delete review');
+    }
+}
+
+function escAdm(str) {
+    return String(str || '')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+window.adminRemoveReview = adminRemoveReview;
+window.loadAdminReviews  = loadAdminReviews;
+
+// ─── App Ratings ──────────────────────────────────────────────────────────────
+async function appRatingsRequest(endpoint, options = {}) {
+    const url = `http://localhost:5000/api/app-ratings${endpoint}`;
+    const config = {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...(state.token ? { 'Authorization': `Bearer ${state.token}` } : {}),
+            ...options.headers
+        }
+    };
+    const res  = await fetch(url, config);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Request failed');
+    return data;
+}
+
+async function loadAppRatingStats() {
+    try {
+        const res  = await appRatingsRequest('/admin/stats');
+        const data = res.data;
+
+        setEl('ar-stat-total', data.total ?? '0');
+        setEl('ar-stat-avg',   data.overallAverage != null ? `${data.overallAverage} ★` : '—');
+        setEl('ar-stat-five',  data.distribution ? data.distribution[4] : '0');
+
+        // Most common rating
+        const dist = data.distribution || [0,0,0,0,0];
+        const topIdx = dist.indexOf(Math.max(...dist));
+        setEl('ar-stat-common', topIdx >= 0 ? `${topIdx + 1} ★` : '—');
+
+        // Distribution bar chart
+        const ctx = document.getElementById('arDistChart');
+        if (ctx) {
+            if (ctx._arChart) ctx._arChart.destroy();
+            ctx._arChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['1 ★','2 ★','3 ★','4 ★','5 ★'],
+                    datasets: [{
+                        label: 'Ratings',
+                        data: dist,
+                        backgroundColor: [
+                            'rgba(239,68,68,.75)',
+                            'rgba(249,115,22,.75)',
+                            'rgba(234,179,8,.75)',
+                            'rgba(34,197,94,.75)',
+                            'rgba(102,126,234,.85)'
+                        ],
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color:'rgba(255,255,255,.06)' }, ticks: { color:'#94a3b8' } },
+                        y: { grid: { color:'rgba(255,255,255,.06)' }, ticks: { color:'#94a3b8', stepSize:1 }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        // Recent feed
+        const feedEl = document.getElementById('arRecentFeed');
+        if (feedEl) {
+            if (!data.recent || !data.recent.length) {
+                feedEl.innerHTML = '<p style="color:var(--gray);font-size:.85rem">No app ratings yet.</p>';
+            } else {
+                feedEl.innerHTML = `
+                    <table style="width:100%;border-collapse:collapse;font-size:.83rem">
+                        <thead>
+                            <tr style="color:var(--gray);text-align:left;border-bottom:1px solid rgba(255,255,255,.08)">
+                                <th style="padding:6px 10px">User</th>
+                                <th style="padding:6px 10px;text-align:center">Rating</th>
+                                <th style="padding:6px 10px">Comment</th>
+                                <th style="padding:6px 10px">Page</th>
+                                <th style="padding:6px 10px">Date</th>
+                                <th style="padding:6px 10px;text-align:center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.recent.map(r => `
+                            <tr style="border-bottom:1px solid rgba(255,255,255,.04)" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background=''">
+                                <td style="padding:8px 10px">
+                                    ${r.user
+                                        ? `<div style="font-weight:600;color:var(--text)">${escAdm(r.user.name)}</div>
+                                           <div style="font-size:.73rem;color:var(--gray)">${escAdm(r.user.email)}</div>`
+                                        : `<div style="color:var(--gray);font-style:italic">Guest</div>`}
+                                </td>
+                                <td style="padding:8px 10px;text-align:center">
+                                    <span style="color:#f59e0b;font-weight:700">${r.rating} ★</span>
+                                </td>
+                                <td style="padding:8px 10px;color:var(--gray);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                                    ${r.comment ? escAdm(r.comment) : '<em style="color:#475569">—</em>'}
+                                </td>
+                                <td style="padding:8px 10px;color:var(--gray);font-size:.75rem">${escAdm(r.page || '—')}</td>
+                                <td style="padding:8px 10px;color:var(--gray);white-space:nowrap">
+                                    ${new Date(r.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+                                </td>
+                                <td style="padding:8px 10px;text-align:center">
+                                    <button onclick="adminDeleteAppRating('${r._id}')"
+                                        style="background:rgba(239,68,68,.15);border:none;color:#f87171;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:.75rem">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>`;
+            }
+        }
+    } catch (err) {
+        console.error('loadAppRatingStats error:', err);
+    }
+}
+
+async function adminDeleteAppRating(id) {
+    if (!confirm('Delete this rating?')) return;
+    try {
+        await appRatingsRequest(`/admin/${id}`, { method: 'DELETE' });
+        loadAppRatingStats();
+    } catch (err) {
+        alert(err.message || 'Could not delete rating');
+    }
+}
+
+window.loadAppRatingStats     = loadAppRatingStats;
+window.adminDeleteAppRating   = adminDeleteAppRating;

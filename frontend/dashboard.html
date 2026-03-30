@@ -21,6 +21,9 @@
         .project-info>p,.template-info p,.stat-label,.chart-card-sub,.section-subtitle{color:#64748b!important;}
         .project-meta span,.project-meta{color:#64748b!important;}
         .project-meta i{color:#00d4c8!important;}
+        .proj-rating-badge{display:inline-flex;align-items:center;gap:3px;color:#f59e0b!important;font-size:.72rem;font-weight:600;margin-left:auto;min-width:16px;}
+        .proj-rating-badge i{color:#f59e0b!important;font-size:.7rem!important;}
+        .proj-rating-badge:empty{display:none!important;}
         .sidebar-user-info .name{color:#f1f5f9!important;}
         .sidebar-user-info .role{color:#00d4c8!important;}
         .nav-item{color:#94a3b8!important;background:none!important;border:none!important;}
@@ -1014,11 +1017,55 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="js/api.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/dashboard.js?v=3"></script>
+<script src="js/api.js?v=5"></script>
+<script src="js/auth.js?v=5"></script>
+<script src="js/dashboard.js?v=4"></script>
 <script src="js/dashboard-charts.js"></script>
 <script src="js/dashboard-profile.js"></script>
+<script>
+// ── Rating badge inline bootstrap (cache-safe) ──────────────────
+// Ensures rating badges work even if dashboard.js is stale-cached.
+(function() {
+    function _ratingBadgeHtml(avgRating) {
+        if (avgRating == null) return '';
+        return '<i class="fas fa-star" style="color:#f59e0b;font-size:.7rem"></i> ' + avgRating;
+    }
+
+    function _patchBadge(projectId, avgRating) {
+        const el = document.getElementById('rating-' + projectId);
+        if (el) el.innerHTML = _ratingBadgeHtml(avgRating);
+    }
+
+    async function _fetchRatings() {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        // Wait for window.projects to be populated (up to 5s)
+        let waited = 0;
+        while ((!window.projects || !window.projects.length) && waited < 5000) {
+            await new Promise(r => setTimeout(r, 200));
+            waited += 200;
+        }
+        if (!window.projects || !window.projects.length) return;
+
+        for (const project of window.projects) {
+            try {
+                const res = await fetch('http://localhost:5000/api/reviews/' + project._id, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) continue;
+                const data = await res.json();
+                const avg = data.data && data.data.summary && data.data.summary.average;
+                project._avgRating     = avg != null ? avg : null;
+                project._ratingsLoaded = true;
+                _patchBadge(project._id, project._avgRating);
+            } catch(e) {}
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => setTimeout(_fetchRatings, 800));
+})();
+</script>
 <script>
    
 document.addEventListener("DOMContentLoaded", () => {

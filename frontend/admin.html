@@ -48,6 +48,12 @@
                     <span><i class="fas fa-inbox"></i> Messages</span>
                     <span id="adminMsgBadge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:0.7rem;font-weight:700;line-height:1.4;"></span>
                 </a>
+                <a class="nav-item" data-page="reviews">
+                    <i class="fas fa-star"></i> Reviews
+                </a>
+                <a class="nav-item" data-page="app-ratings">
+                    <i class="fas fa-mobile-alt"></i> App Ratings
+                </a>
             </div>
             <div class="nav-section">
                 <div class="nav-section-label">System</div>
@@ -597,6 +603,129 @@
 
         <!-- /page-content -->
 
+        <!-- ══════════════ REVIEWS PAGE ══════════════ -->
+        <div class="page" id="page-reviews">
+            <!-- Summary stat cards -->
+            <div class="stats-grid" style="margin-bottom:1.5rem">
+                <div class="stat-card blue">
+                    <div class="stat-icon"><i class="fas fa-star"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="rv-stat-total">—</div>
+                        <div class="stat-label">Total Reviews</div>
+                    </div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="rv-stat-avg">—</div>
+                        <div class="stat-label">Overall Average</div>
+                    </div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-icon"><i class="fas fa-trophy"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="rv-stat-top">—</div>
+                        <div class="stat-label">Top Rated Project</div>
+                    </div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-icon"><i class="fas fa-fire"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="rv-stat-five">—</div>
+                        <div class="stat-label">5-Star Reviews</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts row -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+                <!-- Rating distribution bar chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-chart-bar"></i> Rating Distribution</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container"><canvas id="rvDistChart"></canvas></div>
+                    </div>
+                </div>
+                <!-- Top rated projects -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-medal"></i> Top Rated Projects</div>
+                    </div>
+                    <div class="card-body" style="padding-top:.5rem">
+                        <div id="rvTopProjectsList"><p style="color:var(--gray);font-size:.85rem">Loading…</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent reviews feed -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-comments"></i> Recent Reviews</div>
+                </div>
+                <div class="card-body" style="padding-top:.5rem">
+                    <div id="rvRecentFeed"><p style="color:var(--gray);font-size:.85rem">Loading…</p></div>
+                </div>
+            </div>
+        </div>
+        <!-- /page-reviews -->
+
+        <!-- ══════════════ APP RATINGS PAGE ══════════════ -->
+        <div class="page" id="page-app-ratings">
+            <div class="stats-grid" style="margin-bottom:1.5rem">
+                <div class="stat-card blue">
+                    <div class="stat-icon"><i class="fas fa-star"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="ar-stat-total">—</div>
+                        <div class="stat-label">Total Ratings</div>
+                    </div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="ar-stat-avg">—</div>
+                        <div class="stat-label">Overall Average</div>
+                    </div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-icon"><i class="fas fa-fire"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="ar-stat-five">—</div>
+                        <div class="stat-label">5-Star Ratings</div>
+                    </div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-icon"><i class="fas fa-medal"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="ar-stat-common">—</div>
+                        <div class="stat-label">Most Common</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom:1.5rem">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-chart-bar"></i> Rating Distribution</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container"><canvas id="arDistChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-comments"></i> Recent App Ratings</div>
+                </div>
+                <div class="card-body" style="padding-top:.5rem">
+                    <div id="arRecentFeed"><p style="color:var(--gray);font-size:.85rem">Loading…</p></div>
+                </div>
+            </div>
+        </div>
+        <!-- /page-app-ratings -->
+
     </div>
     <!-- /main-content -->
 
@@ -657,7 +786,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="js/admin.js"></script>
+<script src="js/admin.js?v=5"></script>
 
 <script>
 // Analytics page additional rendering

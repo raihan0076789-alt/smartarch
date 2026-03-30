@@ -35,6 +35,8 @@ app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/models', require('./routes/modelRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/tickets', require('./routes/ticketRoutes'));
+app.use('/api/reviews',     require('./routes/reviewRoutes'));
+app.use('/api/app-ratings', require('./routes/appRatingRoutes'));
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });

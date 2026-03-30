@@ -143,6 +143,8 @@ async function loadProjects() {
         hideLoading();
         // Silently fetch AI scores in the background — does not block render
         fetchAllAIScores();
+        // Silently fetch review ratings in the background
+        fetchAllRatings();
     } catch (error) {
         hideLoading();
         showToast('Failed to load projects', 'error');
@@ -186,6 +188,40 @@ function patchScoreStrip(project) {
     if (newEl) strip.replaceWith(newEl);
 }
 
+// ── Rating badge helpers ──────────────────────────────────────────
+function ratingBadgeHtml(project) {
+    if (!project._ratingsLoaded) return '<i class="fas fa-star" style="color:#2d3748;font-size:.7rem"></i>';
+    if (project._avgRating == null) return '';
+    return '<i class="fas fa-star" style="color:#f59e0b;font-size:.7rem"></i> ' + project._avgRating;
+}
+
+function patchRatingBadge(project) {
+    const el = document.getElementById('rating-' + project._id);
+    if (el) el.innerHTML = ratingBadgeHtml(project);
+}
+
+// Silently fetch avg rating for every project in the background.
+async function fetchAllRatings() {
+    if (!projects || !projects.length) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    for (const project of projects) {
+        if (project._ratingsLoaded) continue;
+        try {
+            const res = await fetch('http://localhost:5000/api/reviews/' + project._id, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) continue;
+            const data = await res.json();
+            const avg = data.data && data.data.summary && data.data.summary.average;
+            project._avgRating = avg != null ? avg : null;
+            project._ratingsLoaded = true;
+            patchRatingBadge(project);
+        } catch (e) { /* non-fatal */ }
+    }
+}
+
 function renderProjects() {
     const grid = document.getElementById('projectsGrid');
     const emptyState = document.getElementById('emptyState');
@@ -215,6 +251,7 @@ function renderProjects() {
                     <span><i class="fas fa-ruler-combined"></i> ${project.metadata?.totalArea || 0} m²</span>
                     <span><i class="fas fa-layer-group"></i> ${project.floors?.length || 0} floors</span>
                     <span><i class="fas fa-door-open"></i> ${project.metadata?.totalRooms || 0} rooms</span>
+                    <span class="proj-rating-badge" id="rating-${project._id}">${ratingBadgeHtml(project)}</span>
                 </div>
                 <div class="project-actions" onclick="event.stopPropagation()">
                     <button class="btn btn-sm btn-primary" onclick="openProject('${project._id}')">
@@ -311,6 +348,7 @@ function filterProjects() {
                     <span><i class="fas fa-ruler-combined"></i> ${project.metadata?.totalArea || 0} m²</span>
                     <span><i class="fas fa-layer-group"></i> ${project.floors?.length || 0} floors</span>
                     <span><i class="fas fa-door-open"></i> ${project.metadata?.totalRooms || 0} rooms</span>
+                    <span class="proj-rating-badge" id="rating-${project._id}">${ratingBadgeHtml(project)}</span>
                 </div>
                 <div class="project-actions" onclick="event.stopPropagation()">
                     <button class="btn btn-sm btn-primary" onclick="openProject('${project._id}')">

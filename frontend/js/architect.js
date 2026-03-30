@@ -78,6 +78,7 @@ async function loadProject(){
     if(projectData.style)setStyle(projectData.style,false);
     projectData.floors.forEach(f=>f.rooms.forEach(r=>{if(!r.doors)r.doors=[];if(!r.windows)r.windows=[];}));
     updateFloorTabs();renderRooms();updateInfoPanel();drawFloorPlan();hideLoading();
+    if(typeof initReviewsPanel==='function') initReviewsPanel(projectId);
   }catch(e){hideLoading();showToast('Failed to load project','error');initNewProject();}
 }
 
@@ -250,13 +251,24 @@ function handleMouseMove(e){
     if(resizeHandle.includes('w')){const nw=Math.max(minSize,snap(orig.width-dx));x=snap(orig.x+(orig.width-nw));width=nw;}
     if(resizeHandle.includes('n')){const nd=Math.max(minSize,snap(orig.depth-dy));z=snap(orig.z+(orig.depth-nd));depth=nd;}
     x=Math.max(0,Math.min(projectData.totalWidth-width,x));z=Math.max(0,Math.min(projectData.totalDepth-depth,z));
-    selectedRoom.x=x;selectedRoom.z=z;selectedRoom.width=width;selectedRoom.depth=depth;
+    // Only apply resize if it doesn't overlap another room
+    if(!getOverlappingRooms(x,z,width,depth,selectedRoom).length){
+      selectedRoom.x=x;selectedRoom.z=z;selectedRoom.width=width;selectedRoom.depth=depth;
+    }
     drawFloorPlan();showRoomProperties(selectedRoom);markUnsaved();
   }else if(isDragging&&selectedRoom){
     const scale=getScale();
     const dx=(mx-dragStart.x)/scale,dz=(my-dragStart.y)/scale;
-    selectedRoom.x=Math.max(0,Math.min(projectData.totalWidth-selectedRoom.width,snap(selectedRoom.x+dx)));
-    selectedRoom.z=Math.max(0,Math.min(projectData.totalDepth-selectedRoom.depth,snap(selectedRoom.z+dz)));
+    const nx=Math.max(0,Math.min(projectData.totalWidth-selectedRoom.width,snap(selectedRoom.x+dx)));
+    const nz=Math.max(0,Math.min(projectData.totalDepth-selectedRoom.depth,snap(selectedRoom.z+dz)));
+    // Try full move first; if blocked try axis-by-axis (slide along walls)
+    if(!getOverlappingRooms(nx,nz,selectedRoom.width,selectedRoom.depth,selectedRoom).length){
+      selectedRoom.x=nx;selectedRoom.z=nz;
+    } else if(!getOverlappingRooms(nx,selectedRoom.z,selectedRoom.width,selectedRoom.depth,selectedRoom).length){
+      selectedRoom.x=nx; // slide horizontally only
+    } else if(!getOverlappingRooms(selectedRoom.x,nz,selectedRoom.width,selectedRoom.depth,selectedRoom).length){
+      selectedRoom.z=nz; // slide vertically only
+    }
     dragStart={x:mx,y:my};drawFloorPlan();markUnsaved();
   }else{
     const handle=getHandleAt(mx,my);
@@ -278,37 +290,50 @@ function getRoomAt(px,py){
   return[...floor.rooms].reverse().find(r=>w.x>=r.x&&w.x<=r.x+r.width&&w.y>=r.z&&w.y<=r.z+r.depth)||null;
 }
 
+function roomsOverlap(ax,az,aw,ad,bx,bz,bw,bd,gap){
+  gap=gap||0;
+  return ax<bx+bw+gap&&ax+aw>bx-gap&&az<bz+bd+gap&&az+ad>bz-gap;
+}
+
+function getOverlappingRooms(x,z,w,d,excludeRoom){
+  const floor=projectData.floors[activeFloorIdx];if(!floor)return[];
+  return floor.rooms.filter(r=>r!==excludeRoom&&roomsOverlap(x,z,w,d,r.x,r.z,r.width,r.depth,-0.05));
+}
+
+function flashOverlapRooms(conflicting){
+  conflicting.forEach(r=>r._overlapFlash=true);
+  drawFloorPlan();
+  setTimeout(()=>{conflicting.forEach(r=>delete r._overlapFlash);drawFloorPlan();},1200);
+}
+
 function addRoomAt(px,py){
   const w=toWorld(px,py);
   const types=['living','bedroom','bathroom','kitchen','dining','office'];
   const type=types[Math.floor(Math.random()*types.length)];
   const rw=4,rd=4;
   const floor=projectData.floors[activeFloorIdx];
-  // Try to place at click position first, then search nearby if overlapping
-  let rx=snap(Math.max(0,Math.min(projectData.totalWidth-rw,w.x-rw/2)));
-  let rz=snap(Math.max(0,Math.min(projectData.totalDepth-rd,w.y-rd/2)));
-  const overlaps=(x,z)=>floor.rooms.some(r=>x<r.x+r.width+0.3&&x+rw>r.x-0.3&&z<r.z+r.depth+0.3&&z+rd>r.z-0.3);
-  if(overlaps(rx,rz)){
-    let placed=false;
-    for(let tries=0;tries<60&&!placed;tries++){
-      const tx=snap(Math.random()*Math.max(0,projectData.totalWidth-rw));
-      const tz=snap(Math.random()*Math.max(0,projectData.totalDepth-rd));
-      if(!overlaps(tx,tz)){rx=tx;rz=tz;placed=true;}
-    }
-    if(!placed){
-      // nudge in steps until a free spot is found
-      outer:for(let dz=0;dz<=projectData.totalDepth;dz+=rd+0.5){
-        for(let dx=0;dx<=projectData.totalWidth;dx+=rw+0.5){
-          const tx=snap(Math.min(projectData.totalWidth-rw,dx));
-          const tz=snap(Math.min(projectData.totalDepth-rd,dz));
-          if(!overlaps(tx,tz)){rx=tx;rz=tz;placed=true;break outer;}
-        }
-      }
-    }
+
+  const rx=snap(Math.max(0,Math.min(projectData.totalWidth-rw,w.x-rw/2)));
+  const rz=snap(Math.max(0,Math.min(projectData.totalDepth-rd,w.y-rd/2)));
+
+  // Check for overlaps at the clicked position
+  const conflicts=getOverlappingRooms(rx,rz,rw,rd,null);
+  if(conflicts.length){
+    flashOverlapRooms(conflicts);
+    showToast('⚠️ Room overlaps an existing room — choose a free area','error');
+    return;
   }
+
+  // Check canvas boundary
+  if(rx+rw>projectData.totalWidth||rz+rd>projectData.totalDepth){
+    showToast('⚠️ Room is outside the canvas boundary','error');
+    return;
+  }
+
   const room={name:type.charAt(0).toUpperCase()+type.slice(1),type,width:rw,depth:rd,
     x:rx,z:rz,height:floor?.height||2.7,doors:[],windows:[]};
   floor.rooms.push(room);
+  pushUndoState();
   selectedRoom=room;renderRooms();showRoomProperties(room);updateInfoPanel();drawFloorPlan();markUnsaved();
 }
 
@@ -317,16 +342,19 @@ function placeStaircaseAt(px,py){
   const floor=projectData.floors[activeFloorIdx];
   const floorH=floor.height||2.7;
   const stepCount=Math.max(8,Math.ceil(floorH/0.18));
-  const stairDepth=Math.ceil(stepCount*0.28*2)/2; // snap to 0.5m
+  const stairDepth=Math.ceil(stepCount*0.28*2)/2;
   const stairWidth=1.5;
-  const room={
-    name:'Staircase',type:'staircase',
-    width:stairWidth,depth:stairDepth,
-    x:snap(Math.max(0,Math.min(projectData.totalWidth-stairWidth,w.x-stairWidth/2))),
-    z:snap(Math.max(0,Math.min(projectData.totalDepth-stairDepth,w.y-stairDepth/2))),
-    height:floorH,doors:[],windows:[]
-  };
+  const sx=snap(Math.max(0,Math.min(projectData.totalWidth-stairWidth,w.x-stairWidth/2)));
+  const sz=snap(Math.max(0,Math.min(projectData.totalDepth-stairDepth,w.y-stairDepth/2)));
+  const conflicts=getOverlappingRooms(sx,sz,stairWidth,stairDepth,null);
+  if(conflicts.length){
+    flashOverlapRooms(conflicts);
+    showToast('⚠️ Staircase overlaps an existing room — choose a free area','error');
+    return;
+  }
+  const room={name:'Staircase',type:'staircase',width:stairWidth,depth:stairDepth,x:sx,z:sz,height:floorH,doors:[],windows:[]};
   floor.rooms.push(room);
+  pushUndoState();
   selectedRoom=room;renderRooms();showRoomProperties(room);updateInfoPanel();drawFloorPlan();markUnsaved();
   showToast('Staircase placed — drag to reposition','success');
 }
@@ -335,16 +363,16 @@ function addRoomOfType(type){
   const floor=projectData.floors[activeFloorIdx];
   const defaults={living:{w:6,d:5},bedroom:{w:4,d:4},bathroom:{w:3,d:3},kitchen:{w:4,d:4},dining:{w:4,d:4},office:{w:4,d:4},garage:{w:6,d:6}};
   const dim=defaults[type]||{w:4,d:4};
-  let x=0,z=0,tries=0;
-  while(tries++<40){
+  let x=0,z=0,placed=false,tries=0;
+  while(tries++<80){
     x=snap(Math.random()*Math.max(0,projectData.totalWidth-dim.w));
     z=snap(Math.random()*Math.max(0,projectData.totalDepth-dim.d));
-    const ok=!floor.rooms.some(r=>x<r.x+r.width+0.3&&x+dim.w>r.x&&z<r.z+r.depth+0.3&&z+dim.d>r.z);
-    if(ok)break;
+    if(!getOverlappingRooms(x,z,dim.w,dim.d,null).length){placed=true;break;}
   }
+  if(!placed){showToast('⚠️ No free space on this floor — resize the canvas or remove a room','error');return;}
   const names={living:'Living Room',bedroom:'Bedroom',bathroom:'Bathroom',kitchen:'Kitchen',dining:'Dining Room',office:'Office',garage:'Garage'};
   const room={name:names[type]||type,type,width:dim.w,depth:dim.d,x,z,height:floor.height||2.7,doors:[],windows:[]};
-  floor.rooms.push(room);selectedRoom=room;renderRooms();showRoomProperties(room);updateInfoPanel();drawFloorPlan();markUnsaved();
+  floor.rooms.push(room);pushUndoState();selectedRoom=room;renderRooms();showRoomProperties(room);updateInfoPanel();drawFloorPlan();markUnsaved();
 }
 
 function addRoom(){addRoomOfType('bedroom');}
@@ -469,9 +497,11 @@ function drawFloorPlan(){
       const rc=ROOM_COLORS[room.type]||ROOM_COLORS.other;
       const rx=off.x+room.x*scale,ry=off.y+room.z*scale,rw=room.width*scale,rh=room.depth*scale;
       const isSel=selectedRoom===room&&isActive;
-      ctx.fillStyle=isActive?rc.bg:'rgba(100,100,100,0.1)';ctx.fillRect(rx,ry,rw,rh);
-      ctx.strokeStyle=isSel?'#fff':isActive?rc.border:'#555';ctx.lineWidth=isSel?2.5:isActive?1.5:1;ctx.strokeRect(rx,ry,rw,rh);
-      if(isSel){ctx.strokeStyle=rc.border;ctx.lineWidth=4;ctx.globalAlpha=0.4;ctx.strokeRect(rx-2,ry-2,rw+4,rh+4);ctx.globalAlpha=1;}
+      const isFlash=room._overlapFlash&&isActive;
+      ctx.fillStyle=isFlash?'rgba(239,68,68,0.35)':isActive?rc.bg:'rgba(100,100,100,0.1)';ctx.fillRect(rx,ry,rw,rh);
+      ctx.strokeStyle=isFlash?'#ef4444':isSel?'#fff':isActive?rc.border:'#555';ctx.lineWidth=isFlash?2.5:isSel?2.5:isActive?1.5:1;ctx.strokeRect(rx,ry,rw,rh);
+      if(isFlash){ctx.strokeStyle='#ef4444';ctx.lineWidth=4;ctx.globalAlpha=0.5;ctx.strokeRect(rx-2,ry-2,rw+4,rh+4);ctx.globalAlpha=1;}
+      else if(isSel){ctx.strokeStyle=rc.border;ctx.lineWidth=4;ctx.globalAlpha=0.4;ctx.strokeRect(rx-2,ry-2,rw+4,rh+4);ctx.globalAlpha=1;}
       if(rw>35&&rh>28&&isActive){
         ctx.fillStyle=textColor;ctx.textAlign='center';ctx.textBaseline='middle';
         ctx.font=`bold ${Math.min(12,rw/(room.name.length*0.6))}px 'Inter',sans-serif`;
@@ -720,13 +750,14 @@ function updateInfoPanel(){
     const items=[['Foundation (15%)',0.15],['Structure (35%)',0.35],['Exterior (15%)',0.15],['Interior Finish (25%)',0.25],['Utilities (10%)',0.10]];
     bd.innerHTML=items.map(([n,p])=>`<div class="cost-item"><span>${n}</span><span>$${(cost*p/1000).toFixed(0)}k</span></div>`).join('')+`<div class="cost-item"><span><strong>Total</strong></span><span><strong>$${(cost/1000).toFixed(0)}k</strong></span></div>`;
   }
+  if(typeof updateOverlapBtn==='function')updateOverlapBtn();
 }
 
 async function saveProject(){
   try{
     showLoading('Saving...');projectData.name=el('projectTitle').value;
     if(projectId)await api.updateProject(projectId,projectData);
-    else{const d=await api.createProject(projectData);projectId=d.data._id;window.history.replaceState({},'',`?id=${projectId}`);}
+    else{const d=await api.createProject(projectData);projectId=d.data._id;window.history.replaceState({},'',`?id=${projectId}`);if(typeof initReviewsPanel==='function')initReviewsPanel(projectId);}
     const s=el('saveStatus');if(s){s.textContent='Saved';s.classList.remove('unsaved');}
     hideLoading();showToast('Project saved!','success');
   }catch(e){hideLoading();showToast('Save failed','error');console.error(e);}
@@ -909,6 +940,41 @@ function autoLayout(){
   updateInfoPanel();drawFloorPlan();markUnsaved();showToast('Auto layout applied!','success');
 }
 function clearAll(){if(!confirm('Clear all rooms on this floor?'))return;projectData.floors[activeFloorIdx].rooms=[];selectedRoom=null;renderRooms();hideRoomProperties();updateInfoPanel();drawFloorPlan();markUnsaved();}
+
+// ── Overlap detection & fix ───────────────────────────────────────────────────
+function scanForOverlaps(){
+  const floor=projectData.floors[activeFloorIdx];if(!floor)return false;
+  const rooms=floor.rooms;
+  for(let i=0;i<rooms.length;i++){
+    for(let j=i+1;j<rooms.length;j++){
+      if(roomsOverlap(rooms[i].x,rooms[i].z,rooms[i].width,rooms[i].depth,
+                      rooms[j].x,rooms[j].z,rooms[j].width,rooms[j].depth,0)){
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function updateOverlapBtn(){
+  const btn=el('fixOverlapsBtn');
+  if(btn)btn.style.display=scanForOverlaps()?'flex':'none';
+}
+
+function fixOverlaps(){
+  const floor=projectData.floors[activeFloorIdx];if(!floor)return;
+  const keep=[],removed=[];
+  for(const room of floor.rooms){
+    const clash=keep.some(k=>roomsOverlap(room.x,room.z,room.width,room.depth,k.x,k.z,k.width,k.depth,0));
+    if(clash)removed.push(room); else keep.push(room);
+  }
+  if(!removed.length){showToast('No overlapping rooms found','info');return;}
+  floor.rooms=keep;
+  if(removed.includes(selectedRoom)){selectedRoom=null;hideRoomProperties();}
+  renderRooms();updateInfoPanel();drawFloorPlan();markUnsaved();
+  updateOverlapBtn();
+  showToast(`Removed ${removed.length} overlapping room${removed.length>1?'s':''}`, 'success');
+}
 function generateFloorPlan(){drawFloorPlan();showToast('Floor plan updated!','success');}
 function generate3DModel(){setView('interior');setTimeout(()=>setInteriorSubView('3dmodel'),80);}
 function generateInterior(){setView('interior');setTimeout(()=>setInteriorSubView('interior'),80);}

@@ -102,6 +102,13 @@ class API {
     async getAIFeedback(projectId)            { return this.request(`/projects/${projectId}/ai-feedback`); }
     async saveAIFeedback(projectId, feedback) { return this.request(`/projects/${projectId}/ai-feedback`, { method: 'PUT', body: JSON.stringify({ feedback }) }); }
 
+    // ── Reviews ───────────────────────────────────────────────────────────────
+    async getProjectReviews(projectId)                   { return this.request(`/reviews/${projectId}`); }
+    async upsertReview(projectId, rating, comment = '')  { return this.request(`/reviews/${projectId}`, { method: 'POST', body: JSON.stringify({ rating, comment }) }); }
+    async deleteReview(projectId)                        { return this.request(`/reviews/${projectId}`, { method: 'DELETE' }); }
+    async getAdminReviewStats()                          { return this.request('/reviews/admin/stats'); }
+    async adminDeleteReview(reviewId)                    { return this.request(`/reviews/admin/${reviewId}`, { method: 'DELETE' }); }
+
     // ── Models ────────────────────────────────────
     async generateFloorPlan(projectId)        { return this.request(`/models/${projectId}/floorplan`, { method: 'POST' }); }
     async generate3DModel(projectId)          { return this.request(`/models/${projectId}/3d`,        { method: 'POST' }); }
