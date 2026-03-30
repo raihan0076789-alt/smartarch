@@ -172,7 +172,7 @@ localStorage.removeItem('smartarch_app_rated');
 .ar-top-bar{height:4px;background:linear-gradient(90deg,#667eea,#764ba2);
   border-radius:4px 4px 0 0;margin:-2rem -2rem 1.4rem;border-radius:14px 14px 0 0;}
 .ar-emoji{font-size:2rem;margin-bottom:.5rem;}
-.ar-title{font-size:1.1rem;font-weight:700;color:#f1f5f9;margin-bottom:.3rem;}
+.ar-title{font-size:1.1rem;font-weight:700;color:#f1f5f9;margin-bottom:.3rem;align:center;}
 .ar-sub{font-size:.82rem;color:#64748b;margin-bottom:1.4rem;line-height:1.5;}
 .ar-stars{display:flex;gap:10px;justify-content:center;margin-bottom:1.2rem;}
 .ar-star{font-size:2rem;color:#2d3748;cursor:pointer;transition:color .15s,transform .12s;}

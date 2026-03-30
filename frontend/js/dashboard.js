@@ -431,58 +431,710 @@ async function deleteProject() {
 }
 
 async function createFromTemplate(templateType) {
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Architecturally accurate template layouts
+    //  Rules applied:
+    //   • Public zone (living/kitchen/dining) at front (low z)
+    //   • Private zone (bedrooms) at rear (high z)
+    //   • Wet rooms (bathroom/WC) grouped together, accessible from corridor
+    //   • Circulation: hallway/corridor rooms separate public from private
+    //   • Doors placed on shared walls; windows on exterior walls only
+    //   • Room sizes match real-world standards for each style
+    //   • Traditional & Luxury are 2-storey; Modern & Minimalist are 1-storey
+    // ─────────────────────────────────────────────────────────────────────────
     const templates = {
+
+        // ── MODERN HOUSE ──────────────────────────────────────────────────────
+        // 18 × 13 m · 1 floor · flat roof · open-plan public zone
+        // Layout: open-plan L+K+D across full front width
+        //         hallway strip separates front from rear
+        //         master bedroom + ensuite + bedroom 2 + bathroom at rear
         modern: {
-            name: 'Modern House', totalWidth: 15, totalDepth: 12, type: 'residential',
-            specifications: { roofType: 'flat' },
-            floors: [{ level: 1, name: 'Ground Floor', height: 2.7, rooms: [
-                { name: 'Living Room',   type: 'living',   width: 6, depth: 5, x: 0, z: 0 },
-                { name: 'Kitchen',       type: 'kitchen',  width: 4, depth: 4, x: 6, z: 0 },
-                { name: 'Dining',        type: 'dining',   width: 4, depth: 4, x: 10, z: 0 },
-                { name: 'Master Bedroom',type: 'bedroom',  width: 4, depth: 4, x: 0, z: 5 },
-                { name: 'Bathroom',      type: 'bathroom', width: 3, depth: 3, x: 4, z: 5 },
-                { name: 'Bedroom 2',     type: 'bedroom',  width: 3, depth: 3, x: 7, z: 5 },
-            ]}]
+            name: 'Modern House',
+            totalWidth: 18, totalDepth: 13,
+            type: 'residential', style: 'modern',
+            specifications: { roofType: 'flat', floorHeight: 3.0 },
+            floors: [{
+                level: 1, name: 'Ground Floor', height: 3.0,
+                rooms: [
+                    // ── Front public zone (z 0–6) ──
+                    {
+                        name: 'Living Room', type: 'living',
+                        width: 8, depth: 6, x: 0, z: 0,
+                        windows: [
+                            { wall: 'top', pos: 0.25, width: 1.8 },
+                            { wall: 'top', pos: 0.70, width: 1.8 },
+                            { wall: 'left', pos: 0.5, width: 1.5 }
+                        ],
+                        doors: [
+                            { wall: 'bottom', pos: 0.5, width: 0.9 },   // to hallway
+                            { wall: 'right',  pos: 0.5, width: 0.9 }    // to kitchen
+                        ]
+                    },
+                    {
+                        name: 'Kitchen', type: 'kitchen',
+                        width: 5.5, depth: 4, x: 8, z: 0,
+                        windows: [
+                            { wall: 'top', pos: 0.5, width: 1.4 }
+                        ],
+                        doors: [
+                            { wall: 'right', pos: 0.5, width: 0.9 }     // to dining
+                        ]
+                    },
+                    {
+                        name: 'Dining Room', type: 'dining',
+                        width: 4.5, depth: 4, x: 13.5, z: 0,
+                        windows: [
+                            { wall: 'top',   pos: 0.5, width: 1.4 },
+                            { wall: 'right', pos: 0.5, width: 1.2 }
+                        ],
+                        doors: [
+                            { wall: 'bottom', pos: 0.5, width: 0.9 }    // to hallway
+                        ]
+                    },
+                    // ── Utility / laundry (front-right corner) ──
+                    {
+                        name: 'Utility Room', type: 'other',
+                        width: 4.5, depth: 2, x: 13.5, z: 4,
+                        windows: [
+                            { wall: 'right', pos: 0.5, width: 0.8 }
+                        ],
+                        doors: [
+                            { wall: 'bottom', pos: 0.5, width: 0.9 }
+                        ]
+                    },
+                    // ── Hallway / corridor ──
+                    {
+                        name: 'Hallway', type: 'other',
+                        width: 18, depth: 1.5, x: 0, z: 6,
+                        doors: [
+                            { wall: 'top',    pos: 0.08, width: 0.9 },  // front entry
+                            { wall: 'bottom', pos: 0.15, width: 0.9 },  // to master bed
+                            { wall: 'bottom', pos: 0.45, width: 0.9 },  // to ensuite
+                            { wall: 'bottom', pos: 0.65, width: 0.9 },  // to bed 2
+                            { wall: 'bottom', pos: 0.85, width: 0.9 }   // to bathroom
+                        ]
+                    },
+                    // ── Rear private zone (z 7.5–13) ──
+                    {
+                        name: 'Master Bedroom', type: 'bedroom',
+                        width: 5.5, depth: 5.5, x: 0, z: 7.5,
+                        windows: [
+                            { wall: 'bottom', pos: 0.35, width: 1.6 },
+                            { wall: 'left',   pos: 0.5,  width: 1.2 }
+                        ],
+                        doors: [
+                            { wall: 'top',   pos: 0.5, width: 0.9 },    // to hallway
+                            { wall: 'right', pos: 0.7, width: 0.8 }     // to ensuite
+                        ]
+                    },
+                    {
+                        name: 'Ensuite', type: 'bathroom',
+                        width: 3, depth: 2.5, x: 5.5, z: 7.5,
+                        windows: [
+                            { wall: 'bottom', pos: 0.5, width: 0.6 }
+                        ],
+                        doors: [
+                            { wall: 'top', pos: 0.5, width: 0.8 }
+                        ]
+                    },
+                    {
+                        name: 'Bedroom 2', type: 'bedroom',
+                        width: 4.5, depth: 5.5, x: 8.5, z: 7.5,
+                        windows: [
+                            { wall: 'bottom', pos: 0.5, width: 1.4 }
+                        ],
+                        doors: [
+                            { wall: 'top', pos: 0.5, width: 0.9 }
+                        ]
+                    },
+                    {
+                        name: 'Bathroom', type: 'bathroom',
+                        width: 3, depth: 2.5, x: 13, z: 7.5,
+                        windows: [
+                            { wall: 'right', pos: 0.5, width: 0.7 }
+                        ],
+                        doors: [
+                            { wall: 'top', pos: 0.5, width: 0.8 }
+                        ]
+                    },
+                    {
+                        name: 'WC', type: 'bathroom',
+                        width: 2, depth: 2.5, x: 16, z: 7.5,
+                        doors: [
+                            { wall: 'top', pos: 0.5, width: 0.7 }
+                        ]
+                    }
+                ]
+            }]
         },
+
+        // ── TRADITIONAL HOME ──────────────────────────────────────────────────
+        // 22 × 16 m · 2 floors · pitched roof · symmetrical Georgian-style
+        // GF: entry hall centre, living left, dining right, kitchen rear-left,
+        //     garage rear-right, WC + utility rear-centre
+        // FF: landing, master suite, 3 bedrooms, 2 bathrooms
         traditional: {
-            name: 'Traditional Home', totalWidth: 20, totalDepth: 15, type: 'residential',
-            specifications: { roofType: 'pitched' },
-            floors: [{ level: 1, name: 'Ground Floor', height: 2.7, rooms: [
-                { name: 'Living Room',  type: 'living',   width: 5, depth: 6, x: 0, z: 0 },
-                { name: 'Dining Room',  type: 'dining',   width: 4, depth: 4, x: 5, z: 0 },
-                { name: 'Kitchen',      type: 'kitchen',  width: 4, depth: 4, x: 9, z: 0 },
-                { name: 'Master Suite', type: 'bedroom',  width: 5, depth: 5, x: 0, z: 6 },
-                { name: 'Bathroom',     type: 'bathroom', width: 3, depth: 3, x: 5, z: 6 },
-                { name: 'Garage',       type: 'garage',   width: 6, depth: 5, x: 9, z: 6 },
-            ]}]
+            name: 'Traditional Home',
+            totalWidth: 22, totalDepth: 16,
+            type: 'residential', style: 'traditional',
+            specifications: { roofType: 'pitched', floorHeight: 2.8 },
+            floors: [
+                {
+                    level: 1, name: 'Ground Floor', height: 2.8,
+                    rooms: [
+                        // ── Entry hall (centre-front) ──
+                        {
+                            name: 'Entry Hall', type: 'other',
+                            width: 4, depth: 4, x: 9, z: 0,
+                            windows: [
+                                { wall: 'top', pos: 0.5, width: 0.6 }   // fanlight
+                            ],
+                            doors: [
+                                { wall: 'top',    pos: 0.5, width: 1.0 }, // front door
+                                { wall: 'left',   pos: 0.5, width: 0.9 }, // to living
+                                { wall: 'right',  pos: 0.5, width: 0.9 }, // to dining
+                                { wall: 'bottom', pos: 0.5, width: 0.9 }  // to staircase
+                            ]
+                        },
+                        // ── Staircase (centre) ──
+                        {
+                            name: 'Staircase', type: 'staircase',
+                            width: 4, depth: 4, x: 9, z: 4,
+                            doors: [
+                                { wall: 'left',  pos: 0.5, width: 0.9 }, // to kitchen
+                                { wall: 'right', pos: 0.5, width: 0.9 }  // to WC
+                            ]
+                        },
+                        // ── Living room (left-front) ──
+                        {
+                            name: 'Living Room', type: 'living',
+                            width: 9, depth: 7, x: 0, z: 0,
+                            windows: [
+                                { wall: 'top',  pos: 0.3, width: 1.6 },
+                                { wall: 'top',  pos: 0.7, width: 1.6 },
+                                { wall: 'left', pos: 0.5, width: 1.4 }
+                            ],
+                            doors: [
+                                { wall: 'right',  pos: 0.4, width: 0.9 }, // to hall
+                                { wall: 'bottom', pos: 0.5, width: 0.9 }  // to dining/rear
+                            ]
+                        },
+                        // ── Dining room (right-front) ──
+                        {
+                            name: 'Dining Room', type: 'dining',
+                            width: 9, depth: 7, x: 13, z: 0,
+                            windows: [
+                                { wall: 'top',   pos: 0.3, width: 1.6 },
+                                { wall: 'top',   pos: 0.7, width: 1.6 },
+                                { wall: 'right', pos: 0.5, width: 1.4 }
+                            ],
+                            doors: [
+                                { wall: 'left',   pos: 0.4, width: 0.9 }, // to hall
+                                { wall: 'bottom', pos: 0.5, width: 0.9 }  // to kitchen
+                            ]
+                        },
+                        // ── Kitchen (rear-left) ──
+                        {
+                            name: 'Kitchen', type: 'kitchen',
+                            width: 9, depth: 5, x: 0, z: 7,
+                            windows: [
+                                { wall: 'bottom', pos: 0.3, width: 1.4 },
+                                { wall: 'bottom', pos: 0.7, width: 1.4 },
+                                { wall: 'left',   pos: 0.5, width: 1.0 }
+                            ],
+                            doors: [
+                                { wall: 'top',   pos: 0.5, width: 0.9 }, // to staircase area
+                                { wall: 'right', pos: 0.5, width: 0.9 }  // to utility
+                            ]
+                        },
+                        // ── WC (rear-centre) ──
+                        {
+                            name: 'WC / Cloakroom', type: 'bathroom',
+                            width: 2.5, depth: 2.5, x: 9, z: 8,
+                            doors: [
+                                { wall: 'top', pos: 0.5, width: 0.7 }
+                            ]
+                        },
+                        // ── Utility (rear-centre lower) ──
+                        {
+                            name: 'Utility Room', type: 'other',
+                            width: 3.5, depth: 2.5, x: 9, z: 10.5,
+                            windows: [
+                                { wall: 'bottom', pos: 0.5, width: 0.8 }
+                            ],
+                            doors: [
+                                { wall: 'right', pos: 0.5, width: 0.9 }
+                            ]
+                        },
+                        // ── Garage (rear-right) ──
+                        {
+                            name: 'Garage', type: 'garage',
+                            width: 9, depth: 5, x: 13, z: 7,
+                            windows: [
+                                { wall: 'right', pos: 0.5, width: 1.0 }
+                            ],
+                            doors: [
+                                { wall: 'top',    pos: 0.5, width: 0.9 }, // to dining area
+                                { wall: 'bottom', pos: 0.5, width: 2.4 }  // garage door
+                            ]
+                        }
+                    ]
+                },
+                {
+                    level: 2, name: 'First Floor', height: 2.8,
+                    rooms: [
+                        // ── Landing ──
+                        {
+                            name: 'Landing', type: 'staircase',
+                            width: 4, depth: 3, x: 9, z: 0,
+                            doors: [
+                                { wall: 'left',   pos: 0.5, width: 0.9 },
+                                { wall: 'right',  pos: 0.5, width: 0.9 },
+                                { wall: 'bottom', pos: 0.5, width: 0.9 }
+                            ]
+                        },
+                        // ── Master bedroom (left-front) ──
+                        {
+                            name: 'Master Bedroom', type: 'bedroom',
+                            width: 9, depth: 6, x: 0, z: 0,
+                            windows: [
+                                { wall: 'top',  pos: 0.3, width: 1.6 },
+                                { wall: 'top',  pos: 0.7, width: 1.6 },
+                                { wall: 'left', pos: 0.5, width: 1.2 }
+                            ],
+                            doors: [
+                                { wall: 'right',  pos: 0.4, width: 0.9 }, // to landing
+                                { wall: 'bottom', pos: 0.8, width: 0.8 }  // to ensuite
+                            ]
+                        },
+                        // ── Ensuite ──
+                        {
+                            name: 'Ensuite', type: 'bathroom',
+                            width: 4, depth: 3, x: 0, z: 6,
+                            windows: [
+                                { wall: 'left', pos: 0.5, width: 0.7 }
+                            ],
+                            doors: [
+                                { wall: 'top', pos: 0.5, width: 0.8 }
+                            ]
+                        },
+                        // ── Bedroom 2 (right-front) ──
+                        {
+                            name: 'Bedroom 2', type: 'bedroom',
+                            width: 9, depth: 6, x: 13, z: 0,
+                            windows: [
+                                { wall: 'top',   pos: 0.3, width: 1.6 },
+                                { wall: 'top',   pos: 0.7, width: 1.6 },
+                                { wall: 'right', pos: 0.5, width: 1.2 }
+                            ],
+                            doors: [
+                                { wall: 'left', pos: 0.4, width: 0.9 }
+                            ]
+                        },
+                        // ── Bedroom 3 (left-rear) ──
+                        {
+                            name: 'Bedroom 3', type: 'bedroom',
+                            width: 6, depth: 5, x: 0, z: 9,
+                            windows: [
+                                { wall: 'bottom', pos: 0.5, width: 1.4 },
+                                { wall: 'left',   pos: 0.5, width: 1.0 }
+                            ],
+                            doors: [
+                                { wall: 'right', pos: 0.5, width: 0.9 }
+                            ]
+                        },
+                        // ── Family bathroom (centre-rear) ──
+                        {
+                            name: 'Family Bathroom', type: 'bathroom',
+                            width: 5, depth: 3.5, x: 9, z: 3,
+                            windows: [
+                                { wall: 'right', pos: 0.5, width: 0.7 }
+                            ],
+                            doors: [
+                                { wall: 'top', pos: 0.5, width: 0.8 }
+                            ]
+                        },
+                        // ── Bedroom 4 (right-rear) ──
+                        {
+                            name: 'Bedroom 4', type: 'bedroom',
+                            width: 6, depth: 5, x: 16, z: 9,
+                            windows: [
+                                { wall: 'bottom', pos: 0.5, width: 1.4 },
+                                { wall: 'right',  pos: 0.5, width: 1.0 }
+                            ],
+                            doors: [
+                                { wall: 'left', pos: 0.5, width: 0.9 }
+                            ]
+                        }
+                    ]
+                }
+            ]
         },
+
+        // ── MINIMALIST HOME ───────────────────────────────────────────────────
+        // 16 × 11 m · 1 floor · flat roof · fewest walls, max glazing
+        // One single open-plan spine across the full front
+        // Two bedrooms + bathroom slip behind a single flush partition
         minimalist: {
-            name: 'Minimalist Home', totalWidth: 12, totalDepth: 10, type: 'residential',
-            specifications: { roofType: 'flat' },
-            floors: [{ level: 1, name: 'Ground Floor', height: 2.7, rooms: [
-                { name: 'Open Living', type: 'living',   width: 6, depth: 6, x: 0, z: 0 },
-                { name: 'Kitchen',     type: 'kitchen',  width: 3, depth: 4, x: 6, z: 0 },
-                { name: 'Bedroom',     type: 'bedroom',  width: 4, depth: 4, x: 6, z: 4 },
-                { name: 'Bathroom',    type: 'bathroom', width: 2, depth: 2, x: 0, z: 6 },
-            ]}]
+            name: 'Minimalist Home',
+            totalWidth: 16, totalDepth: 11,
+            type: 'residential', style: 'minimalist',
+            specifications: { roofType: 'flat', floorHeight: 3.2 },
+            floors: [{
+                level: 1, name: 'Ground Floor', height: 3.2,
+                rooms: [
+                    // ── Open-plan (full front width) ──
+                    {
+                        name: 'Open Living · Dining · Kitchen', type: 'living',
+                        width: 16, depth: 6.5, x: 0, z: 0,
+                        windows: [
+                            { wall: 'top',   pos: 0.15, width: 2.4 }, // floor-to-ceiling bays
+                            { wall: 'top',   pos: 0.45, width: 2.4 },
+                            { wall: 'top',   pos: 0.75, width: 2.4 },
+                            { wall: 'left',  pos: 0.5,  width: 1.8 },
+                            { wall: 'right', pos: 0.5,  width: 1.8 }
+                        ],
+                        doors: [
+                            { wall: 'top',    pos: 0.05, width: 1.0 }, // main entry
+                            { wall: 'bottom', pos: 0.35, width: 0.9 }, // to master bed
+                            { wall: 'bottom', pos: 0.72, width: 0.9 }  // to bed 2 / bath
+                        ]
+                    },
+                    // ── Master bedroom (rear-left) ──
+                    {
+                        name: 'Master Bedroom', type: 'bedroom',
+                        width: 6.5, depth: 4.5, x: 0, z: 6.5,
+                        windows: [
+                            { wall: 'bottom', pos: 0.4, width: 1.8 },
+                            { wall: 'left',   pos: 0.5, width: 1.2 }
+                        ],
+                        doors: [
+                            { wall: 'top',   pos: 0.5, width: 0.9 },
+                            { wall: 'right', pos: 0.7, width: 0.8 }  // to ensuite
+                        ]
+                    },
+                    // ── Ensuite (rear, behind master) ──
+                    {
+                        name: 'Ensuite', type: 'bathroom',
+                        width: 3, depth: 4.5, x: 6.5, z: 6.5,
+                        windows: [
+                            { wall: 'bottom', pos: 0.5, width: 0.6 }
+                        ],
+                        doors: [
+                            { wall: 'top', pos: 0.5, width: 0.8 }
+                        ]
+                    },
+                    // ── Bedroom 2 (rear-right) ──
+                    {
+                        name: 'Bedroom 2', type: 'bedroom',
+                        width: 6.5, depth: 4.5, x: 9.5, z: 6.5,
+                        windows: [
+                            { wall: 'bottom', pos: 0.5, width: 1.6 },
+                            { wall: 'right',  pos: 0.5, width: 1.0 }
+                        ],
+                        doors: [
+                            { wall: 'top', pos: 0.5, width: 0.9 }
+                        ]
+                    }
+                ]
+            }]
         },
+
+        // ── LUXURY VILLA ──────────────────────────────────────────────────────
+        // 28 × 22 m · 2 floors · hip roof · grand classical proportions
+        // GF: grand foyer, formal living, library, formal dining,
+        //     chef's kitchen + scullery, family room, WC, service wing
+        // FF: master suite + dressing + ensuite, 3 bedrooms each with ensuite,
+        //     study, sitting room
         villa: {
-            name: 'Luxury Villa', totalWidth: 25, totalDepth: 20, type: 'residential',
-            specifications: { roofType: 'hip' },
-            floors: [{ level: 1, name: 'Ground Floor', height: 3, rooms: [
-                { name: 'Grand Living',  type: 'living',   width: 8, depth: 6, x: 0, z: 0 },
-                { name: 'Formal Dining', type: 'dining',   width: 5, depth: 4, x: 8, z: 0 },
-                { name: 'Kitchen',       type: 'kitchen',  width: 5, depth: 4, x: 13, z: 0 },
-                { name: 'Master Suite',  type: 'bedroom',  width: 6, depth: 5, x: 0, z: 6 },
-                { name: 'Master Bath',   type: 'bathroom', width: 4, depth: 4, x: 6, z: 6 },
-                { name: 'Office',        type: 'office',   width: 4, depth: 3, x: 10, z: 6 },
-                { name: 'Guest Room',    type: 'bedroom',  width: 4, depth: 4, x: 14, z: 6 },
-            ]}]
+            name: 'Luxury Villa',
+            totalWidth: 28, totalDepth: 22,
+            type: 'residential', style: 'luxury',
+            specifications: { roofType: 'hip', floorHeight: 3.5 },
+            floors: [
+                {
+                    level: 1, name: 'Ground Floor', height: 3.5,
+                    rooms: [
+                        // ── Grand foyer (centre-front) ──
+                        {
+                            name: 'Grand Foyer', type: 'other',
+                            width: 6, depth: 5, x: 11, z: 0,
+                            windows: [
+                                { wall: 'top', pos: 0.25, width: 0.8 },
+                                { wall: 'top', pos: 0.75, width: 0.8 }
+                            ],
+                            doors: [
+                                { wall: 'top',    pos: 0.5,  width: 1.2 }, // grand entrance
+                                { wall: 'left',   pos: 0.5,  width: 1.0 }, // to formal living
+                                { wall: 'right',  pos: 0.5,  width: 1.0 }, // to library
+                                { wall: 'bottom', pos: 0.5,  width: 1.0 }  // to staircase
+                            ]
+                        },
+                        // ── Grand staircase ──
+                        {
+                            name: 'Grand Staircase', type: 'staircase',
+                            width: 6, depth: 5, x: 11, z: 5,
+                            doors: [
+                                { wall: 'left',   pos: 0.5, width: 1.0 },
+                                { wall: 'right',  pos: 0.5, width: 1.0 },
+                                { wall: 'bottom', pos: 0.5, width: 1.0 }
+                            ]
+                        },
+                        // ── Formal living room (left-front) ──
+                        {
+                            name: 'Formal Living Room', type: 'living',
+                            width: 11, depth: 8, x: 0, z: 0,
+                            windows: [
+                                { wall: 'top',  pos: 0.25, width: 2.0 },
+                                { wall: 'top',  pos: 0.65, width: 2.0 },
+                                { wall: 'left', pos: 0.4,  width: 1.8 },
+                                { wall: 'left', pos: 0.75, width: 1.8 }
+                            ],
+                            doors: [
+                                { wall: 'right',  pos: 0.3, width: 1.0 }, // to foyer
+                                { wall: 'bottom', pos: 0.5, width: 1.0 }  // to formal dining
+                            ]
+                        },
+                        // ── Library / study (right-front) ──
+                        {
+                            name: 'Library', type: 'office',
+                            width: 11, depth: 8, x: 17, z: 0,
+                            windows: [
+                                { wall: 'top',   pos: 0.25, width: 2.0 },
+                                { wall: 'top',   pos: 0.65, width: 2.0 },
+                                { wall: 'right', pos: 0.4,  width: 1.8 },
+                                { wall: 'right', pos: 0.75, width: 1.8 }
+                            ],
+                            doors: [
+                                { wall: 'left',   pos: 0.3, width: 1.0 }, // to foyer
+                                { wall: 'bottom', pos: 0.5, width: 1.0 }  // to family room
+                            ]
+                        },
+                        // ── Formal dining (left-rear) ──
+                        {
+                            name: 'Formal Dining Room', type: 'dining',
+                            width: 8, depth: 6, x: 0, z: 8,
+                            windows: [
+                                { wall: 'left',   pos: 0.5, width: 1.8 },
+                                { wall: 'bottom', pos: 0.5, width: 1.6 }
+                            ],
+                            doors: [
+                                { wall: 'top',   pos: 0.5, width: 1.0 }, // to living
+                                { wall: 'right', pos: 0.5, width: 1.0 }  // to kitchen
+                            ]
+                        },
+                        // ── Chef's kitchen (centre-rear) ──
+                        {
+                            name: "Chef's Kitchen", type: 'kitchen',
+                            width: 8, depth: 6, x: 8, z: 8,
+                            windows: [
+                                { wall: 'bottom', pos: 0.3, width: 1.4 },
+                                { wall: 'bottom', pos: 0.7, width: 1.4 }
+                            ],
+                            doors: [
+                                { wall: 'top',   pos: 0.5, width: 1.0 }, // to staircase area
+                                { wall: 'right', pos: 0.5, width: 0.9 }  // to scullery
+                            ]
+                        },
+                        // ── Scullery / back kitchen (centre-rear) ──
+                        {
+                            name: 'Scullery', type: 'kitchen',
+                            width: 4, depth: 3.5, x: 16, z: 8,
+                            windows: [
+                                { wall: 'bottom', pos: 0.5, width: 0.8 }
+                            ],
+                            doors: [
+                                { wall: 'top',   pos: 0.5, width: 0.9 },
+                                { wall: 'right', pos: 0.5, width: 0.9 }
+                            ]
+                        },
+                        // ── Family / casual living (right-rear) ──
+                        {
+                            name: 'Family Room', type: 'living',
+                            width: 8, depth: 6, x: 20, z: 8,
+                            windows: [
+                                { wall: 'right',  pos: 0.4, width: 1.8 },
+                                { wall: 'right',  pos: 0.75,width: 1.8 },
+                                { wall: 'bottom', pos: 0.5, width: 1.6 }
+                            ],
+                            doors: [
+                                { wall: 'top',  pos: 0.5, width: 1.0 }, // to library
+                                { wall: 'left', pos: 0.5, width: 0.9 }  // to scullery
+                            ]
+                        },
+                        // ── Guest WC (centre) ──
+                        {
+                            name: 'Guest WC', type: 'bathroom',
+                            width: 3, depth: 2.5, x: 11, z: 10,
+                            doors: [
+                                { wall: 'top', pos: 0.5, width: 0.8 }
+                            ]
+                        },
+                        // ── Service / utility wing (rear-strip) ──
+                        {
+                            name: 'Utility & Laundry', type: 'other',
+                            width: 8, depth: 4, x: 0, z: 14,
+                            windows: [
+                                { wall: 'left',   pos: 0.5, width: 1.0 },
+                                { wall: 'bottom', pos: 0.5, width: 1.0 }
+                            ],
+                            doors: [
+                                { wall: 'top',    pos: 0.5, width: 0.9 },
+                                { wall: 'bottom', pos: 0.5, width: 1.0 } // service entrance
+                            ]
+                        },
+                        // ── Staff / guest quarters (rear-right) ──
+                        {
+                            name: 'Staff Room', type: 'bedroom',
+                            width: 6, depth: 4, x: 20, z: 14,
+                            windows: [
+                                { wall: 'right',  pos: 0.5, width: 1.2 },
+                                { wall: 'bottom', pos: 0.5, width: 1.0 }
+                            ],
+                            doors: [
+                                { wall: 'top',  pos: 0.5, width: 0.9 },
+                                { wall: 'left', pos: 0.5, width: 0.8 }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    level: 2, name: 'First Floor', height: 3.5,
+                    rooms: [
+                        // ── Upper landing ──
+                        {
+                            name: 'Upper Landing', type: 'staircase',
+                            width: 6, depth: 4, x: 11, z: 0,
+                            doors: [
+                                { wall: 'left',   pos: 0.5, width: 1.0 },
+                                { wall: 'right',  pos: 0.5, width: 1.0 },
+                                { wall: 'bottom', pos: 0.5, width: 1.0 }
+                            ]
+                        },
+                        // ── Master suite (left-front) ──
+                        {
+                            name: 'Master Bedroom Suite', type: 'bedroom',
+                            width: 11, depth: 8, x: 0, z: 0,
+                            windows: [
+                                { wall: 'top',  pos: 0.25, width: 2.2 },
+                                { wall: 'top',  pos: 0.65, width: 2.2 },
+                                { wall: 'left', pos: 0.5,  width: 1.8 }
+                            ],
+                            doors: [
+                                { wall: 'right',  pos: 0.3, width: 1.0 }, // to landing
+                                { wall: 'bottom', pos: 0.25,width: 0.9 }, // to dressing room
+                                { wall: 'bottom', pos: 0.75,width: 0.9 }  // to master ensuite
+                            ]
+                        },
+                        // ── Dressing room ──
+                        {
+                            name: 'Dressing Room', type: 'other',
+                            width: 5, depth: 4, x: 0, z: 8,
+                            doors: [
+                                { wall: 'top',   pos: 0.5, width: 0.9 },
+                                { wall: 'right', pos: 0.5, width: 0.8 }
+                            ]
+                        },
+                        // ── Master ensuite ──
+                        {
+                            name: 'Master Ensuite', type: 'bathroom',
+                            width: 6, depth: 4, x: 5, z: 8,
+                            windows: [
+                                { wall: 'left',   pos: 0.5, width: 0.8 },
+                                { wall: 'bottom', pos: 0.5, width: 0.8 }
+                            ],
+                            doors: [
+                                { wall: 'top', pos: 0.5, width: 0.9 }
+                            ]
+                        },
+                        // ── Sitting room / upstairs lounge (right-front) ──
+                        {
+                            name: 'Sitting Room', type: 'living',
+                            width: 11, depth: 8, x: 17, z: 0,
+                            windows: [
+                                { wall: 'top',   pos: 0.25, width: 2.2 },
+                                { wall: 'top',   pos: 0.65, width: 2.2 },
+                                { wall: 'right', pos: 0.5,  width: 1.8 }
+                            ],
+                            doors: [
+                                { wall: 'left', pos: 0.3, width: 1.0 }
+                            ]
+                        },
+                        // ── Bedroom 2 with ensuite (left-rear) ──
+                        {
+                            name: 'Bedroom 2', type: 'bedroom',
+                            width: 8, depth: 6, x: 0, z: 12,
+                            windows: [
+                                { wall: 'left',   pos: 0.5, width: 1.6 },
+                                { wall: 'bottom', pos: 0.5, width: 1.6 }
+                            ],
+                            doors: [
+                                { wall: 'right', pos: 0.3, width: 0.9 },
+                                { wall: 'right', pos: 0.75,width: 0.8 }  // to ensuite
+                            ]
+                        },
+                        {
+                            name: 'Ensuite 2', type: 'bathroom',
+                            width: 3.5, depth: 3, x: 8, z: 12,
+                            doors: [{ wall: 'left', pos: 0.5, width: 0.8 }]
+                        },
+                        // ── Bedroom 3 with ensuite (centre-rear) ──
+                        {
+                            name: 'Bedroom 3', type: 'bedroom',
+                            width: 8, depth: 6, x: 11, z: 12,
+                            windows: [
+                                { wall: 'bottom', pos: 0.5, width: 1.6 }
+                            ],
+                            doors: [
+                                { wall: 'top',   pos: 0.3, width: 0.9 },
+                                { wall: 'right', pos: 0.7, width: 0.8 }
+                            ]
+                        },
+                        {
+                            name: 'Ensuite 3', type: 'bathroom',
+                            width: 3.5, depth: 3, x: 19, z: 12,
+                            doors: [{ wall: 'left', pos: 0.5, width: 0.8 }]
+                        },
+                        // ── Bedroom 4 with ensuite (right-rear) ──
+                        {
+                            name: 'Bedroom 4', type: 'bedroom',
+                            width: 5, depth: 6, x: 23, z: 12,
+                            windows: [
+                                { wall: 'right',  pos: 0.5, width: 1.4 },
+                                { wall: 'bottom', pos: 0.5, width: 1.2 }
+                            ],
+                            doors: [
+                                { wall: 'top',  pos: 0.5, width: 0.9 },
+                                { wall: 'left', pos: 0.7, width: 0.8 }
+                            ]
+                        },
+                        {
+                            name: 'Ensuite 4', type: 'bathroom',
+                            width: 3.5, depth: 3, x: 23, z: 9,
+                            doors: [{ wall: 'bottom', pos: 0.5, width: 0.8 }]
+                        }
+                    ]
+                }
+            ]
         }
     };
 
     const template = templates[templateType];
     if (!template) return;
+
+    // Ensure every room has doors/windows arrays (safety net)
+    if (template.floors) {
+        template.floors.forEach(floor => {
+            if (floor.rooms) {
+                floor.rooms.forEach(room => {
+                    if (!room.doors)   room.doors   = [];
+                    if (!room.windows) room.windows = [];
+                    if (!room.height)  room.height  = floor.height || 2.8;
+                });
+            }
+        });
+    }
 
     try {
         showLoading('Creating from template...');
