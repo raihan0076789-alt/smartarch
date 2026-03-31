@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
    
     <style>
         /* ── Reset & Root ─────────────────────────────────────────────── */
@@ -817,7 +816,7 @@
 
         .footer-bottom a { color: var(--cyan); text-decoration: none; }
 
-        /* ── MODAL ────────────────────────────────────────────────────── */
+        /* ── MODAL (General Form Shared Styles) ────────────────────────── */
         .modal-overlay {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.75);
@@ -827,28 +826,6 @@
         }
 
         .modal-overlay.open { display: flex; }
-
-        .modal-box {
-            background: var(--ink-2);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: var(--r-lg);
-            width: 100%; max-width: 440px;
-            position: relative;
-            animation: modalIn 0.28s cubic-bezier(0.22,1,0.36,1);
-            overflow: hidden;
-        }
-
-        @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.94) translateY(-15px); }
-            to   { opacity: 1; transform: none; }
-        }
-
-        .modal-top {
-            height: 3px;
-            background: linear-gradient(90deg, var(--cyan), #3b82f6, #8b5cf6);
-        }
-
-        .modal-content-wrap { padding: 2rem; }
 
         .modal-header {
             display: flex; align-items: center; justify-content: space-between;
@@ -1334,7 +1311,7 @@
         .help-item-desc { color: var(--slate); font-size: 0.8rem; line-height: 1.5; }
         .help-item-arrow { color: var(--cyan); font-size: 1.1rem; display: flex; align-items: center; }
 
-        /* ── HELP MODAL HEADER OVERRIDE (scoped to user help modal) ────── */
+        /* ── HELP MODAL HEADER OVERRIDE ────── */
         #userHelpModal .modal-header {
             display: block;
             margin-bottom: 1.5rem;
@@ -1446,6 +1423,300 @@
         }
         .u-input-wrapper input::placeholder { color: var(--slate-2); }
         
+
+        /* ── SPLIT-SCREEN AUTH MODAL REDESIGN ─────────────────────────────── */
+        #authModal {
+            align-items: center;
+        }
+
+        #authModal .modal-box {
+            width: 75vw;
+            height: 80vh;
+            max-width: 1300px;
+            max-height: 850px;
+            display: flex;
+            flex-direction: row;
+            padding: 0;
+            background: rgba(13, 20, 36, 0.65);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.08);
+            overflow: hidden;
+        }
+
+        #authModal .modal-top {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            z-index: 10;
+        }
+
+        #authModal .modal-content-wrap {
+            padding: 0;
+            width: 100%;
+        }
+
+        .modal-left-pane {
+            width: 45%;
+            padding: 3rem 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: rgba(6, 10, 18, 0.85);
+            position: relative;
+            z-index: 2;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0,212,200,0.3) transparent;
+        }
+
+        .modal-left-pane::-webkit-scrollbar { width: 6px; }
+        .modal-left-pane::-webkit-scrollbar-track { background: transparent; }
+        .modal-left-pane::-webkit-scrollbar-thumb { background: rgba(0,212,200,0.3); border-radius: 10px; }
+        .modal-left-pane::-webkit-scrollbar-thumb:hover { background: rgba(0,212,200,0.5); }
+
+        /* MULTI-STEP FORM STYLES */
+        .form-step { display: none; animation: fadeInStep 0.3s ease; }
+        .form-step.active { display: block; }
+        @keyframes fadeInStep { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+        .step-indicator { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+        .step-dot { height: 4px; flex: 1; border-radius: 4px; background: rgba(255,255,255,0.1); transition: background 0.3s ease; }
+        .step-dot.active { background: var(--cyan); box-shadow: 0 0 8px rgba(0,212,200,0.4); }
+        .step-nav-btns { display: flex; gap: 10px; margin-top: 1rem; }
+        .step-nav-btns .btn-hero-outline { width: 50%; justify-content: center; }
+        .step-nav-btns .form-submit { width: 50%; margin-top: 0; }
+
+        /* Brand inside Left Pane */
+        .modal-brand {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 2.5rem;
+        }
+        .modal-brand .nav-logo {
+            width: 42px; height: 42px; font-size: 1.1rem;
+            box-shadow: 0 0 20px rgba(0,212,200,0.2);
+        }
+        .modal-brand span {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800; font-size: 1.4rem;
+            color: var(--white); letter-spacing: -0.5px;
+        }
+        .modal-brand em { font-style: normal; color: var(--cyan); }
+
+
+        /* ─── NEW RIGHT PANE 2D/3D PROJECT ANIMATION ────────────── */
+        .modal-right-pane {
+            width: 55%;
+            position: relative;
+            background: var(--ink-2);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-bg-grid {
+            position: absolute; inset: -50%; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(59,130,246,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,130,246,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            transform: perspective(800px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: gridMove 25s linear infinite;
+        }
+        @keyframes gridMove {
+            0% { transform: perspective(800px) rotateX(60deg) translateY(0) translateZ(-200px); }
+            100% { transform: perspective(800px) rotateX(60deg) translateY(400px) translateZ(-200px); }
+        }
+
+        /* Project HUD Floating Overlays */
+        .project-hud {
+            position: absolute;
+            z-index: 10;
+            background: rgba(13, 20, 36, 0.45);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            pointer-events: none;
+        }
+        .hud-top-left {
+            top: 25px; left: 25px;
+            border-left: 3px solid var(--cyan);
+        }
+        .hud-bottom-right {
+            bottom: 25px; right: 25px;
+            text-align: right;
+            border-right: 3px solid #3b82f6;
+        }
+        .hud-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.85rem; font-weight: 800;
+            color: var(--white);
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .hud-line {
+            font-family: 'monospace';
+            font-size: 0.75rem;
+            color: var(--slate);
+            margin-bottom: 4px;
+        }
+        .hud-line strong { color: var(--cyan); font-weight: normal; }
+        .hud-bar {
+            width: 100%; height: 3px; background: rgba(255,255,255,0.1);
+            margin-top: 8px; border-radius: 3px; overflow: hidden;
+        }
+        .hud-fill {
+            height: 100%; background: var(--cyan); width: 0%;
+            animation: hudLoad 6s infinite;
+        }
+        @keyframes hudLoad { 0% {width: 0%;} 80% {width: 100%;} 100% {width: 100%;} }
+
+        /* The 3D Scene Wrapper */
+        .ai-arch-scene {
+            position: relative;
+            width: 400px; height: 400px;
+            transform-style: preserve-3d;
+            transform: rotateX(60deg) rotateZ(45deg);
+            z-index: 2;
+        }
+
+        /* Connecting Lines (2D ground to 3D house) */
+        .proj-line {
+            position: absolute;
+            width: 1.5px;
+            background: linear-gradient(to top, rgba(0,212,200,0.8), transparent);
+            transform-origin: top left;
+            transform: translateZ(-80px) rotateX(-90deg);
+            height: 100px; /* Bridge between base and hover model */
+            opacity: 0.6;
+            box-shadow: 0 0 10px rgba(0,212,200,0.5);
+            animation: pulseProj 2s ease-in-out infinite alternate;
+        }
+        @keyframes pulseProj { 0% { opacity: 0.2; } 100% { opacity: 0.8; } }
+
+        /* Detailed 2D Blueprint (Ground Layer) */
+        .blueprint-base {
+            position: absolute;
+            width: 100%; height: 100%;
+            transform: translateZ(-80px);
+            background: rgba(10, 20, 40, 0.7); /* Blueprint blue tint */
+            border: 2px solid rgba(0, 212, 200, 0.6);
+            box-shadow: 0 0 30px rgba(0, 212, 200, 0.3), inset 0 0 40px rgba(0, 212, 200, 0.2);
+            overflow: hidden;
+        }
+
+        /* Blueprint SVG styling */
+        .blueprint-base svg {
+            width: 100%; height: 100%;
+            opacity: 0.8;
+        }
+        .blueprint-base svg path, .blueprint-base svg rect, .blueprint-base svg line {
+            stroke: rgba(0, 212, 200, 0.8);
+            stroke-width: 1.5;
+            fill: none;
+        }
+        .blueprint-base text {
+            fill: rgba(0, 212, 200, 0.9);
+            font-size: 8px;
+            font-family: 'monospace';
+            font-weight: 600;
+        }
+
+        /* 3D Floating House Model */
+        .arch-3d-model {
+            position: absolute;
+            width: 100%; height: 100%;
+            transform-style: preserve-3d;
+            animation: modelHover 5s ease-in-out infinite;
+        }
+        @keyframes modelHover {
+            0%, 100% { transform: translateZ(20px); }
+            50% { transform: translateZ(50px); }
+        }
+         
+        /* Wireframe Planes & Pillars */
+        .wire-plane {
+            position: absolute;
+            border: 1.5px solid #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+            box-shadow: inset 0 0 15px rgba(59, 130, 246, 0.2), 0 0 8px rgba(59, 130, 246, 0.3);
+            transform-style: preserve-3d;
+        }
+        .wire-pillar {
+            position: absolute;
+            width: 1.5px;
+            background: #3b82f6;
+            transform-origin: top left;
+            transform: rotateX(-90deg);
+            box-shadow: 0 0 8px #3b82f6;
+        }
+
+        /* First Floor Structure */
+        .floor1-base { width: 80%; height: 75%; left: 10%; top: 15%; transform: translateZ(0); }
+        .floor1-top  { width: 80%; height: 75%; left: 10%; top: 15%; transform: translateZ(60px); }
+        /* Pillars for Floor 1 (height: 60px) */
+        .f1-p1 { left: 10%; top: 15%; height: 60px; }
+        .f1-p2 { left: 90%; top: 15%; height: 60px; }
+        .f1-p3 { left: 10%; top: 90%; height: 60px; }
+        .f1-p4 { left: 90%; top: 90%; height: 60px; }
+
+        /* Second Floor Structure (Modern Offset) */
+        .floor2-base { width: 50%; height: 60%; left: 10%; top: 30%; transform: translateZ(60px); border-color: #8b5cf6; box-shadow: inset 0 0 15px rgba(139,92,246,0.2), 0 0 8px rgba(139,92,246,0.3);}
+        .floor2-top  { width: 50%; height: 60%; left: 10%; top: 30%; transform: translateZ(110px); border-color: #8b5cf6; box-shadow: inset 0 0 15px rgba(139,92,246,0.2), 0 0 8px rgba(139,92,246,0.3);}
+        /* Pillars for Floor 2 (height: 50px, starting at Z=60px) */
+        .f2-p1 { left: 10%; top: 30%; height: 50px; transform: translateZ(60px) rotateX(-90deg); background: #8b5cf6; box-shadow: 0 0 8px #8b5cf6; }
+        .f2-p2 { left: 60%; top: 30%; height: 50px; transform: translateZ(60px) rotateX(-90deg); background: #8b5cf6; box-shadow: 0 0 8px #8b5cf6; }
+        .f2-p3 { left: 10%; top: 90%; height: 50px; transform: translateZ(60px) rotateX(-90deg); background: #8b5cf6; box-shadow: 0 0 8px #8b5cf6; }
+        .f2-p4 { left: 60%; top: 90%; height: 50px; transform: translateZ(60px) rotateX(-90deg); background: #8b5cf6; box-shadow: 0 0 8px #8b5cf6; }
+
+        /* Attached Carport/Garage */
+        .garage-top { width: 30%; height: 40%; left: 60%; top: 15%; transform: translateZ(40px); border-color: #3b82f6;}
+        .g-p1 { left: 90%; top: 15%; height: 40px; background: #3b82f6;}
+        .g-p2 { left: 90%; top: 55%; height: 40px; background: #3b82f6;}
+         /* Floating Close Button for Auth Modal */
+        .auth-modal-close-floating {
+            position: absolute;
+            top: 35px;
+            right: 45px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--slate);
+            font-size: 1.25rem;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2005; /* Ensures it stays above the overlay grid */
+        }
+
+        .auth-modal-close-floating:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--white);
+            border-color: var(--cyan);
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 212, 200, 0.3);
+        }
+
+        @media (max-width: 1024px) {
+            .auth-modal-close-floating {
+                top: 15px; right: 15px;
+                width: 38px; height: 38px;
+                font-size: 1rem;
+            }
+        }
+                @media (max-width: 1024px) {
+            #authModal .modal-box { width: 90vw; height: 85vh; flex-direction: column; }
+            .modal-left-pane { width: 100%; padding: 2.5rem 2rem; }
+            .modal-right-pane { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -1468,7 +1739,6 @@
         <a href="contact.html" class="nav-link">Contact</a>
     </div>
 
-    <!-- Auth state: logged out -->
     <div class="nav-right">
         <div class="nav-auth" id="navAuth">
             <button class="btn-ghost" onclick="showLogin()">Login</button>
@@ -1477,7 +1747,6 @@
             </button>
         </div>
 
-        <!-- Auth state: logged in -->
         <div class="nav-user" id="navUser">
             <a href="dashboard.html" class="btn-ghost">
                 <i class="fas fa-rocket"></i> Dashboard
@@ -1520,7 +1789,7 @@
     </div>
 </div>
 
-<!-- ═══ TICKER ════════════════════════════════════════════════════════════════ -->
+<!-- ═══ TICKER ───────────────────────────────────────────────────────────── -->
 <div class="ticker-bar">
     <div class="ticker-track">
         <div class="ticker-item"><span class="ticker-dot">●</span> AI Floor Plan Generation</div>
@@ -1530,7 +1799,6 @@
         <div class="ticker-item"><span class="ticker-dot">●</span> JWT Authentication</div>
         <div class="ticker-item"><span class="ticker-dot">●</span> Real-time Analytics</div>
         <div class="ticker-item"><span class="ticker-dot">●</span> Project Collaboration</div>
-        <!-- duplicate for seamless loop -->
         <div class="ticker-item"><span class="ticker-dot">●</span> AI Floor Plan Generation</div>
         <div class="ticker-item"><span class="ticker-dot">●</span> 3D Visualization Engine</div>
         <div class="ticker-item"><span class="ticker-dot">●</span> Node.js + Express Backend</div>
@@ -1541,7 +1809,7 @@
     </div>
 </div>
 
-<!-- ═══ HERO ══════════════════════════════════════════════════════════════════ -->
+<!-- ═══ HERO ─────────────────────────────────────────────────────────────── -->
 <section class="hero">
     <div class="hero-content">
         <div class="hero-eyebrow">
@@ -1596,8 +1864,7 @@
                 <!-- Outer walls -->
                 <rect x="40" y="40" width="420" height="300" stroke="rgba(0,212,200,0.6)" stroke-width="2.5" fill="none" class="draw-line"/>
                 <!-- Interior walls -->
-                <!-- <line x1="220" y1="40" x2="220" y2="220" stroke="rgba(0,212,200,0.5)" stroke-width="1.5"/> -->
-                 <line x1="220" y1="40" x2="220" y2="220" stroke="rgba(0,212,200,0.5)" stroke-width="1.5" class="draw-line draw-delay-1"/>
+                <line x1="220" y1="40" x2="220" y2="220" stroke="rgba(0,212,200,0.5)" stroke-width="1.5" class="draw-line draw-delay-1"/>
                 <line x1="220" y1="220" x2="460" y2="220" stroke="rgba(0,212,200,0.5)" stroke-width="1.5" class="draw-line draw-delay-2"/>
                 <line x1="40" y1="180" x2="220" y2="180" stroke="rgba(0,212,200,0.5)" stroke-width="1.5" class="draw-line draw-delay-3"/>
                 <line x1="330" y1="40" x2="330" y2="220" stroke="rgba(0,212,200,0.4)" stroke-width="1.5" class="draw-line draw-delay-4"/>
@@ -1646,7 +1913,7 @@
     </div>
 </section>
 
-<!-- ═══ FEATURES ══════════════════════════════════════════════════════════════ -->
+<!-- ═══ FEATURES ─────────────────────────────────────────────────────────── -->
 <section class="section" id="features">
     <div class="section-header">
         <div class="section-eyebrow">Platform Capabilities</div>
@@ -1686,13 +1953,6 @@
             <p class="feat-desc">Secure user registration and login with bcrypt password hashing and JWT tokens. Three role levels — user, architect, and admin — with route-level access control.</p>
         </div>
 
-        <!-- <div class="feat-card reveal reveal-delay-5">
-            <div class="feat-icon c5"><i class="fas fa-tachometer-alt"></i></div>
-            <div class="feat-tag">Administration</div>
-            <div class="feat-title">Admin Dashboard & Analytics</div>
-            <p class="feat-desc">A full-featured admin panel with real-time stats, user/project management, growth charts, activity feeds, and top contributors — all protected by admin-only middleware.</p>
-        </div> -->
-
         <div class="feat-card reveal reveal-delay-6">
             <div class="feat-icon c6"><i class="fas fa-magic"></i></div>
             <div class="feat-tag">Intelligence</div>
@@ -1716,7 +1976,7 @@
     </div>
 </section>
 
-<!-- ═══ HOW IT WORKS ══════════════════════════════════════════════════════════ -->
+<!-- ═══ HOW IT WORKS ─────────────────────────────────────────────────────── -->
 <section class="workflow-section" id="workflow">
     <div style="max-width:1400px; margin:0 auto">
         <div class="section-eyebrow reveal">System Workflow</div>
@@ -1785,7 +2045,7 @@
     </div>
 </section>
 
-<!-- ═══ CTA ════════════════════════════════════════════════════════════════════ -->
+<!-- ═══ CTA ──────────────────────────────────────────────────────────────── -->
 <section class="cta-section">
     <div class="cta-box reveal">
         <div class="cta-glow"></div>
@@ -1802,7 +2062,7 @@
     </div>
 </section>
 
-<!-- ═══ FOOTER ════════════════════════════════════════════════════════════════ -->
+<!-- ═══ FOOTER ───────────────────────────────────────────────────────────── -->
 <footer class="footer">
     <div class="footer-inner">
         <div>
@@ -1833,172 +2093,306 @@
     </div>
 </footer>
 
-<!-- ═══ LOGIN MODAL ════════════════════════════════════════════════════════════ -->
+<!-- ═══ LOGIN MODAL (REDESIGNED FULLSCREEN SPLIT) ════════════════════════ -->
 <div class="modal-overlay" id="authModal" onclick="handleModalOverlayClick(event)">
+        <!-- NEW FLOATING CLOSE BUTTON -->
+    <button class="auth-modal-close-floating" onclick="closeModal()">
+        <i class="fas fa-times"></i>
+    </button>
+
     <div class="modal-box">
         <div class="modal-top"></div>
-        <div class="modal-content-wrap">
-
-            <!-- LOGIN FORM -->
-            <div id="loginFormWrap">
-                <div class="modal-header">
-                    <div class="modal-title">Welcome Back</div>
-                    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-                </div>
-                <form id="loginFormElement" onsubmit="handleLogin(event)">
-                    <div class="form-group">
-                        <label class="form-label">Email Address</label>
-                        <div class="form-input-wrap">
-                            <span class="form-input-icon"><i class="fas fa-envelope"></i></span>
-                            <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Password</label>
-                        <!-- <div class="form-input-wrap">
-                            <span class="form-input-icon"><i class="fas fa-lock"></i></span>
-                            <input type="password" id="loginPassword" class="form-input" placeholder="Your password" required>
-                            </div> -->
-                            <div class="form-input-wrap password-wrap">
-                            <span class="form-input-icon"><i class="fas fa-lock"></i></span>
-
-                            <input 
-                                type="password" 
-                                id="loginPassword" 
-                                class="form-input" 
-                                placeholder="Your password" 
-                                required
-                                onfocus="showEye(this)"
-                                onblur="hideEye(this)"
-                            >
-
-                            <span class="toggle-eye hidden-eye" onclick="togglePassword('loginPassword', this)"  onmousedown="preventBlur(event)">
-                                <i class="fas fa-eye"></i>
-                            </span>
-                        </div>
-                            <div style="text-align:right;margin-top:6px">
-                        <a href="#" id="userForgotPasswordLink" style="font-size:13px;color:#00d4c8; text-decoration: none;">
-                            Need help signing in?
-                        </a>
-                    </div>
-                    </div>
-                 <button type="submit" class="form-submit">
-                   <i class="fas fa-sign-in-alt"></i> Sign In
-                    </button>
-                    <div class="auth-divider">
-                    <span>OR</span></div>
-                <!-- Google renders its button here; fallback shown if GSI not configured -->
-                <div id="googleBtnContainer" style="display:flex;justify-content:center;min-height:44px;margin-top:-50px;"></div>
-                <button type="button" id="googleFallbackBtn" onclick="loginWithGoogle()" class="form-submit" style="display:none;background:transparent;color:#fffdfd;border:1px solid #ddd">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" style="width:18px;height:18px;"> Continue with Google
-                </button>
-                
-                </form>
-                <p class="form-switch">Don't have an account? <a href="#" onclick="showRegister()">Sign up free</a></p>
+        
+        <!-- LEFT PANE: FORMS -->
+        <div class="modal-left-pane">
+            <!-- Glassmorphism Brand Header -->
+            <div class="modal-brand">
+                <div class="nav-logo"><i class="fas fa-home"></i></div>
+                <span class="nav-brand-text">Smart<em> Arch</em></span>
             </div>
 
-            <!-- REGISTER FORM -->
-            <div id="registerFormWrap" style="display:none">
-                <div class="modal-header">
-                    <div class="modal-title">Create Account</div>
-                    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-content-wrap">
+                <!-- EXACT ORIGINAL LOGIN FORM -->
+                <div id="loginFormWrap">
+                    <div class="modal-header">
+                        <div class="modal-title">Welcome Back</div>
+                    </div>
+                    <form id="loginFormElement" onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <div class="form-input-wrap">
+                                <span class="form-input-icon"><i class="fas fa-envelope"></i></span>
+                                <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <div class="form-input-wrap password-wrap">
+                                <span class="form-input-icon"><i class="fas fa-lock"></i></span>
+                                <input 
+                                    type="password" 
+                                    id="loginPassword" 
+                                    class="form-input" 
+                                    placeholder="Your password" 
+                                    required
+                                    onfocus="showEye(this)"
+                                    onblur="hideEye(this)"
+                                >
+                                <span class="toggle-eye hidden-eye" onclick="togglePassword('loginPassword', this)"  onmousedown="preventBlur(event)">
+                                    <i class="fas fa-eye"></i>
+                                </span>
+                            </div>
+                            <div style="text-align:right;margin-top:6px">
+                                <a href="#" id="userForgotPasswordLink" style="font-size:13px;color:#00d4c8; text-decoration: none;">
+                                    Need help signing in?
+                                </a>
+                            </div>
+                        </div>
+                        <button type="submit" class="form-submit">
+                            <i class="fas fa-sign-in-alt"></i> Sign In
+                        </button>
+                        <div class="auth-divider">
+                            <span>OR</span>
+                        </div>
+                        <div id="googleBtnContainer" style="display:flex;justify-content:center;min-height:44px;margin-top:-50px;"></div>
+                        <button type="button" id="googleFallbackBtn" onclick="loginWithGoogle()" class="form-submit" style="display:none;background:transparent;color:#fffdfd;border:1px solid #ddd">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" style="width:18px;height:18px;"> Continue with Google
+                        </button>
+                    </form>
+                    <p class="form-switch">Don't have an account? <a href="#" onclick="showRegister()">Sign up free</a></p>
                 </div>
-                <form id="registerFormElement" onsubmit="handleRegister(event)">
-                    <div class="form-group">
-                        <label class="form-label">Full Name</label>
-                        <div class="form-input-wrap">
-                            <span class="form-input-icon"><i class="fas fa-user"></i></span>
-                            <input type="text" id="registerName" class="form-input" placeholder="John Doe" required>
-                        </div>
+
+                <!-- 3-STEP MULTI-STEP REGISTER FORM -->
+                <div id="registerFormWrap" style="display:none">
+                    <div class="modal-header">
+                        <div class="modal-title">Create Account</div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Email Address</label>
-                        <div class="form-input-wrap">
-                            <span class="form-input-icon"><i class="fas fa-envelope"></i></span>
-                            <input type="email" id="registerEmail" class="form-input" placeholder="your@email.com" required>
-                        </div>
+
+                    <!-- Step Indicators -->
+                    <div class="step-indicator">
+                        <div class="step-dot active" id="dot1"></div>
+                        <div class="step-dot" id="dot2"></div>
+                        <div class="step-dot" id="dot3"></div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Password</label>
-                        <div class="form-input-wrap">
-                            <span class="form-input-icon"><i class="fas fa-lock"></i></span>
-                            <input type="password" id="registerPassword" class="form-input"
-                                placeholder="R7#X!3mK@9pV4" required minlength="8"
-                                oninput="checkRegisterStrength(this.value)">
-                            <button type="button" onclick="toggleRegisterPw(this)"
-                                style="position:absolute;right:0.875rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--slate-2);cursor:pointer;font-size:0.85rem;">
-                                <i class="fas fa-eye"></i>
+
+                    <!-- IMPORTANT: The single form wrapper that natively submits to handleRegister(event) -->
+                    <form id="registerFormElement" onsubmit="handleRegister(event)">
+                        
+                        <!-- STEP 1: Basic Info & Google -->
+                        <div class="form-step active" id="step1">
+                            <div class="form-group">
+                                <label class="form-label">Full Name</label>
+                                <div class="form-input-wrap">
+                                    <span class="form-input-icon"><i class="fas fa-user"></i></span>
+                                    <input type="text" id="registerName" class="form-input" placeholder="John Doe" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email Address</label>
+                                <div class="form-input-wrap">
+                                    <span class="form-input-icon"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" id="registerEmail" class="form-input" placeholder="your@email.com" required>
+                                </div>
+                            </div>
+                            
+                            <button type="button" class="form-submit" onclick="goToStep(2)">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </button>
+                            
+                            <div class="auth-divider"><span>OR</span></div>
+                            <div id="googleBtnContainer2" style="display:flex;justify-content:center;min-height:44px;margin-top:-50px;"></div>
+                            <button type="button" id="googleFallbackBtn2" onclick="loginWithGoogle()" class="form-submit" style="display:none;background:transparent;color:#fffdfd;border:1px solid #ddd">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" style="width:18px;height:18px;"> Continue with Google
                             </button>
                         </div>
-                        <div id="strengthWrap" style="margin-top:0.6rem;display:none;">
-                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:5px;">
-                                <div id="rbar1" style="height:4px;border-radius:99px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
-                                <div id="rbar2" style="height:4px;border-radius:99px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
-                                <div id="rbar3" style="height:4px;border-radius:99px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
-                                <div id="rbar4" style="height:4px;border-radius:99px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
+
+                        <!-- STEP 2: Password Setup -->
+                        <div class="form-step" id="step2">
+                            <div class="form-group">
+                                <label class="form-label">Password</label>
+                                <div class="form-input-wrap">
+                                    <span class="form-input-icon"><i class="fas fa-lock"></i></span>
+                                    <input type="password" id="registerPassword" class="form-input"
+                                        placeholder="R7#X!3mK@9pV4" required minlength="8"
+                                        oninput="checkRegisterStrength(this.value)">
+                                    <button type="button" onclick="toggleRegisterPw(this)"
+                                        style="position:absolute;right:0.875rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--slate-2);cursor:pointer;font-size:0.85rem;">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div id="strengthWrap" style="margin-top:0.6rem;display:none;">
+                                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:5px;">
+                                        <div id="rbar1" style="height:4px;border-radius:99px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
+                                        <div id="rbar2" style="height:4px;border-radius:99px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
+                                        <div id="rbar3" style="height:4px;border-radius:99px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
+                                        <div id="rbar4" style="height:4px;border-radius:99px;background:rgba(255,255,255,0.1);transition:background 0.3s;"></div>
+                                    </div>
+                                    <div id="rStrengthLabel" style="font-size:0.75rem;font-weight:600;color:var(--slate-2);display:flex;align-items:center;gap:5px;margin-bottom:4px;">Enter a password</div>
+                                    <button type="button" class="tips-btn" onclick="toggleTips()">Password tips <i class="fas fa-info-circle"></i></button>
+                                    <!-- Password Tips Popup -->
+                                    <div id="passwordTips" class="tips-popup">
+                                        <h4>Password tips</h4>
+                                        <div style="display:flex;flex-direction:column;gap:3px;">
+                                            <div id="rrule-len"   style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> Min 8 characters</div>
+                                            <div id="rrule-upper" style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 uppercase (A-Z)</div>
+                                            <div id="rrule-lower" style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 lowercase (a-z)</div>
+                                            <div id="rrule-num"   style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 number (0-9)</div>
+                                            <div id="rrule-sym"   style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 special char (@#!$%...)</div>
+                                        </div>
+                                        <h5>What to avoid</h5>
+                                        <ul>
+                                            <li style="font-size:0.72rem;color:var(--slate-2);align-items:center;gap:5px;">Common passwords, words and names</li>
+                                            <li style="font-size:0.72rem;color:var(--slate-2);align-items:center;gap:5px;">Recent dates or dates associated with you</li>
+                                            <li style="font-size:0.72rem;color:var(--slate-2);align-items:center;gap:5px;">Simple patterns and repeated text</li>
+                                        </ul>
+                                        <button type="button" class="close-btn" onclick="toggleTips()">Close</button>
+                                    </div>
+                                </div>
                             </div>
-                             <div id="rStrengthLabel" style="font-size:0.75rem;font-weight:600;color:var(--slate-2);display:flex;align-items:center;gap:5px;margin-bottom:4px;">Enter a password</div>
-                              <button type="button" class="tips-btn" onclick="toggleTips()">Password tips <i class="fas fa-info-circle"></i></button>
-                              <!-- Password Tips Popup -->
-                                <div id="passwordTips" class="tips-popup">
-                                <h4>Password tips</h4>
-                                
-                                <div style="display:flex;flex-direction:column;gap:3px;">
-                                <div id="rrule-len"   style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> Min 8 characters</div>
-                                <div id="rrule-upper" style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 uppercase (A-Z)</div>
-                                <div id="rrule-lower" style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 lowercase (a-z)</div>
-                                <div id="rrule-num"   style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 number (0-9)</div>
-                                <div id="rrule-sym"   style="font-size:0.72rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;"><i class="fas fa-circle" style="font-size:0.55rem;"></i> At least 1 special char (@#!$%...)</div>
+                            <div class="form-group">
+                                <label class="form-label">Confirm Password</label>
+                                <!-- Error message -->
+                                <div id="confirmError" style="color:#ef4444;font-size:0.75rem;margin-bottom:4px;display:none;">
+                                    Passwords do not match
                                 </div>
-                                <h5>What to avoid</h5>
-
-                                <ul>
-                                    <li style="font-size:0.72rem;color:var(--slate-2);align-items:center;gap:5px;">Common passwords, words and names</li>
-                                    <li style="font-size:0.72rem;color:var(--slate-2);align-items:center;gap:5px;">Recent dates or dates associated with you</li>
-                                    <li style="font-size:0.72rem;color:var(--slate-2);align-items:center;gap:5px;">Simple patterns and repeated text</li>
-                                </ul>
-                                <button class="close-btn" onclick="toggleTips()">Close</button>
+                                <div class="form-input-wrap">
+                                    <span class="form-input-icon"><i class="fas fa-lock"></i></span>
+                                    <input type="password" id="confirmPassword" class="form-input"
+                                        placeholder="Re-enter your password" required>
+                                    <span class="toggle-eye" onclick="togglePassword('confirmPassword', this)">
+                                        <i class="fas fa-eye"></i></span>
                                 </div>
+                            </div>
+                            
+                            <div class="step-nav-btns">
+                                <button type="button" class="btn-hero-outline" onclick="goToStep(1)">
+                                    <i class="fas fa-arrow-left"></i> Back
+                                </button>
+                                <button type="button" class="form-submit" onclick="goToStep(3)">
+                                    Next <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                    <label class="form-label">Confirm Password</label>
 
-                    <!-- Error message (professional style) -->
-                    <div id="confirmError" style="color:#ef4444;font-size:0.75rem;margin-bottom:4px;display:none;">
-                        Passwords do not match
-                    </div>
-                    <div class="form-input-wrap">
-                        <span class="form-input-icon"><i class="fas fa-lock"></i></span>
-                        <input type="password" id="confirmPassword" class="form-input"
-                            placeholder="Re-enter your password" required>
-                            <!-- 👁 ADD THIS -->
-                            <span class="toggle-eye" onclick="togglePassword('confirmPassword', this)">
-                                <i class="fas fa-eye"></i></span>
-                    </div>
+                        <!-- STEP 3: Company (Optional) & Submit -->
+                        <div class="form-step" id="step3">
+                            <div class="form-group" >
+                                <label class="form-label">Company <span style="color:var(--slate-2)">(Optional)</span></label>
+                                <div class="form-input-wrap">
+                                    <span class="form-input-icon"><i class="fas fa-building"></i></span>
+                                    <input type="text" id="registerCompany" class="form-input" placeholder="Your company name">
+                                </div>
+                            </div>
+                            
+                            <div class="step-nav-btns">
+                                <button type="button" class="btn-hero-outline" onclick="goToStep(2)">
+                                    <i class="fas fa-arrow-left"></i> Back
+                                </button>
+                                <button type="submit" class="form-submit">
+                                    <i class="fas fa-user-plus"></i> Create Account
+                                </button>
+                            </div>
+                        </div>
+
+                    </form>
+                    <p class="form-switch">Already have an account? <a href="#" onclick="showLogin()">Sign in</a></p>
                 </div>
-                    <div class="form-group" >
-                        <label class="form-label">Company <span style="color:var(--slate-2)">(Optional)</span></label>
-                        <div class="form-input-wrap">
-                            <span class="form-input-icon"><i class="fas fa-building"></i></span>
-                            <input type="text" id="registerCompany" class="form-input" placeholder="Your company name">
-                        </div>
-                    </div>
-                    <button type="submit" class="form-submit">
-                        <i class="fas fa-user-plus"></i> Create Account
-                    </button>
-                    <div class="auth-divider"><span>OR</span></div>
-                    <div id="googleBtnContainer2" style="display:flex;justify-content:center;min-height:44px;margin-top:-50px;"></div>
-                    <button type="button" id="googleFallbackBtn2" onclick="loginWithGoogle()" class="form-submit" style="display:none;background:transparent;color:#fffdfd;border:1px solid #ddd">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" style="width:18px;height:18px;"> Continue with Google
-                    </button>
-                </form>
-                <p class="form-switch">Already have an account? <a href="#" onclick="showLogin()">Sign in</a></p>
+            </div>
+        </div>
+
+        <!-- ── NEW RIGHT PANE: 2D TO 3D BLUEPRINT/WIREFRAME THEME ── -->
+        <div class="modal-right-pane">
+            <!-- Dynamic Background Grid -->
+            <div class="auth-bg-grid"></div>
+
+            <!-- Project Specific HUD Information Elements -->
+            <div class="project-hud hud-top-left">
+                <div class="hud-title">SMARTARCH AI</div>
+               <div class="hud-line"><strong>Engine:</strong> Ollama llama3 · BSP Layout</div>
+                <div class="hud-line"><strong>Output:</strong> 2D Floor Plan + 3D Model</div>
+                <div class="hud-line"><strong>Status:</strong> <span style="color:#10b981;">● AI Generation Active</span></div>
             </div>
 
+          <div class="project-hud hud-bottom-right">
+                <div class="hud-title">REAL-TIME PROCESSING</div>
+                <div class="hud-bar"><div class="hud-fill"></div></div>
+                <div class="hud-line" style="margin-top:5px; color:var(--cyan);" id="hudDynamicText">Initializing Engine...</div>
+            </div>
 
+            <!-- The 3D Animated Showcase -->
+            <div class="ai-arch-scene">
+                
+                <!-- Vertical Scanning connection lines between blueprint and house -->
+                <div class="proj-line" style="left:10%; top:15%;"></div>
+                <div class="proj-line" style="left:90%; top:15%;"></div>
+                <div class="proj-line" style="left:10%; top:90%;"></div>
+                <div class="proj-line" style="left:90%; top:90%;"></div>
 
+                <!-- Layer 1: Highly Detailed 2D Blueprint Base -->
+                <div class="blueprint-base">
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <!-- Custom grid pattern for blueprint -->
+                        <pattern id="bpGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+                            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(59, 130, 246, 0.3)" stroke-width="0.3"/>
+                        </pattern>
+                        <rect width="100" height="100" fill="url(#bpGrid)"/>
+                        
+                        <!-- Main Outer Walls -->
+                        <path d="M 5 5 L 95 5 L 95 95 L 5 95 Z" stroke="rgba(0, 212, 200, 0.9)" stroke-width="1.5" fill="none"/>
+                        <!-- Inner Structural Walls -->
+                        <path d="M 5 50 L 50 50 L 50 5 M 50 50 L 50 95 M 75 5 L 75 50 L 95 50 M 50 50 L 75 50 M 75 70 L 95 70 M 50 70 L 75 70" stroke="rgba(0, 212, 200, 0.8)" stroke-width="1" fill="none"/>
+                        <!-- Doors (Arcs) -->
+                        <path d="M 50 20 A 8 8 0 0 1 58 12" stroke="rgba(0, 212, 200, 0.6)" stroke-width="0.8" stroke-dasharray="1,1" fill="none"/>
+                        <path d="M 75 20 A 8 8 0 0 1 83 12" stroke="rgba(0, 212, 200, 0.6)" stroke-width="0.8" stroke-dasharray="1,1" fill="none"/>
+                        <path d="M 50 80 A 8 8 0 0 0 58 88" stroke="rgba(0, 212, 200, 0.6)" stroke-width="0.8" stroke-dasharray="1,1" fill="none"/>
+                        <!-- Furniture & Fixture Wireframes -->
+                        <rect x="15" y="15" width="20" height="12" stroke="rgba(0, 212, 200, 0.5)" stroke-width="0.5" fill="none"/> <!-- Kitchen Island -->
+                        <circle cx="20" cy="21" r="2" stroke="rgba(0, 212, 200, 0.5)" stroke-width="0.5" fill="none"/> <!-- Sink/Stove detail -->
+                        <circle cx="26" cy="21" r="2" stroke="rgba(0, 212, 200, 0.5)" stroke-width="0.5" fill="none"/>
+                        <rect x="60" y="15" width="12" height="15" stroke="rgba(0, 212, 200, 0.5)" stroke-width="0.5" fill="none"/> <!-- Bed -->
+                        <rect x="15" y="70" width="25" height="15" stroke="rgba(0, 212, 200, 0.5)" stroke-width="0.5" fill="none"/> <!-- Sofa -->
+                        <!-- Text Labels -->
+                        <text x="27" y="40" fill="rgba(0, 212, 200, 0.9)" font-size="5" font-family="monospace" text-anchor="middle">KITCHEN/LIVING</text>
+                        <text x="72" y="35" fill="rgba(0, 212, 200, 0.9)" font-size="5" font-family="monospace" text-anchor="middle">BEDROOM</text>
+                        <text x="62" y="85" fill="rgba(0, 212, 200, 0.9)" font-size="5" font-family="monospace" text-anchor="middle">BATH</text>
+                        <!-- Staircase -->
+                        <path d="M 85 10 L 95 10 M 85 15 L 95 15 M 85 20 L 95 20 M 85 25 L 95 25 M 85 30 L 95 30" stroke="rgba(0, 212, 200, 0.6)" stroke-width="0.5" fill="none"/>
+                    </svg>
+                </div>
+
+                <!-- Layer 2: Hovering 3D Modern House Wireframe -->
+                <div class="arch-3d-model">
+                    
+                    <!-- First Floor Walls -->
+                    <div class="wire-plane floor1-base"></div>
+                    <div class="wire-plane floor1-top">
+                        <!-- Internal grid mapping -->
+                        <div class="wire-grid"></div>
+                    </div>
+                    <!-- First Floor Pillars -->
+                    <div class="wire-pillar f1-p1"></div>
+                    <div class="wire-pillar f1-p2"></div>
+                    <div class="wire-pillar f1-p3"></div>
+                    <div class="wire-pillar f1-p4"></div>
+
+                    <!-- Second Floor (Offset structure for a modern architecture look) -->
+                    <div class="wire-plane floor2-base"></div>
+                    <div class="wire-plane floor2-top"></div>
+                    <!-- Second Floor Pillars -->
+                    <div class="wire-pillar f2-p1"></div>
+                    <div class="wire-pillar f2-p2"></div>
+                    <div class="wire-pillar f2-p3"></div>
+                    <div class="wire-pillar f2-p4"></div>
+
+                    <!-- Modern Overhang/Carport -->
+                    <div class="wire-plane garage-top"></div>
+                    <div class="wire-pillar g-p1"></div>
+                    <div class="wire-pillar g-p2"></div>
+
+                </div>
+            </div>
         </div>
+        
     </div>
 </div>
 
@@ -2054,6 +2448,7 @@
         </div>
     </div>
 </div>
+
 <!-- USER HELP MODAL (Need help signing in?) -->
 <div class="u-help-modal" id="userHelpModal">
     <div class="u-help-modal-content">
@@ -2330,22 +2725,77 @@ async function handleGoogleAccessToken(accessToken) {
     }
 }
 </script>
+
+<!-- Multi-Step Register Logic & Normal Modal Logic -->
 <script>
+    // ── Multi-Step Form Logic ───────────────────────────────────────────────
+    function goToStep(step) {
+        // Validation before allowing the user to proceed
+        if (step === 2) {
+            const nameEl = document.getElementById('registerName');
+            const emailEl = document.getElementById('registerEmail');
+            if (!nameEl.reportValidity() || !emailEl.reportValidity()) return;
+        }
+        
+        if (step === 3) {
+            const passEl = document.getElementById('registerPassword');
+            const confEl = document.getElementById('confirmPassword');
+            if (!passEl.reportValidity() || !confEl.reportValidity()) return;
+            
+            if (passEl.value !== confEl.value) {
+                document.getElementById('confirmError').style.display = 'block';
+                confEl.classList.add('invalid');
+                return; // Stop. Do not go to step 3.
+            } else {
+                document.getElementById('confirmError').style.display = 'none';
+                confEl.classList.remove('invalid');
+            }
+        }
+
+        // Hide all steps
+        document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+        
+        // Reset dot active states
+        document.querySelectorAll('.step-dot').forEach(el => el.classList.remove('active'));
+
+        // Show the targeted step
+        document.getElementById('step' + step).classList.add('active');
+        
+        // Fill dots up to current step
+        for (let i = 1; i <= step; i++) {
+            document.getElementById('dot' + i).classList.add('active');
+        }
+
+        // Scroll back to top of pane for smooth UX
+        const pane = document.querySelector('.modal-left-pane');
+        if (pane) pane.scrollTop = 0;
+    }
+
     function toggleTips() {
         const tips = document.getElementById("passwordTips");
         tips.style.display = tips.style.display === "block" ? "none" : "block";
     }
+    
     // ── Modal ──────────────────────────────────────────────────────────────────
     function showLogin() {
         document.getElementById('authModal').classList.add('open');
         document.getElementById('loginFormWrap').style.display = 'block';
         document.getElementById('registerFormWrap').style.display = 'none';
+        
+        const pane = document.querySelector('.modal-left-pane');
+        if (pane) pane.scrollTop = 0;
     }
 
     function showRegister() {
         document.getElementById('authModal').classList.add('open');
         document.getElementById('loginFormWrap').style.display = 'none';
         document.getElementById('registerFormWrap').style.display = 'block';
+        
+        // Reset wizard to step 1 every time modal opens
+        goToStep(1); 
+        
+        const pane = document.querySelector('.modal-left-pane');
+        if (pane) pane.scrollTop = 0;
     }
 
     function closeModal() {
@@ -2358,7 +2808,6 @@ async function handleGoogleAccessToken(accessToken) {
     document.getElementById('userForgotPasswordLink').addEventListener('click', function(e) {
         e.preventDefault();
         userHelpModal.classList.add('active');
-        // Always open on Reset Password tab
         userSwitchTabByName('reset');
     });
 
@@ -2571,8 +3020,6 @@ async function handleGoogleAccessToken(accessToken) {
 
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-    // ── Init ───────────────────────────────────────────────────────────────────
-
     // ── OTP Verification ───────────────────────────────────────────────────────
     var _verifyPendingEmail = '';
     var _otpTimer = null;
@@ -2784,46 +3231,49 @@ async function handleGoogleAccessToken(accessToken) {
 
        if (password === confirm) {
           confirmInput.classList.add('valid');
+          document.getElementById('confirmError').style.display = 'none';
        } else {
           confirmInput.classList.add('invalid');
+       }
     }
-}
 
     passwordInput.addEventListener('input', validatePasswords);
     confirmInput.addEventListener('input', validatePasswords);
 
     function togglePassword(inputId, el) {
-    const input = document.getElementById(inputId);
-    const icon = el.querySelector('i');
+        const input = document.getElementById(inputId);
+        const icon = el.querySelector('i');
 
-    if (input.type === "password") {
-        input.type = "text";
-        icon.classList.replace("fa-eye", "fa-eye-slash");
-    } else {
-        input.type = "password";
-        icon.classList.replace("fa-eye-slash", "fa-eye");
-    }
-}
-function showEye(input) {
-    const wrap = input.closest('.password-wrap');
-    const eye = wrap.querySelector('.toggle-eye');
-    if (eye) eye.classList.add('active');
-}
-
-function hideEye(input) {
-    const wrap = input.closest('.password-wrap');
-    const eye = wrap.querySelector('.toggle-eye');
-
-    setTimeout(() => {
-        // Only hide if focus is NOT inside the password wrapper
-        if (!wrap.contains(document.activeElement)) {
-            eye.classList.remove('active');
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.replace("fa-eye", "fa-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.replace("fa-eye-slash", "fa-eye");
         }
-    }, 100);
-}
-function preventBlur(e) {
-    e.preventDefault(); // prevents input blur when clicking eye
-}
+    }
+    
+    function showEye(input) {
+        const wrap = input.closest('.password-wrap');
+        const eye = wrap.querySelector('.toggle-eye');
+        if (eye) eye.classList.add('active');
+    }
+
+    function hideEye(input) {
+        const wrap = input.closest('.password-wrap');
+        const eye = wrap.querySelector('.toggle-eye');
+
+        setTimeout(() => {
+            // Only hide if focus is NOT inside the password wrapper
+            if (!wrap.contains(document.activeElement)) {
+                eye.classList.remove('active');
+            }
+        }, 100);
+    }
+    
+    function preventBlur(e) {
+        e.preventDefault(); // prevents input blur when clicking eye
+    }
 </script>
 <script>
 (function() {
@@ -2867,6 +3317,28 @@ function preventBlur(e) {
         populateDropdownHeader();
     }
 })();
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const hudText = document.getElementById('hudDynamicText');
+        const hudMessages = [
+            "Initializing Engine...",
+            "Mapping 2D Grid Coordinates...",
+            "Executing BSP Algorithm...",
+            "Extruding 3D Wireframe...",
+            "Estimating Material Costs...",
+            "Validating Spatial Integrity...",
+            "Preparing GLTF/OBJ Export..."
+        ];
+        let hudIndex = 0;
+        
+        if (hudText) {
+            setInterval(() => {
+                hudIndex = (hudIndex + 1) % hudMessages.length;
+                hudText.textContent = hudMessages[hudIndex];
+            }, 2500); // Changes the text every 2.5 seconds
+        }
+    });
 </script>
 </body>
 </html>
