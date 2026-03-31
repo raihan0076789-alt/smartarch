@@ -9,14 +9,14 @@
 const verifyEmailTemplate = (name, otp) => {
     const digits = otp.split('');
     const digitBoxes = digits.map(d =>
-        `<td style="padding:0 5px;">
-           <div style="width:44px;height:54px;background:#0a1628;border:1.5px solid rgba(0,212,200,0.35);border-radius:10px;
-                       display:flex;align-items:center;justify-content:center;
-                       font-size:1.6rem;font-weight:800;color:#00d4c8;font-family:'Courier New',monospace;
-                       text-align:center;line-height:54px;">
-             ${d}
-           </div>
-         </td>`
+    `<td style="padding:0 5px;">
+       <div style="width:44px;height:54px;background:#0a1628;border:1.5px solid rgba(0,212,200,0.35);border-radius:10px;
+                   display:block;margin:0 auto;
+                   font-size:1.6rem;font-weight:800;color:#00d4c8;font-family:'Courier New',monospace;
+                   text-align:center;line-height:54px;">
+         ${d}
+       </div>
+     </td>`
     ).join('');
 
     return `

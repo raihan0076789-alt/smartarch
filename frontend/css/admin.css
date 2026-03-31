@@ -868,3 +868,96 @@ tr:hover td{background:rgba(0,212,200,0.04);}
 .ais-rank.silver { background: rgba(148,163,184,.15); color: #475569; }
 .ais-rank.bronze { background: rgba(180,83,9,.1);    color: #92400e; }
 .ais-rank.other  { background: #f0f2f5; color: var(--gray); }
+/* ── Messages Section Fix ───────────────────────────────────────── */
+
+/* Filter dropdown */
+#ticketStatusFilter {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--white) !important;
+}
+#ticketStatusFilter option {
+    background: var(--ink-2);
+    color: var(--white);
+}
+
+/* Both panels (ticket list + ticket detail) */
+#page-messages .page-header {
+    background: transparent;
+}
+#page-messages > div > div,
+#ticketDetail {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border) !important;
+}
+
+/* Ticket list header bar */
+#page-messages [style*="padding:0.875rem"] {
+    background: var(--card-bg) !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+#page-messages [style*="padding:0.875rem"] span {
+    color: var(--white) !important;
+}
+
+/* Thread background */
+#tdThread {
+    background: var(--ink) !important;
+}
+
+/* Thread header */
+#ticketDetailContent > div:first-child {
+    background: var(--card-bg) !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+
+/* Subject & meta */
+#tdSubject { color: var(--white) !important; }
+#tdMeta    { color: var(--slate-2) !important; }
+
+/* Status select */
+#tdStatusSelect {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--white) !important;
+}
+#tdStatusSelect option {
+    background: var(--ink-2);
+    color: var(--white);
+}
+
+/* Reply box area */
+#ticketDetailContent > div:last-child {
+    background: var(--card-bg) !important;
+    border-top: 1px solid var(--border) !important;
+}
+
+/* Reply textarea */
+#replyBox {
+    background: var(--ink) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--white) !important;
+}
+#replyBox::placeholder { color: var(--slate-2) !important; }
+#replyBox:focus {
+    border-color: var(--cyan) !important;
+    box-shadow: 0 0 0 3px rgba(0,212,200,0.12) !important;
+}
+
+/* Send button */
+#page-messages button[onclick="sendAdminReply()"] {
+    background: linear-gradient(135deg, var(--cyan), #0891b2) !important;
+    color: var(--ink) !important;
+    box-shadow: 0 4px 12px rgba(0,212,200,0.3) !important;
+}
+
+/* Empty state */
+#ticketDetailEmpty { color: var(--slate) !important; }
+
+/* Page header — remove ghost duplicate */
+#page-messages .page-header h2.page-title,
+#page-messages .page-header p.page-subtitle {
+    display: none;
+}
+/* ─────────────────────────────────────────────────────────────── */
+

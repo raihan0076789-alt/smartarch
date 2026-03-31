@@ -1704,7 +1704,7 @@
             transform: rotate(90deg) scale(1.1);
             box-shadow: 0 0 20px rgba(0, 212, 200, 0.3);
         }
-
+       
         @media (max-width: 1024px) {
             .auth-modal-close-floating {
                 top: 15px; right: 15px;
@@ -1717,6 +1717,84 @@
             .modal-left-pane { width: 100%; padding: 2.5rem 2rem; }
             .modal-right-pane { display: none; }
         }
+        /* ── Blueprint Expand Modal Animation ─────────────────────────── */
+#authModal {
+    transition: opacity 0.3s ease;
+}
+
+#authModal .modal-box {
+    transform-origin: center center;
+    animation: none;
+}
+
+/* ── Blueprint Expand Modal Animation (No vertical line) ──────── */
+@keyframes blueprintExpand {
+    0% {
+        opacity: 0;
+        transform: scaleX(0.85) scaleY(0.92);
+        box-shadow: 0 0 0px rgba(0,212,200,0);
+    }
+    40% {
+        opacity: 0.7;
+        transform: scaleX(1.01) scaleY(0.98);
+        box-shadow: 0 0 60px rgba(0,212,200,0.35),
+                    inset 0 0 30px rgba(0,212,200,0.08);
+    }
+    70% {
+        opacity: 0.95;
+        transform: scaleX(0.995) scaleY(1.008);
+    }
+    88% {
+        transform: scaleX(1.003) scaleY(1.002);
+    }
+    100% {
+        opacity: 1;
+        transform: scaleX(1) scaleY(1);
+        box-shadow: 0 40px 100px rgba(0,0,0,0.8),
+                    inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+}
+
+@keyframes blueprintScanLine {
+    0%   { left: -5%; opacity: 1; }
+    100% { left: 110%; opacity: 0; }
+}
+
+@keyframes overlayFadeIn {
+    from { background: rgba(0,0,0,0); backdrop-filter: blur(0px); }
+    to   { background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); }
+}
+
+#authModal.opening {
+    animation: overlayFadeIn 0.5s ease forwards;
+}
+
+#authModal.opening .modal-box {
+    animation: blueprintExpand 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.blueprint-scan-line {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(0,212,200,0.9),
+        var(--cyan),
+        rgba(0,212,200,0.9),
+        transparent
+    );
+    box-shadow: 0 0 18px 4px rgba(0,212,200,0.6);
+    z-index: 9999;
+    pointer-events: none;
+    display: none;
+}
+
+#authModal.opening .blueprint-scan-line {
+    display: block;
+    animation: blueprintScanLine 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
     </style>
 </head>
 <body>
@@ -2096,6 +2174,7 @@
 <!-- ═══ LOGIN MODAL (REDESIGNED FULLSCREEN SPLIT) ════════════════════════ -->
 <div class="modal-overlay" id="authModal" onclick="handleModalOverlayClick(event)">
         <!-- NEW FLOATING CLOSE BUTTON -->
+         
     <button class="auth-modal-close-floating" onclick="closeModal()">
         <i class="fas fa-times"></i>
     </button>
@@ -2352,7 +2431,7 @@
                         <rect x="60" y="15" width="12" height="15" stroke="rgba(0, 212, 200, 0.5)" stroke-width="0.5" fill="none"/> <!-- Bed -->
                         <rect x="15" y="70" width="25" height="15" stroke="rgba(0, 212, 200, 0.5)" stroke-width="0.5" fill="none"/> <!-- Sofa -->
                         <!-- Text Labels -->
-                        <text x="27" y="40" fill="rgba(0, 212, 200, 0.9)" font-size="5" font-family="monospace" text-anchor="middle">KITCHEN/LIVING</text>
+                        <text x="27" y="40" fill="rgba(0, 212, 200, 0.9)" font-size="5" font-family="monospace" text-anchor="middle">LIVING</text>
                         <text x="72" y="35" fill="rgba(0, 212, 200, 0.9)" font-size="5" font-family="monospace" text-anchor="middle">BEDROOM</text>
                         <text x="62" y="85" fill="rgba(0, 212, 200, 0.9)" font-size="5" font-family="monospace" text-anchor="middle">BATH</text>
                         <!-- Staircase -->
@@ -2777,23 +2856,38 @@ async function handleGoogleAccessToken(accessToken) {
     }
     
     // ── Modal ──────────────────────────────────────────────────────────────────
-    function showLogin() {
-        document.getElementById('authModal').classList.add('open');
-        document.getElementById('loginFormWrap').style.display = 'block';
-        document.getElementById('registerFormWrap').style.display = 'none';
-        
-        const pane = document.querySelector('.modal-left-pane');
-        if (pane) pane.scrollTop = 0;
-    }
+   function showLogin() {
+    const modal = document.getElementById('authModal');
+    modal.classList.add('open');
+
+    // Trigger blueprint expand animation
+    modal.classList.remove('opening');
+    void modal.offsetWidth; // force reflow so animation restarts cleanly
+    modal.classList.add('opening');
+    setTimeout(() => modal.classList.remove('opening'), 750);
+
+    document.getElementById('loginFormWrap').style.display = 'block';
+    document.getElementById('registerFormWrap').style.display = 'none';
+
+    const pane = document.querySelector('.modal-left-pane');
+    if (pane) pane.scrollTop = 0;
+   }
 
     function showRegister() {
-        document.getElementById('authModal').classList.add('open');
+        const modal = document.getElementById('authModal');
+        modal.classList.add('open');
+
+        // Trigger blueprint expand animation
+        modal.classList.remove('opening');
+        void modal.offsetWidth; // force reflow so animation restarts cleanly
+        modal.classList.add('opening');
+        setTimeout(() => modal.classList.remove('opening'), 750);
+
         document.getElementById('loginFormWrap').style.display = 'none';
         document.getElementById('registerFormWrap').style.display = 'block';
-        
-        // Reset wizard to step 1 every time modal opens
-        goToStep(1); 
-        
+
+        goToStep(1);
+
         const pane = document.querySelector('.modal-left-pane');
         if (pane) pane.scrollTop = 0;
     }
