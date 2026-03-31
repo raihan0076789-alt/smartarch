@@ -1122,7 +1122,39 @@
         </div>
     </div>
 </div>
+<!-- ── Profile Setup Modal ─────────────────────────────────── -->
+<div class="modal" id="profileSetupModal">
+    <div class="modal-content">
+        <div class="modal-top-bar" style="background:linear-gradient(90deg,#3a7bd5,#00d4c8);"></div>
+        <div class="modal-inner">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-user-circle"></i> Complete Your Profile</div>
+            </div>
+            <p style="color:#94a3b8;font-size:0.9rem;margin:0 0 1.2rem;">Help others recognise you. You can always update this later in Settings.</p>
 
+            <!-- Avatar upload -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;margin-bottom:1.2rem;">
+                <img id="psModalAvatar" src="" alt="Avatar"
+                     style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #2d3651;background:#1a2035;">
+                <label style="cursor:pointer;color:#3a7bd5;font-size:0.85rem;">
+                    <i class="fas fa-camera"></i> Upload photo
+                    <input type="file" id="psAvatarInput" accept="image/*" style="display:none;" onchange="psHandleAvatar(event)">
+                </label>
+            </div>
+
+            <!-- Fields -->
+            <div style="display:flex;flex-direction:column;gap:0.8rem;">
+                <input type="tel" id="psPhone" class="form-control" placeholder="Phone number (e.g. +91 98765 43210)">
+                <input type="text" id="psCompany" class="form-control" placeholder="Company / Studio name">
+            </div>
+
+            <div class="modal-actions" style="margin-top:1.4rem;">
+                <button class="btn btn-ghost" onclick="psSkip()">Skip for now</button>
+                <button class="btn btn-primary" onclick="psSave()"><i class="fas fa-check"></i> Save & Continue</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="toast-container" id="toastContainer"></div>
 
 <script src="js/api.js?v=5"></script>
@@ -1244,6 +1276,109 @@ function togglePassword(inputId, icon) {
     }
 }
 
+
+
+// ── Profile Setup Modal ─────────────────────────────────────────
+(function () {
+    let psAvatarDataUrl = null;
+
+    async function checkAndShowProfileSetup() {
+        const userStr = localStorage.getItem('user');
+        if (!userStr) return;
+        const user = JSON.parse(userStr);
+        const uid = user.id || user._id;
+        if (!uid) return;
+
+        // Already done on this browser for this user → skip
+        if (localStorage.getItem('profileSetupDone_' + uid)) return;
+
+        // Show only if any field is missing
+        if (user.phone && user.avatar && user.company) {
+            localStorage.setItem('profileSetupDone_' + uid, 'true');
+            return;
+        }
+
+        // Pre-fill existing values
+        if (user.phone)   document.getElementById('psPhone').value   = user.phone;
+        if (user.company) document.getElementById('psCompany').value = user.company;
+
+        // Pre-fill avatar preview
+        const savedAvatar = localStorage.getItem('user_avatar_' + uid) || user.avatar;
+        const avatarEl = document.getElementById('psModalAvatar');
+        if (savedAvatar) {
+            avatarEl.src = savedAvatar;
+        } else {
+            avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=00d4c8&color=060a12&bold=true&size=80`;
+        }
+
+        document.getElementById('profileSetupModal').style.display = 'flex';
+    }
+
+    window.psHandleAvatar = function (event) {
+        const file = event.target.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB', 'error'); return; }
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            psAvatarDataUrl = e.target.result;
+            document.getElementById('psModalAvatar').src = psAvatarDataUrl;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.psSave = async function () {
+        const userStr = localStorage.getItem('user');
+        const user = JSON.parse(userStr);
+        const uid = user.id || user._id;
+        const phone   = document.getElementById('psPhone').value.trim();
+        const company = document.getElementById('psCompany').value.trim();
+
+        try {
+            showLoading('Saving profile...');
+            const payload = {};
+            if (phone)   payload.phone   = phone;
+            if (company) payload.company = company;
+            if (psAvatarDataUrl) payload.avatar = psAvatarDataUrl;
+
+            if (Object.keys(payload).length > 0) {
+                await api.updateProfile(payload);
+                // Update cached user object
+                Object.assign(user, payload);
+                localStorage.setItem('user', JSON.stringify(user));
+                // Save avatar to per-user key so dashboard-profile.js picks it up
+                if (psAvatarDataUrl) {
+                    localStorage.setItem('user_avatar_' + uid, psAvatarDataUrl);
+                    if (typeof setAllAvatars === 'function') setAllAvatars(psAvatarDataUrl);
+                }
+                loadUserInfo();
+            }
+
+            localStorage.setItem('profileSetupDone_' + uid, 'true');
+            hideLoading();
+            showToast('Profile updated!', 'success');
+        } catch (e) {
+            hideLoading();
+            showToast(e.message || 'Save failed', 'error');
+            return;
+        }
+        document.getElementById('profileSetupModal').style.display = 'none';
+    };
+
+    window.psSkip = function () {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            const uid = user.id || user._id;
+            if (uid) localStorage.setItem('profileSetupDone_' + uid, 'true');
+        }
+        document.getElementById('profileSetupModal').style.display = 'none';
+    };
+
+    // Run after DOMContentLoaded + slight delay to let loadUserInfo() finish
+    document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(checkAndShowProfileSetup, 800);
+    });
+})();
 </script>
 </body>
 </html>
