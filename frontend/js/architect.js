@@ -40,6 +40,20 @@ const ROOM_COLORS = {
   other:     { bg: 'rgba(180,180,180,0.25)', border: '#aaa',    hex: 0xaaaaaa, dot: '#aaa'    }
 };
 
+// Cost per m² (USD) by room type — used for real-time per-room cost estimation
+const ROOM_RATES = {
+  living:    1800,
+  bedroom:   1600,
+  bathroom:  2800,
+  kitchen:   3200,
+  dining:    1700,
+  office:    1900,
+  garage:     900,
+  staircase: 1400,
+  other:     1500
+};
+function getRoomRate(type){ return ROOM_RATES[type] || ROOM_RATES.other; }
+
 function snap(val) { const e = document.getElementById('snapEnabled'); return e && e.checked ? Math.round(val/snapSize)*snapSize : val; }
 function updateSnapSize() { snapSize = parseFloat(document.getElementById('snapSize').value)||1; }
 function el(id) { return document.getElementById(id); }
@@ -77,6 +91,7 @@ async function loadProject(){
     if(el('roofType'))el('roofType').value=projectData.specifications?.roofType||'pitched';
     if(projectData.style)setStyle(projectData.style,false);
     projectData.floors.forEach(f=>f.rooms.forEach(r=>{if(!r.doors)r.doors=[];if(!r.windows)r.windows=[];}));
+    if(projectData.budget&&el('budgetCapInput'))el('budgetCapInput').value=projectData.budget/1000;
     updateFloorTabs();renderRooms();updateInfoPanel();drawFloorPlan();hideLoading();
     if(typeof initReviewsPanel==='function') initReviewsPanel(projectId);
   }catch(e){hideLoading();showToast('Failed to load project','error');initNewProject();}
@@ -292,7 +307,7 @@ function handleMouseMove(e){
     if(!getOverlappingRooms(x,z,width,depth,selectedRoom).length){
       selectedRoom.x=x;selectedRoom.z=z;selectedRoom.width=width;selectedRoom.depth=depth;
     }
-    drawFloorPlan();showRoomProperties(selectedRoom);markUnsaved();
+    drawFloorPlan();showRoomProperties(selectedRoom);updateInfoPanel();markUnsaved();
   }else if(isDragging&&selectedRoom){
     const scale=getScale();
     const dx=(mx-dragStart.x)/scale,dz=(my-dragStart.y)/scale;
@@ -707,7 +722,7 @@ function showRoomProperties(room){
       <div class="form-group"><label>Z (m)</label><input type="number" value="${room.z.toFixed(1)}" step="0.5" onchange="updateRoomProp('z',parseFloat(this.value))"></div>
     </div>
     <div class="form-group"><label>Ceiling (m)</label><input type="number" value="${room.height||2.7}" min="2" max="6" step="0.1" onchange="updateRoomProp('height',parseFloat(this.value))"></div>
-    <div style="margin:0.4rem 0;padding:0.4rem;background:rgba(255,255,255,0.05);border-radius:5px;font-size:0.7rem;color:#8899bb;">Area: ${(room.width*room.depth).toFixed(1)}m&sup2; &middot; Doors: ${(room.doors||[]).length} &middot; Windows: ${(room.windows||[]).length}</div>
+    <div style="margin:0.4rem 0;padding:0.4rem;background:rgba(255,255,255,0.05);border-radius:5px;font-size:0.7rem;color:#8899bb;">Area: ${(room.width*room.depth).toFixed(1)}m&sup2; &middot; Doors: ${(room.doors||[]).length} &middot; Windows: ${(room.windows||[]).length} &middot; <span style="color:#a8c4ff;">Est: $${((room.width*room.depth*getRoomRate(room.type))/1000).toFixed(1)}k</span></div>
     <div style="display:flex;gap:6px;margin-top:4px;">
       <button class="zoom-btn" style="flex:1;font-size:0.7rem;" onclick="clearRoomDoors()">Clear Doors</button>
       <button class="zoom-btn" style="flex:1;font-size:0.7rem;" onclick="clearRoomWindows()">Clear Windows</button>
@@ -717,7 +732,7 @@ function hideRoomProperties(){const c=el('roomProperties');if(c)c.innerHTML='<p 
 function updateRoomProp(prop,val){
   if(!selectedRoom)return;selectedRoom[prop]=val;
   if(['width','depth','x','z'].includes(prop)){selectedRoom.width=Math.max(1,selectedRoom.width);selectedRoom.depth=Math.max(1,selectedRoom.depth);selectedRoom.x=Math.max(0,Math.min(projectData.totalWidth-selectedRoom.width,selectedRoom.x));selectedRoom.z=Math.max(0,Math.min(projectData.totalDepth-selectedRoom.depth,selectedRoom.z));}
-  renderRooms();drawFloorPlan();markUnsaved();
+  renderRooms();drawFloorPlan();updateInfoPanel();markUnsaved();
 }
 
 function updateProjectSettings(){
@@ -804,20 +819,134 @@ function updateFloorIsoButtons(){
 function updateInfoPanel(){
   if(!projectData)return;
   const allRooms=projectData.floors.flatMap(f=>f.rooms);
-  const area=allRooms.reduce((s,r)=>s+r.width*r.depth,0);
   const totalArea=projectData.totalWidth*projectData.totalDepth*projectData.floors.length;
-  const cost=area*1800;
+
+  // Per-room cost using type-specific rates
+  const totalCost=allRooms.reduce((s,r)=>s+r.width*r.depth*getRoomRate(r.type),0);
+
   if(el('totalArea'))el('totalArea').textContent=totalArea.toFixed(0);
   if(el('roomCount'))el('roomCount').textContent=allRooms.length;
   if(el('floorCount'))el('floorCount').textContent=projectData.floors.length;
-  if(el('estimatedCost'))el('estimatedCost').textContent='$'+(cost/1000).toFixed(0)+'k';
+  if(el('estimatedCost'))el('estimatedCost').textContent='$'+(totalCost/1000).toFixed(0)+'k';
+
   const bd=el('costBreakdown');
   if(bd){
     if(allRooms.length===0){bd.innerHTML='<p class="empty-msg">Add rooms to see estimate</p>';return;}
-    const items=[['Foundation (15%)',0.15],['Structure (35%)',0.35],['Exterior (15%)',0.15],['Interior Finish (25%)',0.25],['Utilities (10%)',0.10]];
-    bd.innerHTML=items.map(([n,p])=>`<div class="cost-item"><span>${n}</span><span>$${(cost*p/1000).toFixed(0)}k</span></div>`).join('')+`<div class="cost-item"><span><strong>Total</strong></span><span><strong>$${(cost/1000).toFixed(0)}k</strong></span></div>`;
+
+    // Group rooms by type for the breakdown table
+    const byType={};
+    allRooms.forEach(r=>{
+      const t=r.type||'other';
+      if(!byType[t])byType[t]={area:0,cost:0,count:0};
+      const a=r.width*r.depth;
+      byType[t].area+=a;
+      byType[t].cost+=a*getRoomRate(t);
+      byType[t].count++;
+    });
+
+    const label=t=>t.charAt(0).toUpperCase()+t.slice(1);
+    const rows=Object.entries(byType)
+      .sort((a,b)=>b[1].cost-a[1].cost)
+      .map(([t,d])=>{
+        const pct=totalCost>0?((d.cost/totalCost)*100).toFixed(0):0;
+        return `<div class="cost-item">
+          <span>${label(t)} <span style="color:var(--text-dim);font-size:0.7rem">${d.count > 1 ? '×'+d.count+' · ' : ''}${d.area.toFixed(1)}m²</span></span>
+          <span>$${(d.cost/1000).toFixed(0)}k <span style="color:var(--text-dim);font-size:0.7rem">${pct}%</span></span>
+        </div>`;
+      }).join('');
+
+    bd.innerHTML=rows+`<div class="cost-item"><span><strong>Total</strong></span><span><strong>$${(totalCost/1000).toFixed(0)}k</strong></span></div>`;
   }
   if(typeof updateOverlapBtn==='function')updateOverlapBtn();
+  updateBudgetProgress();
+}
+
+// ── BUDGET CAP ──────────────────────────────────────────────────────────────
+function updateBudgetCap(val){
+  if(!projectData)return;
+  const capK=parseFloat(val)||0;
+  projectData.budget=capK>0?capK*1000:null;  // store as full dollars internally
+  updateBudgetProgress();
+  markUnsaved();
+}
+
+function updateBudgetProgress(){
+  const wrap=el('budgetProgressWrap');
+  const fill=el('budgetProgressFill');
+  const usedLbl=el('budgetUsedLabel');
+  const remLbl=el('budgetRemainLabel');
+  if(!wrap||!fill||!usedLbl||!remLbl||!projectData)return;
+
+  const cap=projectData.budget||0;
+  if(!cap){wrap.style.display='none';return;}
+
+  const allRooms=projectData.floors.flatMap(f=>f.rooms);
+  const used=allRooms.reduce((s,r)=>s+r.width*r.depth*getRoomRate(r.type),0);
+  const pct=Math.min((used/cap)*100,100);
+  const remain=cap-used;
+
+  wrap.style.display='block';
+  fill.style.width=pct.toFixed(1)+'%';
+  fill.classList.toggle('warn',pct>=75&&pct<100);
+  fill.classList.toggle('over',pct>=100);
+
+  usedLbl.textContent='$'+(used/1000).toFixed(0)+'k used';
+  usedLbl.style.color=pct>=100?'var(--danger)':pct>=75?'var(--warning)':'var(--text-muted)';
+  if(remain>=0){
+    remLbl.textContent='$'+(remain/1000).toFixed(0)+'k remaining';
+    remLbl.style.color=remain<cap*0.25?'var(--warning)':'var(--text-muted)';
+  }else{
+    remLbl.textContent='+$'+(Math.abs(remain)/1000).toFixed(0)+'k over budget';
+    remLbl.style.color='var(--danger)';
+  }
+}
+
+// ── EDITABLE RATES ───────────────────────────────────────────────────────────
+const DEFAULT_RATES={living:1800,bedroom:1600,bathroom:2800,kitchen:3200,dining:1700,office:1900,garage:900,staircase:1400,other:1500};
+
+function toggleRatesPanel(){
+  const panel=el('ratesPanel');
+  const chevron=el('ratesChevron');
+  if(!panel)return;
+  const open=panel.style.display==='none';
+  panel.style.display=open?'block':'none';
+  if(chevron)chevron.classList.toggle('open',open);
+  if(open)renderRatesGrid();
+}
+
+function renderRatesGrid(){
+  const grid=el('ratesGrid');if(!grid)return;
+  const dots={living:'#5b7cfa',bedroom:'#38ef7d',bathroom:'#56ccf2',kitchen:'#ffc107',dining:'#9c88ff',office:'#74b9ff',garage:'#828c9b',staircase:'#ff9632',other:'#aaa'};
+  const labels={living:'Living',bedroom:'Bedroom',bathroom:'Bathroom',kitchen:'Kitchen',dining:'Dining',office:'Office',garage:'Garage',staircase:'Staircase',other:'Other'};
+  grid.innerHTML=Object.keys(DEFAULT_RATES).map(type=>`
+    <div class="rate-row">
+      <span class="rate-label">
+        <span class="rate-dot" style="background:${dots[type]}"></span>
+        ${labels[type]}
+      </span>
+      <div class="rate-input-wrap">
+        <span>$/m²</span>
+        <input type="number" min="100" max="99999" step="50"
+               value="${getRoomRate(type)}"
+               onchange="setRate('${type}',parseFloat(this.value)||${DEFAULT_RATES[type]})">
+      </div>
+    </div>`).join('');
+}
+
+function setRate(type,val){
+  ROOM_RATES[type]=Math.max(100,Math.round(val));
+  updateInfoPanel();
+  updateBudgetProgress();
+  if(selectedRoom)showRoomProperties(selectedRoom);
+  markUnsaved();
+}
+
+function resetRates(){
+  Object.keys(DEFAULT_RATES).forEach(t=>ROOM_RATES[t]=DEFAULT_RATES[t]);
+  renderRatesGrid();
+  updateInfoPanel();
+  updateBudgetProgress();
+  if(selectedRoom)showRoomProperties(selectedRoom);
 }
 
 async function saveProject(){

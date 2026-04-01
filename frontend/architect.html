@@ -655,10 +655,45 @@
                 </div>
             </div>
 
-            <!-- Cost Breakdown -->
+            <!-- Cost Breakdown + Budget Tracker -->
             <div class="sbar-section">
                 <div class="sbar-header"><i class="fas fa-receipt"></i> Cost Breakdown</div>
+
+                <!-- Budget cap row -->
+                <div class="budget-cap-row">
+                    <label class="budget-cap-label"><i class="fas fa-wallet"></i> Budget cap</label>
+                    <div class="budget-cap-input-wrap">
+                        <span class="budget-currency">$k</span>
+                        <input type="number" id="budgetCapInput" placeholder="e.g. 300" min="0" step="10"
+                               oninput="updateBudgetCap(this.value)">
+                    </div>
+                </div>
+
+                <!-- Budget progress bar (only shows when budget cap is set) -->
+                <div class="budget-progress-wrap" id="budgetProgressWrap" style="display:none">
+                    <div class="budget-progress-bar">
+                        <div class="budget-progress-fill" id="budgetProgressFill"></div>
+                    </div>
+                    <div class="budget-progress-labels">
+                        <span id="budgetUsedLabel">$0k used</span>
+                        <span id="budgetRemainLabel">$0k left</span>
+                    </div>
+                </div>
+
+                <!-- Per-room cost breakdown -->
                 <div id="costBreakdown"><p class="empty-msg">Add rooms to see estimate</p></div>
+
+                <!-- Editable rates toggle -->
+                <button class="rates-toggle-btn" id="ratesToggleBtn" onclick="toggleRatesPanel()">
+                    <i class="fas fa-sliders-h"></i> Edit rates
+                    <i class="fas fa-chevron-down rates-chevron" id="ratesChevron"></i>
+                </button>
+                <!-- Rates editor (collapsed by default) -->
+                <div class="rates-panel" id="ratesPanel" style="display:none">
+                    <div class="rates-note">Cost per m² (USD) by room type. Changes apply immediately.</div>
+                    <div class="rates-grid" id="ratesGrid"></div>
+                    <button class="rates-reset-btn" onclick="resetRates()"><i class="fas fa-undo"></i> Reset to defaults</button>
+                </div>
             </div>
 
             <!-- Quick Actions -->
