@@ -102,7 +102,8 @@ function setupNavigation() {
                 templates: 'Project Templates',
                 analytics: 'Analytics',
                 settings:  'Settings',
-                messages:  'My Messages'
+                messages:  'My Messages',
+                Guide:     'How to Use'
             };
             const headerEl = document.getElementById('headerTitle');
             if (headerEl) headerEl.textContent = headers[section] || section;
@@ -127,7 +128,6 @@ function setupNavigation() {
             if (section === 'messages') {
                 loadUserTickets();
             }
-
         });
     });
 }

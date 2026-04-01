@@ -166,11 +166,43 @@ function getDoorWindowAt(mx,my){
 
 // ── Measure tool state ───────────────────────────────────────
 let _measureStart=null,_measureEnd=null,_measureActive=false,_measureComplete=false;
+// ── Compass state ────────────────────────────────────────────
+let _compassAngle=0;
+const _COMPASS_DIRS=['N','E','S','W'];
+
+function _rotateFloorPlan90(){
+  if(!projectData)return;
+  const W=projectData.totalWidth, D=projectData.totalDepth;
+  projectData.floors.forEach(floor=>{
+    floor.rooms.forEach(room=>{
+      const oldX=room.x, oldZ=room.z, oldW=room.width, oldD=room.depth;
+      room.x     = oldZ;
+      room.z     = W - oldX - oldW;
+      room.width  = oldD;
+      room.depth  = oldW;
+    });
+  });
+  projectData.totalWidth = D;
+  projectData.totalDepth = W;
+  if(el('totalWidth'))el('totalWidth').value=D;
+  if(el('totalDepth'))el('totalDepth').value=W;
+  selectedRoom=null;
+  renderRooms();hideRoomProperties();updateInfoPanel();markUnsaved();
+}
 
 function handleMouseDown(e){
   if(currentView!=='2d')return;
   const rect=e.target.getBoundingClientRect();
   const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+  // ── Compass click ─────────────────────────────────────────
+  const _cc=el('floorplanCanvas');
+  const _ccx=_cc.width-40,_ccy=_cc.height-40;
+  if(Math.sqrt((mx-_ccx)**2+(my-_ccy)**2)<=22){
+    _compassAngle=(_compassAngle+90)%360;
+    _rotateFloorPlan90();
+    showToast(`North → ${_COMPASS_DIRS[_compassAngle/90]} (${_compassAngle}°)`,'info');
+    drawFloorPlan();return;
+  }
   if(currentTool==='measure'){
     if(_measureComplete){
       // A completed measurement is on screen — next click starts a fresh one
@@ -227,6 +259,11 @@ function handleMouseMove(e){
   const rect=e.target.getBoundingClientRect();
   const mx=e.clientX-rect.left,my=e.clientY-rect.top;
   const canvas=el('floorplanCanvas');
+  // ── Compass hover ─────────────────────────────────────────
+  const _ccx=canvas.width-40,_ccy=canvas.height-40;
+  const _over=Math.sqrt((mx-_ccx)**2+(my-_ccy)**2)<=22;
+  if(_over!==window._compassHover){window._compassHover=_over;canvas.style.cursor=_over?'pointer':'';drawFloorPlan();}
+  if(_over)return;
   // Live measure preview (only while actively placing second point)
   if(currentTool==='measure'&&_measureActive&&!_measureComplete&&_measureStart){
     _measureEnd=toWorld(mx,my);drawFloorPlan();return;
@@ -599,9 +636,39 @@ function drawPlacementPreview(mx,my,type){
 }
 
 function drawCompass(ctx,cx,cy,r,isDark){
-  ctx.save();ctx.strokeStyle=isDark?'rgba(255,255,255,0.3)':'rgba(0,0,0,0.2)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
-  ctx.fillStyle=isDark?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.4)';ctx.beginPath();ctx.moveTo(cx,cy-r+5);ctx.lineTo(cx-5,cy+4);ctx.lineTo(cx+5,cy+4);ctx.closePath();ctx.fill();
-  ctx.fillStyle='#5b7cfa';ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('N',cx,cy-r/2);ctx.restore();
+  const rad=_compassAngle*Math.PI/180;
+  const label=_COMPASS_DIRS[(_compassAngle/90)%4];
+  ctx.save();
+  // Background circle
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.fillStyle=isDark?'rgba(15,20,40,0.8)':'rgba(255,255,255,0.85)';ctx.fill();
+  ctx.strokeStyle=window._compassHover?'#5b7cfa':(isDark?'rgba(255,255,255,0.25)':'rgba(0,0,0,0.2)');
+  ctx.lineWidth=window._compassHover?2:1.5;ctx.stroke();
+  // Rotating arrows
+  ctx.translate(cx,cy);ctx.rotate(rad);
+  // North arrow — red
+  ctx.fillStyle='#ef4444';
+  ctx.beginPath();ctx.moveTo(0,-(r-5));ctx.lineTo(-4,1);ctx.lineTo(4,1);ctx.closePath();ctx.fill();
+  // South arrow — grey
+  ctx.fillStyle=isDark?'rgba(255,255,255,0.25)':'rgba(0,0,0,0.2)';
+  ctx.beginPath();ctx.moveTo(0,r-5);ctx.lineTo(-4,-1);ctx.lineTo(4,-1);ctx.closePath();ctx.fill();
+  ctx.restore();
+  // Direction label in centre
+  ctx.fillStyle=window._compassHover?'#5b7cfa':'#7aa0ff';
+  ctx.font='bold 8px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(label,cx,cy);
+  // Hover tooltip
+  if(window._compassHover){
+    const tip=`Click to rotate (${_compassAngle}°)`;
+    ctx.font='10px Inter,sans-serif';
+    const tw=ctx.measureText(tip).width+14;
+    const tx=Math.min(cx,ctx.canvas?ctx.canvas.width-tw/2-4:cx);
+    ctx.fillStyle=isDark?'rgba(15,20,40,0.9)':'rgba(255,255,255,0.95)';
+    ctx.strokeStyle='rgba(91,124,250,0.5)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.roundRect(tx-tw/2,cy-r-26,tw,18,4);ctx.fill();ctx.stroke();
+    ctx.fillStyle=isDark?'#c0c8de':'#333';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(tip,tx,cy-r-17);
+  }
 }
 
 function renderRooms(){
