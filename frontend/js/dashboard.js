@@ -253,6 +253,7 @@ function renderProjects() {
                     <span><i class="fas fa-door-open"></i> ${project.metadata?.totalRooms || 0} rooms</span>
                     <span class="proj-rating-badge" id="rating-${project._id}">${ratingBadgeHtml(project)}</span>
                 </div>
+                ${estimatedCostBadgeHtml(project)}
                 <div class="project-actions" onclick="event.stopPropagation()">
                     <button class="btn btn-sm btn-primary" onclick="openProject('${project._id}')">
                         <i class="fas fa-edit"></i> Edit
@@ -309,6 +310,26 @@ function aiScoreStripHtml(project) {
     '</div>';
 }
 
+function estimatedCostBadgeHtml(project) {
+    const ROOM_RATES = {
+        living: 1800, bedroom: 1600, bathroom: 2800, kitchen: 3200,
+        dining: 1700, office: 1900, garage: 900, staircase: 1400, other: 1500
+    };
+    const allRooms = (project.floors || []).flatMap(f => f.rooms || []);
+    const cost = allRooms.length
+        ? allRooms.reduce((s, r) => s + r.width * r.depth * (ROOM_RATES[r.type] || 1500), 0)
+        : project.metadata?.estimatedCost;
+    if (!cost && cost !== 0) return '';
+    const formatted = cost >= 1000000
+        ? '$' + (cost / 1000000).toFixed(1) + 'M'
+        : '$' + Math.round(cost / 1000) + 'K';
+    return `<div class="est-cost-badge">
+        <i class="fas fa-dollar-sign"></i>
+        <span class="est-cost-label">Est. Cost</span>
+        <span class="est-cost-value">${formatted}</span>
+    </div>`;
+}
+
 function filterByStatus(status) {
     currentFilter = status;
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.filter === status));
@@ -350,6 +371,7 @@ function filterProjects() {
                     <span><i class="fas fa-door-open"></i> ${project.metadata?.totalRooms || 0} rooms</span>
                     <span class="proj-rating-badge" id="rating-${project._id}">${ratingBadgeHtml(project)}</span>
                 </div>
+                ${estimatedCostBadgeHtml(project)}
                 <div class="project-actions" onclick="event.stopPropagation()">
                     <button class="btn btn-sm btn-primary" onclick="openProject('${project._id}')">
                         <i class="fas fa-edit"></i> Edit
