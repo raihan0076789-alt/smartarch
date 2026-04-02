@@ -98,12 +98,13 @@ function setupNavigation() {
             if (secEl) secEl.classList.add('active');
 
             const headers = {
-                projects:  'My Projects',
-                templates: 'Project Templates',
-                analytics: 'Analytics',
-                settings:  'Settings',
-                messages:  'My Messages',
-                Guide:     'How to Use'
+                projects:     'My Projects',
+                templates:    'Project Templates',
+                analytics:    'Analytics',
+                settings:     'Settings',
+                messages:     'My Messages',
+                Guide:        'How to Use',
+                subscription: 'Subscription'
             };
             const headerEl = document.getElementById('headerTitle');
             if (headerEl) headerEl.textContent = headers[section] || section;
@@ -127,6 +128,9 @@ function setupNavigation() {
             }
             if (section === 'messages') {
                 loadUserTickets();
+            }
+            if (section === 'subscription') {
+                if (typeof loadSubscriptionStatus === 'function') loadSubscriptionStatus();
             }
         });
     });

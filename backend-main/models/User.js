@@ -40,6 +40,17 @@ const userSchema = new mongoose.Schema({
         defaultUnit: { type: String, enum: ['meters', 'feet'], default: 'meters' },
         autoSave: { type: Boolean, default: true }
     },
+    // ── Subscription ────────────────────────────────────────────────────────
+    plan: {
+        type: String,
+        enum: ['free', 'pro', 'enterprise'],
+        default: 'free'
+    },
+    planExpiresAt:          { type: Date, default: null },
+    razorpaySubscriptionId: { type: String, default: null },
+    aiMessagesUsed:         { type: Number, default: 0 },
+    aiMessagesResetAt:      { type: Date, default: null },
+    // ────────────────────────────────────────────────────────────────────────
     suspended: { type: Boolean, default: false },
     emailVerified:      { type: Boolean, default: false },
     emailOtp:           String,

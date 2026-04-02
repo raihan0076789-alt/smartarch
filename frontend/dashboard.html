@@ -297,6 +297,42 @@
 .input-error {
     border: 2px solid #ef4444 !important; /* red */
 }
+/* ── Subscription Section ───────────────────────────────────── */
+.sub-status-banner{display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#0d1f2d,#0a1628);border:1px solid rgba(0,212,200,0.18);border-radius:16px;padding:20px 24px;margin-bottom:28px;}
+.sub-plan-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+.sub-plan-badge.free{background:rgba(100,116,139,0.18);color:#94a3b8;}
+.sub-plan-badge.pro{background:rgba(0,212,200,0.15);color:#00d4c8;}
+.sub-plan-badge.enterprise{background:rgba(99,102,241,0.2);color:#a5b4fc;}
+.sub-status-info{flex:1;}
+.sub-status-info h3{margin:0 0 4px;font-size:1rem;font-weight:600;color:#f1f5f9;}
+.sub-status-info p{margin:0;font-size:0.82rem;color:#64748b;}
+.sub-ai-bar{display:flex;align-items:center;gap:10px;margin-top:8px;}
+.sub-ai-bar-track{flex:1;height:6px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden;}
+.sub-ai-bar-fill{height:100%;background:#00d4c8;border-radius:4px;transition:width .4s;}
+.sub-ai-bar-fill.warn{background:#f59e0b;}
+.sub-ai-bar-fill.danger{background:#ef4444;}
+.sub-ai-label{font-size:0.75rem;color:#64748b;white-space:nowrap;}
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;}
+@media(max-width:768px){.plans-grid{grid-template-columns:1fr;}}
+.plan-card{background:#0d1526;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px;transition:border-color .2s;}
+.plan-card:hover{border-color:rgba(0,212,200,0.25);}
+.plan-card.current{border-color:rgba(0,212,200,0.5);}
+.plan-card.featured{border-color:rgba(0,212,200,0.35);position:relative;}
+.plan-featured-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#00d4c8;color:#060a12;font-size:0.7rem;font-weight:700;padding:3px 12px;border-radius:20px;white-space:nowrap;}
+.plan-name{font-size:1.1rem;font-weight:600;color:#f1f5f9;margin:0;}
+.plan-price{font-size:2rem;font-weight:700;color:#f1f5f9;margin:0;line-height:1;}
+.plan-price span{font-size:0.85rem;font-weight:400;color:#64748b;}
+.plan-divider{border:none;border-top:1px solid rgba(255,255,255,0.07);margin:0;}
+.plan-features{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;}
+.plan-features li{display:flex;align-items:flex-start;gap:8px;font-size:0.83rem;color:#94a3b8;}
+.plan-features li.on{color:#e2e8f0;}
+.plan-features li .fi{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;margin-top:1px;}
+.plan-features li.on .fi{background:rgba(0,212,200,0.15);color:#00d4c8;}
+.plan-features li.off .fi{background:rgba(100,116,139,0.12);color:#475569;}
+.plan-btn{margin-top:auto;padding:10px;border-radius:10px;font-size:0.85rem;font-weight:500;cursor:pointer;transition:all .2s;border:1px solid rgba(0,212,200,0.4);background:transparent;color:#00d4c8;width:100%;}
+.plan-btn:hover:not(:disabled){background:rgba(0,212,200,0.1);}
+.plan-btn:disabled{opacity:.5;cursor:not-allowed;}
+.plan-btn.current-btn{border-color:rgba(100,116,139,0.3);color:#64748b;}
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 </head>
@@ -338,6 +374,9 @@
                 <span id="userMsgBadge" style="display:none;background:#ef4444;color:#fff;border-radius:20px;padding:1px 7px;font-size:0.68rem;font-weight:700;margin-left:auto;"></span>
             </button>
             <div class="nav-section-label">Account</div>
+            <button class="nav-item" data-section="subscription">
+                <i class="fas fa-crown"></i><span>Subscription</span>
+            </button>
             <button class="nav-item" data-section="settings">
                 <i class="fas fa-cog"></i><span>Settings</span>
             </button>
@@ -740,6 +779,91 @@
                     </div><!-- /chat-main -->
                 </div><!-- /chat-shell -->
             </div>
+
+            <!-- ── Subscription Section ─────────────────────────────────── -->
+            <div class="content-section" id="subscriptionSection">
+                <div class="section-header-row">
+                    <div>
+                        <div class="section-title">Subscription</div>
+                        <div class="section-subtitle">Manage your plan and billing</div>
+                    </div>
+                </div>
+
+                <!-- Current plan status banner -->
+                <div class="sub-status-banner" id="subStatusBanner">
+                    <div class="sub-status-info">
+                        <h3>Loading plan info…</h3>
+                        <p></p>
+                    </div>
+                </div>
+
+                <!-- Pricing cards -->
+                <div class="plans-grid">
+
+                    <!-- Free -->
+                    <div class="plan-card" id="planCard-free">
+                        <div>
+                            <p class="plan-name">Free</p>
+                            <p class="plan-price">₹0 <span>/ month</span></p>
+                        </div>
+                        <hr class="plan-divider">
+                        <ul class="plan-features">
+                            <li class="on"><span class="fi">✓</span>3 saved projects</li>
+                            <li class="on"><span class="fi">✓</span>2D floor plan editor</li>
+                            <li class="on"><span class="fi">✓</span>Basic room templates</li>
+                            <li class="on"><span class="fi">✓</span>10 AI messages / month</li>
+                            <li class="off"><span class="fi">–</span>3D visualization</li>
+                            <li class="off"><span class="fi">–</span>Export (OBJ / STL / GLTF)</li>
+                            <li class="off"><span class="fi">–</span>Multi-floor design</li>
+                            <li class="off"><span class="fi">–</span>Priority support</li>
+                        </ul>
+                        <button class="plan-btn current-btn" disabled id="planBtn-free">Current plan</button>
+                    </div>
+
+                    <!-- Pro -->
+                    <div class="plan-card featured" id="planCard-pro">
+                        <span class="plan-featured-badge">Most popular</span>
+                        <div>
+                            <p class="plan-name">Pro</p>
+                            <p class="plan-price">₹499 <span>/ month</span></p>
+                        </div>
+                        <hr class="plan-divider">
+                        <ul class="plan-features">
+                            <li class="on"><span class="fi">✓</span>20 saved projects</li>
+                            <li class="on"><span class="fi">✓</span>2D + 3D floor plan editor</li>
+                            <li class="on"><span class="fi">✓</span>All room templates</li>
+                            <li class="on"><span class="fi">✓</span>500 AI messages / month</li>
+                            <li class="on"><span class="fi">✓</span>3D visualization</li>
+                            <li class="on"><span class="fi">✓</span>Export (OBJ / STL / GLTF)</li>
+                            <li class="on"><span class="fi">✓</span>Multi-floor design</li>
+                            <li class="off"><span class="fi">–</span>Priority support</li>
+                        </ul>
+                        <button class="plan-btn" id="planBtn-pro" onclick="startUpgrade('pro')">Upgrade to Pro</button>
+                    </div>
+
+                    <!-- Enterprise -->
+                    <div class="plan-card" id="planCard-enterprise">
+                        <div>
+                            <p class="plan-name">Enterprise</p>
+                            <p class="plan-price">₹1,499 <span>/ month</span></p>
+                        </div>
+                        <hr class="plan-divider">
+                        <ul class="plan-features">
+                            <li class="on"><span class="fi">✓</span>Unlimited projects</li>
+                            <li class="on"><span class="fi">✓</span>2D + 3D floor plan editor</li>
+                            <li class="on"><span class="fi">✓</span>All room templates</li>
+                            <li class="on"><span class="fi">✓</span>Unlimited AI messages</li>
+                            <li class="on"><span class="fi">✓</span>3D visualization</li>
+                            <li class="on"><span class="fi">✓</span>Export (CAD / OBJ / STL / GLTF)</li>
+                            <li class="on"><span class="fi">✓</span>Multi-floor design</li>
+                            <li class="on"><span class="fi">✓</span>Priority support + SLA</li>
+                        </ul>
+                        <button class="plan-btn" id="planBtn-enterprise" onclick="startUpgrade('enterprise')">Upgrade to Enterprise</button>
+                    </div>
+
+                </div>
+            </div>
+            <!-- ── /Subscription Section ──────────────────────────────────── -->
 
             <div class="content-section" id="settingsSection">
                 <div class="section-header-row">
@@ -1161,11 +1285,13 @@
 </div>
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="js/api.js?v=5"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="js/api.js?v=6"></script>
 <script src="js/auth.js?v=5"></script>
 <script src="js/dashboard.js?v=4"></script>
 <script src="js/dashboard-charts.js"></script>
 <script src="js/dashboard-profile.js"></script>
+<script src="js/subscription.js?v=1"></script>
 <script>
 // ── Rating badge inline bootstrap (cache-safe) ──────────────────
 // Ensures rating badges work even if dashboard.js is stale-cached.

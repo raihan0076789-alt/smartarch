@@ -109,6 +109,11 @@ class API {
     async getAdminReviewStats()                          { return this.request('/reviews/admin/stats'); }
     async adminDeleteReview(reviewId)                    { return this.request(`/reviews/admin/${reviewId}`, { method: 'DELETE' }); }
 
+    // ── Subscriptions ─────────────────────────────
+    async getSubscriptionStatus()            { return this.request('/subscriptions/status'); }
+    async createSubscriptionOrder(plan)      { return this.request('/subscriptions/subscribe', { method: 'POST', body: JSON.stringify({ plan }) }); }
+    async verifySubscriptionPayment(payload) { return this.request('/subscriptions/verify',   { method: 'POST', body: JSON.stringify(payload) }); }
+
     // ── Models ────────────────────────────────────
     async generateFloorPlan(projectId)        { return this.request(`/models/${projectId}/floorplan`, { method: 'POST' }); }
     async generate3DModel(projectId)          { return this.request(`/models/${projectId}/3d`,        { method: 'POST' }); }

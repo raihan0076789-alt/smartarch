@@ -5,10 +5,11 @@ const { createProject, getProjects, getProject, updateProject, deleteProject, ad
 const { saveAIFeedback, getAIFeedback } = require('../controllers/feedbackController');
 const { protect } = require('../middleware/auth');
 const { validate, projectValidation, idValidation } = require('../middleware/validation');
+const { projectLimitGuard } = require('../middleware/planGuard');
 
 router.route('/')
     .get(protect, getProjects)
-    .post(protect, projectValidation, validate, createProject);
+    .post(protect, projectLimitGuard, projectValidation, validate, createProject);
 
 router.route('/:id')
     .get(protect, idValidation, validate, getProject)
